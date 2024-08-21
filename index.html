@@ -1,54 +1,50 @@
 <html>
   <head>
     <title> The Natural State Weather-An extensive forecast for most of Arkansas! </title>
-	  <style>
-      body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-      }
-
-      .topnav {
-        overflow: hidden;
-        background-color: #333;
-      }
-
-      .topnav a {
-        float: left;
-        color: #f2f2f2;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-      }
-
-      .topnav a:hover {
-        background-color: #ddd;
-        color: black;
-      }
-
-      .topnav a.active {
-        background-color: #04AA6D;
-        color: white;
-      }
-    </style>
   </head>
   <body>
-    <div class="topn
-			<a class=" weatherwidget-io" href="https://forecast7.com/en/34d75n92d29/little-rock/?unit=us" data-label_1="LITTLE ROCK" data-label_2="Weather Forecast:" data-icons="Climacons Animated" data-theme="pure">LITTLE ROCK Weather Forecast:</a>
-      <script>
-        ! function(d, s, id) {
-          var js, fjs = d.getElementsByTagName(s)[0];
-          if (!d.getElementById(id)) {
-            js = d.createElement(s);
+	<script>
+        (function(d, s, id) {
+            if (d.getElementById(id)) {
+                if (window.__TOMORROW__) {
+                    window.__TOMORROW__.renderWidget();
+                }
+                return;
+            }
+            const fjs = d.getElementsByTagName(s)[0];
+            const js = d.createElement(s);
             js.id = id;
-            js.src = 'https://weatherwidget.io/js/widget.min.js';
+            js.src = "https://www.tomorrow.io/v1/widget/sdk/sdk.bundle.min.js";
+
             fjs.parentNode.insertBefore(js, fjs);
-          }
-        }(document, 'script', 'weatherwidget-io-js');
-      </script>
+        })(document, 'script', 'tomorrow-sdk');
+        </script>
+
+        <div class="tomorrow"
+           data-location-id="121071"
+           data-language="EN"
+           data-unit-system="IMPERIAL"
+           data-skin="dark"
+           data-widget-type="upcoming"
+           style="padding-bottom:22px;position:relative;"
+        >
+          <a
+            href="https://www.tomorrow.io/weather-api/"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+            style="position: absolute; bottom: 0; transform: translateX(-50%); left: 50%;"
+          >
+            <img
+              alt="Powered by the Tomorrow.io Weather API"
+              src="https://weather-website-client.tomorrow.io/img/powered-by.svg"
+              width="250"
+              height="18"
+            />
+          </a>
+        </div>
       <H1>
         The Natural state Weather: An extensive forcast for most of Ar!
       </H1>
     </div>
-  </body>body>
+  </body>
 </html>
