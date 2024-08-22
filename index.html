@@ -38,18 +38,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">The Natural State Weather</div>
-        a extensive forecast for most of Arkansas
-        <h1>Weather Forecast</h1>
-        <div class="weather">
-            <h2 id="location">Welcome to The </h2>
-            <p id="description"></p>
-            <p id="temperature"></p>
-        </div>
-        <img id="radar" class="radar" src="" alt="Weather Radar">
-    </div>
-    <script>
+      <script>
         (function(d, s, id) {
             if (d.getElementById(id)) {
                 if (window.__TOMORROW__) {
@@ -62,7 +51,7 @@
             js.id = id;
             js.src = "https://www.tomorrow.io/v1/widget/sdk/sdk.bundle.min.js";
 
-            fjs.parentNode.insertBefore(js, fjs);
+            fjs.parentNode.insertBefore(js, fs);
         })(document, 'script', 'tomorrow-sdk');
         </script>
 
@@ -88,6 +77,17 @@
             />
           </a>
         </div>
+    <div class="container">
+        <div class="logo">The Natural State Weather</div>
+        a extensive forecast for most of Arkansas
+        <h1>Weather Forecast</h1>
+        <div class="weather">
+            <h2 id="location">Welcome to The </h2>
+            <p id="description"></p>
+            <p id="temperature"></p>
+        </div>
+        <img id="radar" class="radar" src="" alt="Weather Radar">
+    </div>
 </body>
 </html>
 
