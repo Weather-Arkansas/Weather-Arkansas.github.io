@@ -1,125 +1,99 @@
 <html>
-  <head>
-    <title>
-      Index of Weather forecast
-    </title>
-    <style>
-      body { background-color: teal;
-          text-decoration: none;
-          text-wrap: none;
-        }
-    </style>
-  </head>
-  <body>
-  <h1 align="center">Index Of Weather Forecasts:</h1>
-     <p>
-    <a href="./Little-Rock.html">Little Rock</a>
-    </p>
-     <p>
-    <a href="./alexander-ar.html">Alexander, Ar</a>
-    </p>
-     <p>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Create a column layout with Flexbox */
+.row {
+  display: flex;
+}
+
+/* Left column (menu) */
+.left {
+  flex: 100%;
+  padding: 15px 0;
+}
+
+.left h2 {
+  padding-left: 8px;
+}
+
+/* Right column (page content) */
+.right {
+  flex: 65%;
+  padding: 15px;
+}
+
+/* Style the search box */
+#mySearch {
+  width: 100%;
+  font-size: 18px;
+  padding: 11px;
+  border: 1px solid #ddd;
+}
+
+/* Style the navigation menu inside the left column */
+#myMenu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#myMenu li a {
+  padding: 12px;
+  text-decoration: none;
+  color: black;
+  display: block
+}
+
+#myMenu li a:hover {
+  background-color: #eee;
+}
+</style>
+</head>
+<body>
+
+<h2>Weather-AR search</h2>
+<p>Type in the name of your city to see if it is here. If your city is not here, it might not have a weather station.</p>
+
+<div class="row">
+  <div class="left" style="background-color:#bbb;">
+    <h2>Find your city's Weather!</h2>
+    <input type="text" id="mySearch" onkeyup="myFunction()" placeholder="Search..." title="Type in a category">
+    <ul id="myMenu">
+      <li>
     <a href="./alma-ar.html">Alma, Ar</a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-     <p>
-    <a href=""></a>
-    </p>
-    
-  </body>
+                                                         <li><a href="./Little-Rock.html">Little Rock, Ar</a>   </li>
+   <li>
+  
+  <div class="right" style="background-color:fff;">
+    <p>Look for your weather...</p>
+</div>
+
+<script>
+function myFunction() {
+  var input, filter, ul, li, a, i;
+  input = document.getElementById("mySearch");
+  filter = input.value.toUpperCase();
+  ul = document.getElementById("myMenu");
+  li = ul.getElementsByTagName("li");
+  for (i = 0; i < li.length; i++) {
+    a = li[i].getElementsByTagName("a")[0];
+    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      li[i].style.display = "";
+    } else {
+      li[i].style.display = "none";
+    }
+  }
+}
+</script>
+
+</body>
 </html>
