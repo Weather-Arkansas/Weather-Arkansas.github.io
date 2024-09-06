@@ -110,6 +110,7 @@
             color: #000; /* Black text color */
             font-family: Arial, sans-serif;
             padding: 20px;
+            transition: color 0.5s;
         }
 
         h1 {
@@ -144,9 +145,16 @@
             });
 
             const rainContainer = document.querySelector('.rain');
+            const sun = document.querySelector('.sun');
+            const content = document.querySelector('.content');
             setInterval(() => {
                 rainContainer.style.display = 'block';
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
+                content.style.color = '#fff'; // White text color
+                sun.style.display = 'none'; // Hide the sun
+                clouds.forEach(cloud => {
+                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
+                });
                 for (let i = 0; i < 100; i++) {
                     const raindrop = document.createElement('div');
                     raindrop.classList.add('raindrop');
@@ -157,6 +165,11 @@
                 setTimeout(() => {
                     rainContainer.style.display = 'none';
                     document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
                     while (rainContainer.firstChild) {
                         rainContainer.removeChild(rainContainer.firstChild);
                     }
@@ -166,4 +179,3 @@
     </script>
 </body>
 </html>
-
