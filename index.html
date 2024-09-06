@@ -1,78 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <script src="https://cdnres.willyweather.com/widget/warning/loadView.html?id=155011" type="application/javascript"></script>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Natural State Weather: a detailed forecast for most of Arkansas</title>
+    <title>Weather Arkansas</title>
     <style>
-      <style>
-body {
-  background-image: url('https://t4.ftcdn.net/jpg/03/05/09/59/240_F_305095987_GdzExAR8x0LCCNBdanfBIw8HkJiJZzDg.jpg');
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: 100% 100%;
-}
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #87CEEB; /* Sky blue background */
+        }
 
-      .container {
-        background: rgba(0, 0, 0, 0.5);
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px;
-      }
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
 
-      .logo {
-        font-size: 2em;
-        font-weight: bold;
-        color: #ffcc00;
-        text-shadow: 3px 3px 5px rgba(255, 255, 255, 1);
-        margin-bottom: 20px;
-      }
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: -30px 30px 60px #fff, 30px 30px 60px #fff, 60px 60px 120px #fff;
+            width: 200px;
+            height: 60px;
+            top: 50%;
+            left: 50%;
+            animation: moveClouds 20s linear infinite;
+        }
 
-      .weather {
-        margin-bottom: 20px;
-      }
-    </style>
-  </head>
-  <body>
-      <p>
-      <div class="container">
-        <h1 class="logo">The Natural State Weather</h1> A weather website that covers a forecast for most of Arkansas
-      </div>
-    </div>
-    </p>
-    <h2>Weather for AR Major Cities:</h2>
-    <script>
-        (function(d, s, id) {
-            if (d.getElementById(id)) {
-                if (window.__TOMORROW__) {
-                    window.__TOMORROW__.renderWidget();
-                }
-                return;
+        @keyframes moveClouds {
+            0% {
+                transform: translateX(-100%);
             }
-            const fjs = d.getElementsByTagName(s)[0];
-            const js = d.createElement(s);
-            js.id = id;
-            js.src = "https://www.tomorrow.io/v1/widget/sdk/sdk.bundle.min.js";
+            100% {
+                transform: translateX(100%);
+            }
+        }
 
-            fjs.parentNode.insertBefore(js, fjs);
-        })(document, 'script', 'tomorrow-sdk');
-        </script>
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
 
-        <div class="tomorrow"
-           data-location-id="120626,123059,124214,127544,118122,116750"
-           data-language="EN"
-           data-unit-system="IMPERIAL"
-           data-skin="dark"
-           data-widget-type="current6"
-           style="padding-bottom:22px;position:relative;"
-        >
-          <a
-            href="https://www.tomorrow.io/weather-api/"
-            rel="nofollow noopener noreferrer"
-            target="_blank"
-            style="position: absolute; bottom: 0; transform: translateX(-50%); left: 50%;
-          </a>
-        </div>
-  </body>
+        h1 {
+            font-size: 3em;
+            margin: 0;
+        }
+
+        p {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+    </div>
+    <div class="content">
+        <h1>Welcome to Weather Arkansas</h1>
+        <p>Your go-to source for weather updates in Arkansas!</p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clouds = document.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                cloud.style.top = `${Math.random() * 100}%`;
+                cloud.style.animationDuration = `${10 + Math.random() * 20}s`;
+            });
+        });
+    </script>
+</body>
 </html>
