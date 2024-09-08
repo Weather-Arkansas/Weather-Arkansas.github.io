@@ -121,6 +121,41 @@
         p {
             font-size: 1.5em;
         }
+
+        .login-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container input {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .login-container button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .login-container button:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -134,6 +169,20 @@
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
         <p>Your go-to source for weather updates in Arkansas!</p>
+    </div>
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button onclick="showRegister()">Register</button>
+    </div>
+    <div class="register-container" style="display:none;">
+        <h2>Register</h2>
+        <input type="text" id="new-username" placeholder="Username">
+        <input type="password" id="new-password" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <button onclick="showLogin()">Back to Login</button>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -203,7 +252,7 @@
                     rainContainer.appendChild(raindrop);
                 }
                 setTimeout(() => {
-                    rainContainer.style.display = 'none';
+                                       rainContainer.style.display = 'none';
                     document.body.style.background = '#87CEEB'; // Sky blue background
                     content.style.color = '#000'; // Black text color
                     sun.style.display = 'block'; // Show the sun
@@ -217,6 +266,56 @@
                 }, 60000); // Rain for 1 minute
             }, 30000); // Every 30 seconds
         });
+
+        function showRegister() {
+            document.querySelector('.login-container').style.display = 'none';
+            document.querySelector('.register-container').style.display = 'block';
+        }
+
+        function showLogin() {
+            document.querySelector('.login-container').style.display = 'block';
+            document.querySelector('.register-container').style.display = 'none';
+        }
+
+        function register() {
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+
+            if (username && password) {
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const userExists = users.some(user => user.username === username);
+
+                if (userExists) {
+                    alert('Username already exists!');
+                } else {
+                    users.push({ username, password });
+                    localStorage.setItem('users', JSON.stringify(users));
+                    alert('Registration successful!');
+                    showLogin();
+                }
+            } else {
+                alert('Please fill in both fields.');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username && password) {
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const user = users.find(user => user.username === username && user.password === password);
+
+                if (user) {
+                    alert('Login successful!');
+                    // Redirect to the main content or perform any other action
+                } else {
+                    alert('Invalid username or password.');
+                }
+            } else {
+                alert('Please fill in both fields.');
+            }
+        }
     </script>
 </body>
 </html>
