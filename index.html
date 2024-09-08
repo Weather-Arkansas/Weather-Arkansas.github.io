@@ -88,6 +88,15 @@
             animation: fall 1s linear infinite;
         }
 
+        .lightning {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            animation: flash 0.2s linear infinite;
+            display: none;
+        }
+
         @keyframes moveClouds {
             0% {
                 transform: translateX(-100%);
@@ -103,6 +112,25 @@
             }
             100% {
                 top: 100%;
+            }
+        }
+
+        @keyframes flash {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes drip {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(100%);
+                opacity: 0;
             }
         }
 
@@ -133,6 +161,7 @@
         <div class="cloud"></div>
         <div class="cloud"></div>
         <div class="rain"></div>
+        <div class="lightning"></div>
     </div>
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
@@ -150,6 +179,7 @@
             const rainContainer = document.querySelector('.rain');
             const sun = document.querySelector('.sun');
             const content = document.querySelector('.content');
+            const lightning = document.querySelector('.lightning');
 
             function setCookie(name, value, days) {
                 const date = new Date();
@@ -187,6 +217,7 @@
 
             function startRain() {
                 rainContainer.style.display = 'block';
+                lightning.style.display = 'block';
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
                 content.style.color = '#fff'; // White text color
                 sun.style.background = '#B8860B'; // Darker gold color for the sun
@@ -205,6 +236,7 @@
 
             function stopRain() {
                 rainContainer.style.display = 'none';
+                lightning.style.display = 'none';
                 document.body.style.background = '#87CEEB'; // Sky blue background
                 content.style.color = '#000'; // Black text color
                 sun.style.background = '#FFD700'; // Gold color for the sun
@@ -215,6 +247,10 @@
                 while (rainContainer.firstChild) {
                     rainContainer.removeChild(rainContainer.firstChild);
                 }
+                content.classList.add('drip');
+                setTimeout(() => {
+                    content.classList.remove('drip');
+                }, 5000); // Drip for 5 seconds
             }
 
             clouds.forEach(cloud => {
@@ -222,14 +258,46 @@
                     if (cloud.getBoundingClientRect().left < sun.getBoundingClientRect().right &&
                         cloud.getBoundingClientRect().right > sun.getBoundingClientRect().left &&
                         cloud.getBoundingClientRect().top < sun.getBoundingClientRect().bottom &&
-                        cloud.getBoundingClientRect().bottom > sun.getBoundingClientRect().top) {
+                                               cloud.getBoundingClientRect().bottom > sun.getBoundingClientRect().top) {
                         sun.style.background = '#B8860B'; // Darker gold color for the sun
                     } else {
                         sun.style.background = '#FFD700'; // Gold color for the sun
                     }
                 });
             });
+
+            // Add dripping effect to the content
+            const dripEffect = () => {
+                const letters = content.innerHTML.split('');
+                content.innerHTML = letters.map(letter => `<span class="drip-letter">${letter}</span>`).join('');
+                const dripLetters = document.querySelectorAll('.drip-letter');
+                dripLetters.forEach(letter => {
+                    letter.style.display = 'inline-block';
+                    letter.style.animation = 'drip 1s linear infinite';
+                    letter.style.animationDelay = `${Math.random()}s`;
+                });
+            };
+
+            // Remove dripping effect from the content
+            const removeDripEffect = () => {
+                const dripLetters = document.querySelectorAll('.drip-letter');
+                dripLetters.forEach(letter => {
+                    letter.style.animation = 'none';
+                });
+                content.innerHTML = content.textContent;
+            };
+
+            // Apply dripping effect after rain stops
+            content.addEventListener('animationend', () => {
+                removeDripEffect();
+            });
+
+            // Start dripping effect after rain stops
+            content.addEventListener('animationstart', () => {
+                dripEffect();
+            });
         });
     </script>
 </body>
 </html>
+
