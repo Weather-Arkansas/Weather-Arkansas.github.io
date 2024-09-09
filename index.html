@@ -127,7 +127,11 @@
             color: #000; /* Black text color */
             font-family: 'Roboto', sans-serif; /* Updated font */
             padding: 20px;
-            transition: color 1s;
+            transition: color 1s, text-shadow 1s;
+        }
+
+        .content.rainy {
+            text-shadow: 2px 2px 4px #000; /* Black border on letters */
         }
 
         h1 {
@@ -138,6 +142,12 @@
 
         p {
             font-size: 1.5em;
+            font-family: 'Open Sans', sans-serif; /* Updated font */
+        }
+
+        .additional-content {
+            margin-top: 20px;
+            font-size: 1.2em;
             font-family: 'Open Sans', sans-serif; /* Updated font */
         }
     </style>
@@ -153,6 +163,9 @@
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
         <p>Your go-to source for weather updates in Arkansas!</p>
+        <div class="additional-content">
+            <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
+        </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -196,14 +209,7 @@
             const isRaining = getCookie("isRaining") === "true";
 
             if (isRaining) {
-                rainContainer.style.display = 'block';
-                rainContainer.style.opacity = 1;
-                document.body.style.background = '#2F4F4F'; // Dark slate gray background
-                content.style.color = '#fff'; // White text color
-                sun.style.display = 'none'; // Hide the sun
-                clouds.forEach(cloud => {
-                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
-                });
+                startRain();
             }
 
             function startRain() {
@@ -211,6 +217,7 @@
                 rainContainer.style.opacity = 1;
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
                 content.style.color = '#fff'; // White text color
+                content.classList.add('rainy'); // Add border to letters
                 sun.style.display = 'none'; // Hide the sun
                 clouds.forEach(cloud => {
                     cloud.style.background = '#A9A9A9'; // Dark grey clouds
@@ -232,18 +239,19 @@
                     rainContainer.style.display = 'none';
                     document.body.style.background = '#87CEEB'; // Sky blue background
                     content.style.color = '#000'; // Black text color
+                    content.classList.remove('rainy'); // Remove border from letters
                     sun.style.display = 'block'; // Show the sun
                     clouds.forEach(cloud => {
                         cloud.style.background = '#fff'; // White clouds
                     });
-                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                                        setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
                     while (rainContainer.firstChild) {
                         rainContainer.removeChild(rainContainer.firstChild);
                     }
                 }, 1000); // Wait for the fade-out transition
             }
 
-                        setInterval(startRain, 30000); // Every 30 seconds
+            setInterval(startRain, 30000); // Every 30 seconds
 
             // Initial rain check
             if (isRaining) {
@@ -253,4 +261,3 @@
     </script>
 </body>
 </html>
-
