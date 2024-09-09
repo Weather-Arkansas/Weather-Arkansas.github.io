@@ -12,7 +12,6 @@
             height: 100%;
             overflow: hidden;
             background: #87CEEB; /* Sky blue background */
-            transition: background 1s;
         }
 
         .background {
@@ -31,7 +30,6 @@
             width: 200px;
             height: 60px;
             animation: moveClouds 20s linear infinite;
-            z-index: 2;
         }
 
         .cloud::before, .cloud::after {
@@ -66,7 +64,6 @@
             top: 10%;
             left: 10%;
             z-index: 1;
-            transition: background 1s;
         }
 
         .rain {
@@ -88,15 +85,6 @@
             animation: fall 1s linear infinite;
         }
 
-        .lightning {
-            position: absolute;
-            width: 2px;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            animation: flash 0.2s linear infinite;
-            display: none;
-        }
-
         @keyframes moveClouds {
             0% {
                 transform: translateX(-100%);
@@ -115,25 +103,6 @@
             }
         }
 
-        @keyframes flash {
-            0%, 100% {
-                opacity: 0;
-            }
-            50% {
-                opacity: 1;
-            }
-        }
-
-        @keyframes drip {
-            0% {
-                transform: translateY(0);
-            }
-            100% {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-        }
-
         .content {
             position: relative;
             z-index: 2;
@@ -141,7 +110,7 @@
             color: #000; /* Black text color */
             font-family: Arial, sans-serif;
             padding: 20px;
-            transition: color 1s;
+            transition: color 0.5s;
         }
 
         h1 {
@@ -152,15 +121,6 @@
         p {
             font-size: 1.5em;
         }
-
-        .trees {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100px;
-            background: url('trees.png') repeat-x bottom;
-            z-index: 1;
-        }
     </style>
 </head>
 <body>
@@ -170,8 +130,6 @@
         <div class="cloud"></div>
         <div class="cloud"></div>
         <div class="rain"></div>
-        <div class="lightning"></div>
-        <div class="trees"></div>
     </div>
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
@@ -189,8 +147,8 @@
             const rainContainer = document.querySelector('.rain');
             const sun = document.querySelector('.sun');
             const content = document.querySelector('.content');
-            const lightning = document.querySelector('.lightning');
 
+            // Function to set a cookie
             function setCookie(name, value, days) {
                 const date = new Date();
                 date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -198,6 +156,7 @@
                 document.cookie = name + "=" + value + ";" + expires + ";path=/";
             }
 
+            // Function to get a cookie
             function getCookie(name) {
                 const cname = name + "=";
                 const decodedCookie = decodeURIComponent(document.cookie);
@@ -214,20 +173,21 @@
                 return "";
             }
 
+            // Check if it's raining from the cookie
             const isRaining = getCookie("isRaining") === "true";
 
             if (isRaining) {
-                startRain();
+                rainContainer.style.display = 'block';
+                document.body.style.background = '#2F4F4F'; // Dark slate gray background
+                content.style.color = '#fff'; // White text color
+                sun.style.display = 'none'; // Hide the sun
+                clouds.forEach(cloud => {
+                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
+                });
             }
 
             setInterval(() => {
-                startRain();
-                setTimeout(stopRain, 30000); // Rain for 30 seconds
-            }, 60000); // Every 1 minute
-
-            function startRain() {
                 rainContainer.style.display = 'block';
-                lightning.style.display = 'block';
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
                 content.style.color = '#fff'; // White text color
                 sun.style.display = 'none'; // Hide the sun
@@ -242,70 +202,20 @@
                     raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
                     rainContainer.appendChild(raindrop);
                 }
-            }
-
-            function stopRain() {
-                rainContainer.style.display = 'none';
-                lightning.style.display = 'none';
-                document.body.style.background = '#87CEEB'; // Sky blue background
-                content.style.color = '#000'; // Black text color
-                sun.style.display = 'block'; // Show the sun
-                clouds.forEach(cloud => {
-                    cloud.style.background = '#fff'; // White clouds
-                });
-                setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
-                while (rainContainer.firstChild) {
-                    rainContainer.removeChild(rainContainer.firstChild);
-                }
-                content.classList.add('drip');
                 setTimeout(() => {
-                    content.classList.remove('drip');
-                }, 5000); // Drip for 5 seconds
-            }
-
-            clouds.forEach(cloud => {
-                cloud.addEventListener('animationiteration', () => {
-                                        if (cloud.getBoundingClientRect().left < sun.getBoundingClientRect().right &&
-                        cloud.getBoundingClientRect().right > sun.getBoundingClientRect().left &&
-                        cloud.getBoundingClientRect().top < sun.getBoundingClientRect().bottom &&
-                        cloud.getBoundingClientRect().bottom > sun.getBoundingClientRect().top) {
-                        document.body.style.background = '#B0C4DE'; // Light steel blue background when cloud covers the sun
-                    } else {
-                        document.body.style.background = '#87CEEB'; // Sky blue background when cloud leaves the sun
+                    rainContainer.style.display = 'none';
+                    document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
+                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                    while (rainContainer.firstChild) {
+                        rainContainer.removeChild(rainContainer.firstChild);
                     }
-                });
-            });
-
-            // Add dripping effect to the content
-            const dripEffect = () => {
-                const letters = content.innerHTML.split('');
-                content.innerHTML = letters.map(letter => `<span class="drip-letter">${letter}</span>`).join('');
-                const dripLetters = document.querySelectorAll('.drip-letter');
-                dripLetters.forEach(letter => {
-                    letter.style.display = 'inline-block';
-                    letter.style.animation = 'drip 1s linear infinite';
-                    letter.style.animationDelay = `${Math.random()}s`;
-                });
-            };
-
-            // Remove dripping effect from the content
-            const removeDripEffect = () => {
-                const dripLetters = document.querySelectorAll('.drip-letter');
-                dripLetters.forEach(letter => {
-                    letter.style.animation = 'none';
-                });
-                content.innerHTML = content.textContent;
-            };
-
-            // Apply dripping effect after rain stops
-            content.addEventListener('animationend', () => {
-                removeDripEffect();
-            });
-
-            // Start dripping effect after rain stops
-            content.addEventListener('animationstart', () => {
-                dripEffect();
-            });
+                }, 60000); // Rain for 1 minute
+            }, 30000); // Every 30 seconds
         });
     </script>
 </body>
