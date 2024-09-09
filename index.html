@@ -12,6 +12,7 @@
             height: 100%;
             overflow: hidden;
             background: #87CEEB; /* Sky blue background */
+            transition: background 1s;
         }
 
         .background {
@@ -30,6 +31,7 @@
             width: 200px;
             height: 60px;
             animation: moveClouds 20s linear infinite;
+            z-index: 2; /* Move clouds in front of the sun */
         }
 
         .cloud::before, .cloud::after {
@@ -75,6 +77,8 @@
             z-index: 1;
             pointer-events: none;
             display: none;
+            opacity: 0;
+            transition: opacity 1s;
         }
 
         .raindrop {
@@ -110,7 +114,7 @@
             color: #000; /* Black text color */
             font-family: Arial, sans-serif;
             padding: 20px;
-            transition: color 0.5s;
+            transition: color 1s;
         }
 
         h1 {
@@ -178,6 +182,7 @@
 
             if (isRaining) {
                 rainContainer.style.display = 'block';
+                rainContainer.style.opacity = 1;
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
                 content.style.color = '#fff'; // White text color
                 sun.style.display = 'none'; // Hide the sun
@@ -188,6 +193,7 @@
 
             setInterval(() => {
                 rainContainer.style.display = 'block';
+                rainContainer.style.opacity = 1;
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
                 content.style.color = '#fff'; // White text color
                 sun.style.display = 'none'; // Hide the sun
@@ -203,17 +209,20 @@
                     rainContainer.appendChild(raindrop);
                 }
                 setTimeout(() => {
-                    rainContainer.style.display = 'none';
-                    document.body.style.background = '#87CEEB'; // Sky blue background
-                    content.style.color = '#000'; // Black text color
-                    sun.style.display = 'block'; // Show the sun
-                    clouds.forEach(cloud => {
-                        cloud.style.background = '#fff'; // White clouds
-                    });
-                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
-                    while (rainContainer.firstChild) {
-                        rainContainer.removeChild(rainContainer.firstChild);
-                    }
+                    rainContainer.style.opacity = 0;
+                    setTimeout(() => {
+                        rainContainer.style.display = 'none';
+                        document.body.style.background = '#87CEEB'; // Sky blue background
+                        content.style.color = '#000'; // Black text color
+                        sun.style.display = 'block'; // Show the sun
+                        clouds.forEach(cloud => {
+                            cloud.style.background = '#fff'; // White clouds
+                        });
+                        setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                        while (rainContainer.firstChild) {
+                            rainContainer.removeChild(rainContainer.firstChild);
+                        }
+                    }, 1000); // Wait for the fade-out transition
                 }, 60000); // Rain for 1 minute
             }, 30000); // Every 30 seconds
         });
