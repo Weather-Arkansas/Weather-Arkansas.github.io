@@ -206,7 +206,7 @@
                 });
             }
 
-            setInterval(() => {
+            function startRain() {
                 rainContainer.style.display = 'block';
                 rainContainer.style.opacity = 1;
                 document.body.style.background = '#2F4F4F'; // Dark slate gray background
@@ -223,24 +223,34 @@
                     raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
                     rainContainer.appendChild(raindrop);
                 }
+                setTimeout(stopRain, 60000); // Rain for 1 minute
+            }
+
+            function stopRain() {
+                rainContainer.style.opacity = 0;
                 setTimeout(() => {
-                    rainContainer.style.opacity = 0;
-                    setTimeout(() => {
-                        rainContainer.style.display = 'none';
-                        document.body.style.background = '#87CEEB'; // Sky blue background
-                        content.style.color = '#000'; // Black text color
-                        sun.style.display = 'block'; // Show the sun
-                        clouds.forEach(cloud => {
-                            cloud.style.background = '#fff'; // White clouds
-                        });
-                        setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
-                        while (rainContainer.firstChild) {
-                            rainContainer.removeChild(rainContainer.firstChild);
-                        }
-                    }, 1000); // Wait for the fade-out transition
-                }, 60000); // Rain for 1 minute
-            }, 30000); // Every 30 seconds
+                    rainContainer.style.display = 'none';
+                    document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
+                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                    while (rainContainer.firstChild) {
+                        rainContainer.removeChild(rainContainer.firstChild);
+                    }
+                }, 1000); // Wait for the fade-out transition
+            }
+
+                        setInterval(startRain, 30000); // Every 30 seconds
+
+            // Initial rain check
+            if (isRaining) {
+                startRain();
+            }
         });
     </script>
 </body>
 </html>
+
