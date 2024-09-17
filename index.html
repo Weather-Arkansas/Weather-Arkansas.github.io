@@ -94,12 +94,65 @@
         .login-form button:hover {
             background-color: darkcyan;
         }
+        .settings-form {
+            margin: 20px auto;
+            width: 300px;
+            text-align: left;
+        }
+        .settings-form label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        .settings-form select, .settings-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        .settings-form button {
+            width: 100%;
+            padding: 10px;
+            background-color: teal;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .settings-form button:hover {
+            background-color: darkcyan;
+        }
         @keyframes moveClouds {
             0% {
                 transform: translateX(-100%);
             }
             100% {
                 transform: translateX(100%);
+            }
+        }
+        .rain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(0, 0, 255, 0.5);
+            animation: fall 1s linear infinite;
+        }
+        @keyframes fall {
+            0% {
+                top: -10px;
+            }
+            100% {
+                top: 100%;
             }
         }
     </style>
@@ -109,6 +162,7 @@
     <div class="cloud" style="top: 20%; left: -200px;"></div>
     <div class="cloud" style="top: 40%; left: -200px;"></div>
     <div class="cloud" style="top: 60%; left: -200px;"></div>
+    <div class="rain"></div>
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
         <p>Your go-to source for weather updates in Arkansas!</p>
@@ -137,6 +191,17 @@
         </div>
         <a href="https://clustrmaps.com/site/1c19h" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=T5W2XhP0MocWJkf8ReKeAQq-Hfv6-6Zi71R8XggGfi4&cl=ffffff" alt="Website Traffic" /></a>
     </div>
+    <div id="settingsModal" class="settings-form" style="display:none;">
+        <h2>Settings</h2>
+        <label for="rainToggle">Rain:</label>
+        <select id="rainToggle">
+            <option value="on">On</option>
+            <option value="off">Off</option>
+        </select>
+        <label for="textColor">Text Color:</label>
+        <input type="color" id="textColor" value="#008080">
+        <button onclick="saveSettings()">Save Settings</button>
+    </div>
     <script>
         function openNav() {
             document.getElementById("mySidenav").style.width = "100%";
@@ -145,7 +210,94 @@
             document.getElementById("mySidenav").style.width = "0";
         }
         function openSettings() {
-            alert("Settings button clicked!");
+            document.getElementById("settingsModal").style.display = "block";
+        }
+        function closeSettings() {
+            document.getElementById("settingsModal").style.display = "none";
+        }
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "expires=" + date.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/";
+        }
+        function getCookie(name) {
+            const cname = name + "=";
+            const decodedCookie = decodeURIComponent(document.cookie);
+            const ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(cname) == 0) {
+                    return c.substring(cname.length, c.length);
+                }
+            }
+            return "";
+            }
+        function startRain() {
+            const rainContainer = document.querySelector('.rain');
+            rainContainer.style.display = 'block';
+            rainContainer.style.opacity = 1;
+            document.body.style.background = '#2F4F4F'; // Dark slate gray background
+            document.querySelector('.content').style.color = '#fff'; // White text color
+            document.querySelector('.content').classList.add('rainy'); // Add border to letters
+            document.querySelector('.sun').style.display = 'none'; // Hide the sun
+            document.querySelectorAll('.cloud').forEach(cloud => {
+                cloud.style.background = '#A9A9A9'; // Dark grey clouds
+            });
+            setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
+            for (let i = 0; i < 100; i++) {
+                const raindrop = document.createElement('div');
+                raindrop.classList.add('raindrop');
+                raindrop.style.left = `${Math.random() * 100}%`;
+                raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
+                rainContainer.appendChild(raindrop);
+            }
+        }
+        function stopRain() {
+            const rainContainer = document.querySelector('.rain');
+            rainContainer.style.opacity = 0;
+            setTimeout(() => {
+                rainContainer.style.display = 'none';
+                document.body.style.background = '#87CEEB'; // Sky blue background
+                document.querySelector('.content').style.color = getCookie("textColor") || '#008080'; // Restore text color
+                document.querySelector('.content').classList.remove('rainy'); // Remove border from letters
+                document.querySelector('.sun').style.display = 'block'; // Show the sun
+                document.querySelectorAll('.cloud').forEach(cloud => {
+                    cloud.style.background = '#fff'; // White clouds
+                });
+                setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                while (rainContainer.firstChild) {
+                    rainContainer.removeChild(rainContainer.firstChild);
+                }
+            }, 1000); // Wait for the fade-out transition
+        }
+        function saveSettings() {
+            const rainToggle = document.getElementById('rainToggle').value;
+            const textColor = document.getElementById('textColor').value;
+            setCookie("isRaining", rainToggle === "on", 1);
+            setCookie("textColor", textColor, 1);
+            if (rainToggle === "on") {
+                startRain();
+            } else {
+                stopRain();
+            }
+            document.querySelector('.content').style.color = textColor;
+            closeSettings();
+        }
+        function applySettings() {
+            const isRaining = getCookie("isRaining") === "true";
+            const textColor = getCookie("textColor") || '#008080';
+            if (isRaining) {
+                startRain();
+            } else {
+                stopRain();
+            }
+            document.querySelector('.content').style.color = textColor;
+            document.getElementById('rainToggle').value = isRaining ? "on" : "off";
+            document.getElementById('textColor').value = textColor;
         }
         function login() {
             const username = document.getElementById('username').value;
@@ -157,6 +309,8 @@
             const password = document.getElementById('password').value;
             alert(`Account created for ${username}`);
         }
+        document.addEventListener('DOMContentLoaded', applySettings);
     </script>
 </body>
 </html>
+
