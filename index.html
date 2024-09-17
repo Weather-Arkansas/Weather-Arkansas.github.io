@@ -10,32 +10,128 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background: #87CEEB; /* Sky blue background */
-            font-family: 'Lato', sans-serif;
-            color: teal;
-            text-align: center;
             overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #f0f0f0); /* Gradient background */
+            transition: background 1s;
+            font-family: 'Lato', sans-serif;
+        }
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: -30px 30px 60px rgba(255, 255, 255, 0.8), 30px 30px 60px rgba(255, 255, 255, 0.8), 60px 60px 120px rgba(255, 255, 255, 0.5);
+            width: 200px;
+            height: 60px;
+            animation: moveClouds 20s linear infinite;
+            z-index: 2; /* Move clouds in front of the sun */
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .cloud::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+            box-shadow: -20px 20px 40px rgba(255, 255, 255, 0.8), 20px 20px 40px rgba(255, 255, 255, 0.8), 40px 40px 80px rgba(255, 255, 255, 0.5);
+        }
+        .cloud::after {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            left: 100px;
+            box-shadow: -25px 25px 50px rgba(255, 255, 255, 0.8), 25px 25px 50px rgba(255, 255, 255, 0.8), 50px 50px 100px rgba(255, 255, 255, 0.5);
         }
         .sun {
-            background: radial-gradient(circle, #FFD700, #FFA500);
+            position: absolute;
+            background: radial-gradient(circle, #FFD700, #FFA500); /* Gradient for the sun */
             border-radius: 50%;
             width: 100px;
             height: 100px;
-            margin: 20px auto;
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            top: 10%;
+            left: 10%;
+            z-index: 1;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); /* Glow effect */
         }
-        .cloud {
-            background: #fff;
-            border-radius: 50%;
-            width: 200px;
-            height: 60px;
+        .sun::before {
+            content: '';
             position: absolute;
-            animation: moveClouds 20s linear infinite;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.5), rgba(255, 165, 0, 0));
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            top: -25px;
+            left: -25px;
+            z-index: -1;
+        }
+        .rain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(0, 0, 255, 0.5);
+            animation: fall 1s linear infinite;
+        }
+        @keyframes moveClouds {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        @keyframes fall {
+            0% {
+                top: -10px;
+            }
+            100% {
+                top: 100%;
+            }
         }
         .content {
-            padding: 20px;
             position: relative;
             z-index: 2;
+            text-align: center;
+            color: #000; /* Black text color */
+            font-family: 'Roboto', sans-serif; /* Updated font */
+            padding: 20px;
+            transition: color 1s, text-shadow 1s;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .content.rainy {
+            text-shadow: 2px 2px 4px #000; /* Black border on letters */
+        }
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif; /* Updated font */
+        }
+        p {
+            font-size: 0.9em;
+            font-family: 'Open Sans', sans-serif; /* Updated font */
         }
         .sidenav {
             height: 100%;
@@ -72,100 +168,17 @@
             .sidenav {padding-top: 15px;}
             .sidenav a {font-size: 18px;}
         }
-        .login-form {
-            margin: 20px auto;
-            width: 300px;
-            text-align: left;
-        }
-        .login-form input {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            box-sizing: border-box;
-        }
-        .login-form button {
-            width: 100%;
-            padding: 10px;
-            background-color: teal;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .login-form button:hover {
-            background-color: darkcyan;
-        }
-        .settings-form {
-            margin: 20px auto;
-            width: 300px;
-            text-align: left;
-        }
-        .settings-form label {
-            display: block;
-            margin: 10px 0 5px;
-        }
-        .settings-form select, .settings-form input {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            box-sizing: border-box;
-        }
-        .settings-form button {
-            width: 100%;
-            padding: 10px;
-            background-color: teal;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .settings-form button:hover {
-            background-color: darkcyan;
-        }
-        @keyframes moveClouds {
-            0% {
-                transform: translateX(-100%);
-            }
-            100% {
-                transform: translateX(100%);
-            }
-        }
-        .rain {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            pointer-events: none;
-            display: none;
-            opacity: 0;
-            transition: opacity 1s;
-        }
-        .raindrop {
-            position: absolute;
-            width: 2px;
-            height: 10px;
-            background: rgba(0, 0, 255, 0.5);
-            animation: fall 1s linear infinite;
-        }
-        @keyframes fall {
-            0% {
-                top: -10px;
-            }
-            100% {
-                top: 100%;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="sun"></div>
-    <div class="cloud" style="top: 20%; left: -200px;"></div>
-    <div class="cloud" style="top: 40%; left: -200px;"></div>
-    <div class="cloud" style="top: 60%; left: -200px;"></div>
-    <div class="rain"></div>
+    <div class="background">
+        <div class="sun"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="cloud"></div>
+        <div class="rain"></div>
+    </div>
     <div class="content">
-        <h1>Welcome to Weather Arkansas</h1>
-        <p>Your go-to source for weather updates in Arkansas!</p>
         <div id="mySidenav" class="sidenav">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
             <a href="./index.html">Home</a>
@@ -173,143 +186,122 @@
             <a href="./weather/Little-Rock.html">Capitol Weather</a>
             <a href="./weather/radar.html">Local Radar</a>
             <a href="./about.html">About</a>
-            <a href="javascript:void(0)" onclick="openSettings()">Settings</a>
         </div>
         <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
-        <h1>What's Happening in Weather This Week</h1>
-        <p>This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississippi, and southwestern Alabama.</p>
-        <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
-        <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
-        <h2>Live Hurricane Report</h2>
-        <iframe src="https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png" width="600" height="400" frameborder="0"></iframe>
-        <div class="login-form">
-            <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <button onclick="register()">Register</button>
+        <script>
+            function openNav() {
+                document.getElementById("mySidenav").style.width = "100%";
+            }
+            function closeNav() {
+                document.getElementById("mySidenav").style.width = "0";
+            }
+        </script>
+        <h1>Welcome to Weather Arkansas</h1>
+        <p>Your go-to source for weather updates in Arkansas!</p>
+        <hr>
+        <hr>
+        <hr>
+        <div class="additional-content">
+            <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
         </div>
-        <a href="https://clustrmaps.com/site/1c19h" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=T5W2XhP0MocWJkf8ReKeAQq-Hfv6-6Zi71R8XggGfi4&cl=ffffff" alt="Website Traffic" /></a>
-    </div>
-    <div id="settingsModal" class="settings-form" style="display:none;">
-        <h2>Settings</h2>
-        <label for="rainToggle">Rain:</label>
-        <select id="rainToggle">
-            <option value="on">On</option>
-            <option value="off">Off</option>
-        </select>
-        <label for="textColor">Text Color:</label>
-        <input type="color" id="textColor" value="#008080">
-        <button onclick="saveSettings()">Save Settings</button>
+        <h1 align="center">What's Happening in Weather This Week</h1>
+        <p align="center">
+            This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississippi, and southwestern Alabama.
+            <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
+            <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
     </div>
     <script>
-        function openNav() {
-            document.getElementById("mySidenav").style.width = "100%";
-        }
-        function closeNav() {
-            document.getElementById("mySidenav").style.width = "0";
-        }
-        function openSettings() {
-            document.getElementById("settingsModal").style.display = "block";
-        }
-        function closeSettings() {
-            document.getElementById("settingsModal").style.display = "none";
-        }
-        function setCookie(name, value, days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/";
-        }
-        function getCookie(name) {
-            const cname = name + "=";
-            const decodedCookie = decodeURIComponent(document.cookie);
-            const ca = decodedCookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') {
-                    c = c.substring(1);
-                }
-                if (c.indexOf(cname) == 0) {
-                    return c.substring(cname.length, c.length);
-                }
-            }
-            return "";
-        }
-                function startRain() {
-            const rainContainer = document.querySelector('.rain');
-            rainContainer.style.display = 'block';
-            rainContainer.style.opacity = 1;
-            document.body.style.background = '#2F4F4F'; // Dark slate gray background
-            document.querySelector('.content').style.color = '#fff'; // White text color
-            document.querySelector('.content').classList.add('rainy'); // Add border to letters
-            document.querySelector('.sun').style.display = 'none'; // Hide the sun
-            document.querySelectorAll('.cloud').forEach(cloud => {
-                cloud.style.background = '#A9A9A9'; // Dark grey clouds
+        document.addEventListener('DOMContentLoaded', () => {
+            const clouds = document.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                cloud.style.top = `${Math.random() * 100}%`;
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDuration = `${10 + Math.random() * 20}s`;
             });
-            setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
-            for (let i = 0; i < 100; i++) {
-                const raindrop = document.createElement('div');
-                raindrop.classList.add('raindrop');
-                raindrop.style.left = `${Math.random() * 100}%`;
-                raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
-                rainContainer.appendChild(raindrop);
-            }
-        }
-        function stopRain() {
+
             const rainContainer = document.querySelector('.rain');
-            rainContainer.style.opacity = 0;
-            setTimeout(() => {
-                rainContainer.style.display = 'none';
-                document.body.style.background = '#87CEEB'; // Sky blue background
-                document.querySelector('.content').style.color = getCookie("textColor") || '#008080'; // Restore text color
-                document.querySelector('.content').classList.remove('rainy'); // Remove border from letters
-                document.querySelector('.sun').style.display = 'block'; // Show the sun
-                document.querySelectorAll('.cloud').forEach(cloud => {
-                    cloud.style.background = '#fff'; // White clouds
-                });
-                setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
-                while (rainContainer.firstChild) {
-                    rainContainer.removeChild(rainContainer.firstChild);
-                }
-            }, 1000); // Wait for the fade-out transition
-        }
-        function saveSettings() {
-            const rainToggle = document.getElementById('rainToggle').value;
-            const textColor = document.getElementById('textColor').value;
-            setCookie("isRaining", rainToggle === "on", 1);
-            setCookie("textColor", textColor, 1);
-            if (rainToggle === "on") {
-                startRain();
-            } else {
-                stopRain();
+            const sun = document.querySelector('.sun');
+            const content = document.querySelector('.content');
+
+                        // Function to set a cookie
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
             }
-            document.querySelector('.content').style.color = textColor;
-            closeSettings();
-        }
-        function applySettings() {
+
+            // Function to get a cookie
+            function getCookie(name) {
+                const cname = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(cname) == 0) {
+                        return c.substring(cname.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            // Check if it's raining from the cookie
             const isRaining = getCookie("isRaining") === "true";
-            const textColor = getCookie("textColor") || '#008080';
+
             if (isRaining) {
                 startRain();
-            } else {
-                stopRain();
             }
-            document.querySelector('.content').style.color = textColor;
-            document.getElementById('rainToggle').value = isRaining ? "on" : "off";
-            document.getElementById('textColor').value = textColor;
-        }
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            alert(`Logged in as ${username}`);
-        }
-        function register() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            alert(`Account created for ${username}`);
-        }
-        document.addEventListener('DOMContentLoaded', applySettings);
+
+            function startRain() {
+                rainContainer.style.display = 'block';
+                rainContainer.style.opacity = 1;
+                document.body.style.background = '#2F4F4F'; // Dark slate gray background
+                content.style.color = '#fff'; // White text color
+                content.classList.add('rainy'); // Add border to letters
+                sun.style.display = 'none'; // Hide the sun
+                clouds.forEach(cloud => {
+                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
+                });
+                setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
+                for (let i = 0; i < 100; i++) {
+                    const raindrop = document.createElement('div');
+                    raindrop.classList.add('raindrop');
+                    raindrop.style.left = `${Math.random() * 100}%`;
+                    raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
+                    rainContainer.appendChild(raindrop);
+                }
+                setTimeout(stopRain, 60000); // Rain for 1 minute
+            }
+
+            function stopRain() {
+                rainContainer.style.opacity = 0;
+                setTimeout(() => {
+                    rainContainer.style.display = 'none';
+                    document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    content.classList.remove('rainy'); // Remove border from letters
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
+                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                    while (rainContainer.firstChild) {
+                        rainContainer.removeChild(rainContainer.firstChild);
+                    }
+                }, 1000); // Wait for the fade-out transition
+            }
+
+            setInterval(startRain, 30000); // Every 30 seconds
+
+            // Initial rain check
+            if (isRaining) {
+                startRain();
+            }
+        });
     </script>
+    <a href="https://clustrmaps.com/site/1c19h" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=T5W2XhP0MocWJkf8ReKeAQq-Hfv6-6Zi71R8XggGfi4&cl=ffffff" alt="Website Traffic" /></a>
 </body>
 </html>
