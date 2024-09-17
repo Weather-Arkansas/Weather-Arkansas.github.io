@@ -14,6 +14,7 @@
             font-family: 'Lato', sans-serif;
             color: teal;
             text-align: center;
+            overflow: hidden;
         }
         .sun {
             background: radial-gradient(circle, #FFD700, #FFA500);
@@ -28,10 +29,13 @@
             border-radius: 50%;
             width: 200px;
             height: 60px;
-            margin: 20px auto;
+            position: absolute;
+            animation: moveClouds 20s linear infinite;
         }
         .content {
             padding: 20px;
+            position: relative;
+            z-index: 2;
         }
         .sidenav {
             height: 100%;
@@ -90,11 +94,21 @@
         .login-form button:hover {
             background-color: darkcyan;
         }
+        @keyframes moveClouds {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="sun"></div>
-    <div class="cloud"></div>
+    <div class="cloud" style="top: 20%; left: -200px;"></div>
+    <div class="cloud" style="top: 40%; left: -200px;"></div>
+    <div class="cloud" style="top: 60%; left: -200px;"></div>
     <div class="content">
         <h1>Welcome to Weather Arkansas</h1>
         <p>Your go-to source for weather updates in Arkansas!</p>
@@ -113,7 +127,7 @@
         <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
         <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
         <h2>Live Hurricane Report</h2>
-        <iframe src="https://www.nhc.noaa.gov/" width="600" height="400"></iframe>
+        <iframe src="https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png" width="600" height="400" frameborder="0"></iframe>
         <div class="login-form">
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
@@ -121,6 +135,7 @@
             <button onclick="login()">Login</button>
             <button onclick="register()">Register</button>
         </div>
+        <a href="https://clustrmaps.com/site/1c19h" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=T5W2XhP0MocWJkf8ReKeAQq-Hfv6-6Zi71R8XggGfi4&cl=ffffff" alt="Website Traffic" /></a>
     </div>
     <script>
         function openNav() {
