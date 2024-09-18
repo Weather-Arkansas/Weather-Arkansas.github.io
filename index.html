@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <meta name="google-site-verification" content="mVgdUhwoH5u4HRZjtrpk7TF9OW1mBJv-bUGhH5zhxGo" />
+    <meta name="google-site-verification" content="mVgdUhwoH5u4HRZjtrpk7TF9OW1mBJv-bUGhH5zhxGo" />
     <title>Weather Arkansas</title>
     <style>
         body, html {
@@ -165,9 +165,21 @@
             font-size: 36px;
             margin-left: 50px;
         }
+        .sidenav .settingsbtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
         @media screen and (max-height: 450px) {
             .sidenav {padding-top: 15px;}
             .sidenav a {font-size: 18px;}
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
@@ -187,6 +199,7 @@
             <a href="./weather/Little-Rock.html">Capitol Weather</a>
             <a href="./weather/radar.html">Local Radar</a>
             <a href="./about.html">About</a>
+            <a href="javascript:void(0)" class="settingsbtn" onclick="openSettings()">Settings</a>
         </div>
         <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
         <script>
@@ -195,6 +208,9 @@
             }
             function closeNav() {
                 document.getElementById("mySidenav").style.width = "0";
+            }
+            function openSettings() {
+                document.getElementById("settingsIframe").style.display = "block";
             }
         </script>
         <h1>Welcome to Weather Arkansas</h1>
@@ -208,101 +224,46 @@
         <h1 align="center">What's Happening in Weather This Week</h1>
         <p align="center">
             This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississippi, and southwestern Alabama.
-            <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
-            <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
+                        <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
+            <p>Residents are advised to stay indoors and follow the instructions of local authorities.</p>
+        </p>
+        <hr>
+        <h2 align="center">Weekly Forecast</h2>
+        <table align="center">
+            <tr>
+                <th>Day</th>
+                <th>Weather</th>
+                <th>High/Low</th>
+            </tr>
+            <tr>
+                <td>Monday</td>
+                <td>Sunny</td>
+                <td>85°F / 65°F</td>
+            </tr>
+            <tr>
+                <td>Tuesday</td>
+                <td>Partly Cloudy</td>
+                <td>82°F / 63°F</td>
+            </tr>
+            <tr>
+                <td>Wednesday</td>
+                <td>Thunderstorms</td>
+                <td>78°F / 60°F</td>
+            </tr>
+            <tr>
+                <td>Thursday</td>
+                <td>Rain</td>
+                <td>75°F / 58°F</td>
+            </tr>
+            <tr>
+                <td>Friday</td>
+                <td>Sunny</td>
+                <td>80°F / 62°F</td>
+            </tr>
+        </table>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const clouds = document.querySelectorAll('.cloud');
-            clouds.forEach(cloud => {
-                cloud.style.top = `${Math.random() * 100}%`;
-                cloud.style.left = `${Math.random() * 100}%`;
-                cloud.style.animationDuration = `${10 + Math.random() * 20}s`;
-            });
-
-            const rainContainer = document.querySelector('.rain');
-            const sun = document.querySelector('.sun');
-            const content = document.querySelector('.content');
-
-                        // Function to set a cookie
-            function setCookie(name, value, days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                const expires = "expires=" + date.toUTCString();
-                document.cookie = name + "=" + value + ";" + expires + ";path=/";
-            }
-
-            // Function to get a cookie
-            function getCookie(name) {
-                const cname = name + "=";
-                const decodedCookie = decodeURIComponent(document.cookie);
-                const ca = decodedCookie.split(';');
-                for (let i = 0; i < ca.length; i++) {
-                    let c = ca[i];
-                    while (c.charAt(0) == ' ') {
-                        c = c.substring(1);
-                    }
-                    if (c.indexOf(cname) == 0) {
-                        return c.substring(cname.length, c.length);
-                    }
-                }
-                return "";
-            }
-
-            // Check if it's raining from the cookie
-            const isRaining = getCookie("isRaining") === "true";
-
-            if (isRaining) {
-                startRain();
-            }
-
-            function startRain() {
-                rainContainer.style.display = 'block';
-                rainContainer.style.opacity = 1;
-                document.body.style.background = '#2F4F4F'; // Dark slate gray background
-                content.style.color = '#fff'; // White text color
-                content.classList.add('rainy'); // Add border to letters
-                sun.style.display = 'none'; // Hide the sun
-                clouds.forEach(cloud => {
-                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
-                });
-                setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
-                for (let i = 0; i < 100; i++) {
-                    const raindrop = document.createElement('div');
-                    raindrop.classList.add('raindrop');
-                    raindrop.style.left = `${Math.random() * 100}%`;
-                    raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
-                    rainContainer.appendChild(raindrop);
-                }
-                setTimeout(stopRain, 60000); // Rain for 1 minute
-            }
-
-            function stopRain() {
-                rainContainer.style.opacity = 0;
-                setTimeout(() => {
-                    rainContainer.style.display = 'none';
-                    document.body.style.background = '#87CEEB'; // Sky blue background
-                    content.style.color = '#000'; // Black text color
-                    content.classList.remove('rainy'); // Remove border from letters
-                    sun.style.display = 'block'; // Show the sun
-                    clouds.forEach(cloud => {
-                        cloud.style.background = '#fff'; // White clouds
-                    });
-                    setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
-                    while (rainContainer.firstChild) {
-                        rainContainer.removeChild(rainContainer.firstChild);
-                    }
-                }, 1000); // Wait for the fade-out transition
-            }
-
-            setInterval(startRain, 30000); // Every 30 seconds
-
-            // Initial rain check
-            if (isRaining) {
-                startRain();
-            }
-        });
-    </script>
-    <a href="https://clustrmaps.com/site/1c19h" title="Visit tracker"><img src="//www.clustrmaps.com/map_v2.png?d=T5W2XhP0MocWJkf8ReKeAQq-Hfv6-6Zi71R8XggGfi4&cl=ffffff" alt="Website Traffic" /></a>
+    <div id="settingsIframe" style="display:none;">
+        <iframe src="./settings.html"></iframe>
+    </div>
 </body>
 </html>
