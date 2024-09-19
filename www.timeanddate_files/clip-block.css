@@ -1,0 +1,1 @@
+:root{--clip-block-gap-row: var(--size-xs);--clip-block-gap-column: var(--size-xs)}.tad-clip-block{display:grid;gap:var(--clip-block-gap-row) var(--clip-block-gap-column)}.tad-clip-block__label{margin-block:0;font-size:var(--font-size-sm)}
