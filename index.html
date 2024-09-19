@@ -1,161 +1,311 @@
-<html>
-<head>
-<title>
-Eclipsed, the website about ECLIPSES!!!
-</title>
-<style>
-.footer {
-   position: fixed;
-   left: 0;
-   bottom: 0;
-   width: 100%;
-   background: linear-gradient(black, grey, white);
-   color: white;
-   text-align: center;
-}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="mVgdUhwoH5u4HRZjtrpk7TF9OW1mBJv-bUGhH5zhxGo" />
+    <title>Weather Arkansas</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: linear-gradient(to bottom, #87CEEB, #f0f0f0);
+        /* Gradient background */
+        transition: background 1s;
+        font-family: 'Lato', sans-serif;
+      }
 
-.text { font-family: "Lucida Console", "Courier New", monospace;
-}
+      .background {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+      }
 
-h1, h2, h3, h4, h5, p{ color: white;
-}
+      .cloud {
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: -30px 30px 60px rgba(255, 255, 255, 0.8), 30px 30px 60px rgba(255, 255, 255, 0.8), 60px 60px 120px rgba(255, 255, 255, 0.5);
+        width: 200px;
+        height: 60px;
+        animation: moveClouds 20s linear infinite;
+        z-index: 2;
+        /* Move clouds in front of the sun */
+      }
 
-body {
-  background-image: url('https://c.tadst.com/gfx/900x506/blood-moon-photography.jpg');
-  background-repeat: no-repeat;
-  background-attachment: fixed; 
-  background-size: 100% 100%;
-font-family: Arial, Helvetica, sans-serif;
-}
-.navbar {
-  overflow: hidden;
-  background-color: grey;
-  font-family: Arial, Helvetica, sans-serif;
-}
+      .cloud::before,
+      .cloud::after {
+        content: '';
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+      }
 
-.navbar a {
-  float: left;
-  font-size: 16px;
-  color: white;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-}
+      .cloud::before {
+        width: 100px;
+        height: 100px;
+        top: -50px;
+        left: 50px;
+        box-shadow: -20px 20px 40px rgba(255, 255, 255, 0.8), 20px 20px 40px rgba(255, 255, 255, 0.8), 40px 40px 80px rgba(255, 255, 255, 0.5);
+      }
 
-.dropdown {
-  float: left;
-  overflow: hidden;
-}
+      .cloud::after {
+        width: 120px;
+        height: 120px;
+        top: -60px;
+        left: 100px;
+        box-shadow: -25px 25px 50px rgba(255, 255, 255, 0.8), 25px 25px 50px rgba(255, 255, 255, 0.8), 50px 50px 100px rgba(255, 255, 255, 0.5);
+      }
 
-.dropdown .dropbtn {
-  cursor: pointer;
-  font-size: 16px;  
-  border: none;
-  outline: none;
-  color: white;
-  padding: 14px 16px;
-  background-color: inherit;
-  font-family: inherit;
-  margin: 0;
-}
+      .sun {
+        position: absolute;
+        background: radial-gradient(circle, #FFD700, #FFA500);
+        /* Gradient for the sun */
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        top: 10%;
+        left: 10%;
+        z-index: 1;
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+        /* Glow effect */
+      }
 
-.navbar a:hover, .dropdown:hover .dropbtn, .dropbtn:focus {
-  background-color: red;
-}
+      .sun::before {
+        content: '';
+        position: absolute;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.5), rgba(255, 165, 0, 0));
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        top: -25px;
+        left: -25px;
+        z-index: -1;
+      }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
+      .rain {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        pointer-events: none;
+        display: none;
+        opacity: 0;
+        transition: opacity 1s;
+      }
 
-.dropdown-content a {
-  float: none;
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-}
+      .raindrop {
+        position: absolute;
+        width: 2px;
+        height: 10px;
+        background: rgba(0, 0, 255, 0.5);
+        animation: fall 1s linear infinite;
+      }
 
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
+      @keyframes moveClouds {
+        0% {
+          transform: translateX(-100%);
+        }
 
-.show {
-  display: block;
-}
-a {
-background: linear-gradient(grey, white, black);
-text-decoration: none;
-padding: 0px;
-border: 0px outset #845007;
-border-radius: 50px;
-transition-duration: .0s;
-z-index: 
--1
-}
+        100% {
+          transform: translateX(100%);
+        }
+      }
 
-a:hover {
-background-color: #845007;
-border: 2px outset #3a4660;
-title:  Regular Games
-}
+      @keyframes fall {
+        0% {
+          top: -10px;
+        }
 
-div {
-  width: 1075px;
- height: 10%%;
-}
-</style>
+        100% {
+          top: 100%;
+        }
+      }
+
+      .content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: #000;
+        /* Black text color */
+        font-family: 'Roboto', sans-serif;
+        /* Updated font */
+        padding: 20px;
+        transition: color 1s, text-shadow 1s;
+        background: rgba(255, 255, 255, 0.8);
+        /* Semi-transparent background */
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .content.rainy {
+        text-shadow: 2px 2px 4px #000;
+        /* Black border on letters */
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin: 0;
+        font-family: 'Montserrat', sans-serif;
+        /* Updated font */
+      }
+
+      p {
+        font-size: 0.9em;
+        font-family: 'Open Sans', sans-serif;
+        /* Updated font */
+      }
+
+      .sidenav {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: 0.5s;
+        padding-top: 60px;
+        text-align: center;
+      }
+
+      .sidenav a {
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        font-size: 25px;
+        color: #818181;
+        display: block;
+        transition: 0.3s;
+      }
+
+      .sidenav a:hover {
+        color: #f1f1f1;
+      }
+
+      .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+      }
+
+      .sidenav .settingsbtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+      }
+
+      @media screen and (max-height: 450px) {
+        .sidenav {
+          padding-top: 15px;
+        }
+
+        .sidenav a {
+          font-size: 18px;
+        }
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
+  </head>
   <body>
+    <div class="background">
+      <div class="sun"></div>
+      <div class="cloud"></div>
+      <div class="cloud"></div>
+      <div class="cloud"></div>
+      <div class="rain"></div>
+    </div>
+    <div class="content">
+      <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="./index.html">Home</a>
+        <a href="./weather/index.html">Index</a>
+        <a href="./weather/Little-Rock.html">Capitol Weather</a>
+        <a href="./weather/radar.html">Local Radar</a>
+        <a href="./about.html">About</a>
+        <a href="javascript:void(0)" class="settingsbtn" onclick="openSettings()">Settings</a>
+      </div>
+      <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+      <script>
+        function openNav() {
+          document.getElementById("mySidenav").style.width = "100%";
+        }
 
-<div class="navbar">
-  <a href="./index.html"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0,0,256,256" style="fill:#000000;"> <g fill="#e4ff00" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><g transform="scale(10.66667,10.66667)"><path d="M12,2.09961l-11,9.90039h3v9h6v-7h4v7h6v-9h3z"></path></g></g> </svg>
+        function closeNav() {
+          document.getElementById("mySidenav").style.width = "0";
+        }
 
-</a>
-  <div class="dropdown">
-  <button class="dropbtn" onclick="myFunction()">Astronomy and Eclipses
-    <i class="fa fa-caret-down"></i>
-  </button>
-  <div class="dropdown-content" id="myDropdown">
- <a href="./solar-moon.html">Solar eclipse Simulator</a>
-  </div>
-<a href="./search.html">Search</a>
- </div>
-</div>
-<script>
-/* When the user clicks on the button, 
-toggle between hiding and showing the dropdown content */
-function myFunction() {
-  document.getElementById("myDropdown").classList.toggle("show");
-}
-
-// Close the dropdown if the user clicks outside of it
-window.onclick = function(e) {
-  if (!e.target.matches('.dropbtn')) {
-  var myDropdown = document.getElementById("myDropdown");
-    if (myDropdown.classList.contains('show')) {
-      myDropdown.classList.remove('show');
-    }
-  }
-}
-</script>
-</div>
-<div align="right"><image src="./Eclipsed.jpg" height="160px" width="1075px" </image></div>
-<div align="center"><iframe src="https://free.timeanddate.com/clock/i9iftm2x/n134/fn2/fcfff/tc000/bo2/th2/ta1" frameborder="0" width="134" height="23"></iframe></div>
-
-<font color="white" class="text"><h1 align="center"><b>About Eclipsed</b></h1></font>
-
-<font color="white"><p align="center">Note:(This is not a perfect website. It is under constrction right now so things may not be working. if the images won't load, check your internet to see if it is out.)</p>
-
-<p align="center">Welcome to Eclipsed! This is an educational website all about the moon, sun and everything in the sky.</p></font>
-
-<div class="footer">
-  <p>Copyright 2024</p>
-</div>
-
-</body>
-</HTML>                  
+        function openSettings() {
+          document.getElementById("settingsIframe").style.display = "block";
+        }
+      </script>
+      <h1>Welcome to Weather Arkansas</h1>
+      <p>Your go-to source for weather updates in Arkansas!</p>
+      <hr>
+      <hr>
+      <hr>
+      <div class="additional-content">
+        <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
+      </div>
+      <h1 align="center">What's Happening in Weather This Week</h1>
+      <p align="center"> This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississippi, and southwestern Alabama.
+      <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
+      <p>Residents are advised to stay indoors and follow the instructions of local authorities.</p>
+      </p>
+      <hr>
+      <h2 align="center">Weekly Forecast</h2>
+      <table align="center">
+        <tr>
+          <th>Day</th>
+          <th>Weather</th>
+          <th>High/Low</th>
+        </tr>
+        <tr>
+          <td>Monday</td>
+          <td>Sunny</td>
+          <td>85°F / 65°F</td>
+        </tr>
+        <tr>
+          <td>Tuesday</td>
+          <td>Partly Cloudy</td>
+          <td>82°F / 63°F</td>
+        </tr>
+        <tr>
+          <td>Wednesday</td>
+          <td>Thunderstorms</td>
+          <td>78°F / 60°F</td>
+        </tr>
+        <tr>
+          <td>Thursday</td>
+          <td>Rain</td>
+          <td>75°F / 58°F</td>
+        </tr>
+        <tr>
+          <td>Friday</td>
+          <td>Sunny</td>
+          <td>80°F / 62°F</td>
+        </tr>
+      </table>
+    </div>
+    <div id="settingsIframe" style="display:none;">
+      <iframe src="./settings.html"></iframe>
+    </div>
+  </body>
+</html>
