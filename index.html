@@ -15,7 +15,6 @@
         height: 100%;
         overflow: hidden;
         background: linear-gradient(to bottom, #87CEEB, #f0f0f0);
-        /* Gradient background */
         transition: background 1s;
         font-family: 'Lato', sans-serif;
       }
@@ -37,7 +36,6 @@
         height: 60px;
         animation: moveClouds 20s linear infinite;
         z-index: 2;
-        /* Move clouds in front of the sun */
       }
 
       .cloud::before,
@@ -67,7 +65,6 @@
       .sun {
         position: absolute;
         background: radial-gradient(circle, #FFD700, #FFA500);
-        /* Gradient for the sun */
         border-radius: 50%;
         width: 100px;
         height: 100px;
@@ -75,7 +72,6 @@
         left: 10%;
         z-index: 1;
         box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
-        /* Glow effect */
       }
 
       .sun::before {
@@ -136,33 +132,27 @@
         z-index: 2;
         text-align: center;
         color: #000;
-        /* Black text color */
         font-family: 'Roboto', sans-serif;
-        /* Updated font */
         padding: 20px;
         transition: color 1s, text-shadow 1s;
         background: rgba(255, 255, 255, 0.8);
-        /* Semi-transparent background */
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       }
 
       .content.rainy {
         text-shadow: 2px 2px 4px #000;
-        /* Black border on letters */
       }
 
       h1 {
         font-size: 2.5em;
         margin: 0;
         font-family: 'Montserrat', sans-serif;
-        /* Updated font */
       }
 
       p {
         font-size: 0.9em;
         font-family: 'Open Sans', sans-serif;
-        /* Updated font */
       }
 
       .sidenav {
@@ -208,6 +198,14 @@
         margin-left: 50px;
       }
 
+      .settings {
+        display: none;
+        padding: 20px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
       @media screen and (max-height: 450px) {
         .sidenav {
           padding-top: 15px;
@@ -216,12 +214,6 @@
         .sidenav a {
           font-size: 18px;
         }
-      }
-
-      iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
       }
     </style>
   </head>
@@ -241,7 +233,23 @@
         <a href="./weather/Little-Rock.html">Capitol Weather</a>
         <a href="./weather/radar.html">Local Radar</a>
         <a href="./about.html">About</a>
-        <a href="javascript:void(0)" class="settingsbtn" onclick="openSettings()">Settings</a>
+        <a href="javascript:void(0)" class="settingsbtn" onclick="toggleSettings()">Settings</a>
+        <div id="settings" class="settings">
+          <h2>Settings</h2>
+          <label for="unit">Temperature Unit:</label>
+          <select id="unit">
+            <option value="celsius">Celsius</option>
+            <option value="fahrenheit">Fahrenheit</option>
+          </select>
+          <br>
+          <label for="theme">Theme:</label>
+          <select id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+          <br>
+          <button onclick="saveSettings()">Save</button>
+        </div>
       </div>
       <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
       <script>
@@ -253,21 +261,19 @@
           document.getElementById("mySidenav").style.width = "0";
         }
 
-        function openSettings() {
-          document.getElementById("settingsIframe").style.display = "block";
+        function toggleSettings() {
+          var settings = document.getElementById("settings");
+          if (          settings.style.display = settings.style.display === "none" ? "block" : "none";
+        }
+
+        function saveSettings() {
+          var unit = document.getElementById("unit").value;
+          var theme = document.getElementById("theme").value;
+          alert("Settings saved: \nTemperature Unit: " + unit + "\nTheme: " + theme);
         }
       </script>
-      <h1>Welcome to Weather Arkansas</h1>
-      <p>Your go-to source for weather updates in Arkansas!</p>
-      <hr>
-      <hr>
-      <hr>
-      <div class="additional-content">
-        <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
-      </div>
-      <p align="center"> We know that Hurricane Helene could form in the next few days. It is expected to hit Florida as a hurricane.
-      <p>The impact on Louisiana will cause life-threatening storm surge and high category 2 hurricane winds!</p>
-      <p>Residents are advised to stay indoors and follow the instructions of local authorities.</p>
+      <h1>Weather in Arkansas</h1>
+      <p>Stay updated with the latest weather information.</p>
     </div>
   </body>
 </html>
