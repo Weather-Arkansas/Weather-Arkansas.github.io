@@ -77,7 +77,8 @@
     <script>
         async function getWeather() {
             const location = document.getElementById('location').value.trim();
-            const apiKey = 'U2Uc9dcZpjLS3CQsAzbdsqjvgcQtxd9S'; // Replace with your Tomorrow.io API key
+            const apiKey = 'https://api.tomorrow.io/v4/weather/forecast
+'; // Replace with your Tomorrow.io API key
             if (!location) {
                 document.getElementById('weatherInfo').innerHTML = "Please enter a location.";
                 return;
