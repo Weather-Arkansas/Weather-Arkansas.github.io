@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather in Arkansas</title>
+    <title>World's Best Weather Website</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Montserrat&display=swap">
-    <link rel="icon" href="favicon.ico" type="image/x-icon"> <!-- Add your favicon path here -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         body {
             margin: 0;
             font-family: 'Roboto', sans-serif;
             background: linear-gradient(to bottom, #87ceeb, #ffffff);
-            overflow: hidden;
             color: #333;
+            transition: background 0.5s;
         }
         .background {
             position: absolute;
@@ -31,11 +31,10 @@
             opacity: 0.9;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
-        .cloud:nth-child(1) { top: 30px; left: -100px; animation-duration: 40s, 3s; }
-        .cloud:nth-child(2) { top: 80px; left: -150px; animation-duration: 50s, 2.5s; }
-        .cloud:nth-child(3) { top: 100px; left: -200px; animation-duration: 60s, 2s; }
-        .cloud:nth-child(4) { top: 60px; left: -250px; animation-duration: 45s, 2.7s; }
-        .cloud:nth-child(5) { top: 150px; left: -300px; animation-duration: 55s, 3.3s; }
+        @keyframes moveClouds {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(100%); }
+        }
         .sun {
             position: absolute;
             width: 100px;
@@ -59,12 +58,7 @@
             margin: 50px auto;
             transition: transform 0.3s;
         }
-        .content:hover {
-            transform: scale(1.02);
-        }
-        h1 {
-            font-size: 2.8em;
-            margin: 0;
+        h1, h2 {
             font-family: 'Montserrat', sans-serif;
             color: #2c3e50;
         }
@@ -106,18 +100,6 @@
             .sidenav { padding-top: 15px; }
             .sidenav a { font-size: 18px; }
         }
-        @keyframes moveClouds {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        @keyframes floatClouds {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        @keyframes rotateSun {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -141,10 +123,14 @@
         <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
         <h1>Weather in Arkansas</h1>
         <p>Stay updated with the latest weather information.</p>
-        <p>Current Temperature: <strong>75°F</strong></p>
-        <p>Condition: <strong>Partly Cloudy</strong></p>
-        <p>Humidity: <strong>60%</strong></p>
-        <p>Wind Speed: <strong>10 mph</strong></p>
+        <div>
+            <label for="location">Enter Location: </label>
+            <input type="text" id="location" placeholder="City Name">
+            <button onclick="getWeather()">Get Weather</button>
+        </div>
+        <div id="weatherInfo"></div>
+        <h2>Hurricane Updates</h2>
+        <div id="hurricaneNews"></div>
     </div>
 
     <script>
@@ -154,6 +140,49 @@
         function closeNav() {
             document.getElementById("mySidenav").style.width = "0";
         }
+
+        async function getWeather() {
+            const location = document.getElementById('location').value;
+            const apiKey = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your API key
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=imperial`);
+                const data = await response.json();
+                if (data.cod === 200) {
+                    const { main, weather, wind } = data;
+                    const weatherInfo = `
+                        <h3>Current Weather in ${data.name}</h3>
+                        <p>Temperature: <strong>${main.temp}°F</strong></p>
+                        <p>Condition: <strong>${weather[0].description}</strong></p>
+                        <p>Humidity: <strong>${main.humidity}%</strong></p>
+                        <p>Wind Speed: <strong>${wind.speed} mph</strong></p>
+                    `;
+                    document.getElementById('weatherInfo').innerHTML = weatherInfo;
+                } else {
+                    document.getElementById('weatherInfo').innerHTML = "Location not found.";
+                }
+            } catch (error) {
+                document.getElementById('weatherInfo').innerHTML = "Error fetching weather data.";
+            }
+        }
+
+        async function fetchHurricaneUpdates() {
+            try {
+                const response = await fetch('https://api.weather.gov/alerts/active?area=AR');
+                const data = await response.json();
+                const updates = data.features.map(feature => {
+                    const title = feature.properties.title;
+                    const link = feature.properties.sent; // Adjust to actual link if available
+                    return `<li><strong>${title}</strong> - <a href="${link}" target="_blank">More Info</a></li>`;
+                }).join('');
+
+                document.getElementById('hurricaneNews').innerHTML = updates || "No active alerts.";
+            } catch (error) {
+                document.getElementById('hurricaneNews').innerHTML = "Unable to fetch updates.";
+            }
+        }
+
+        // Fetch updates on page load
+        fetchHurricaneUpdates();
     </script>
 </body>
 </html>
