@@ -94,8 +94,8 @@
         left: 0;
         z-index: 1;
         pointer-events: none;
-        display: none;
-        opacity: 0;
+        display: block;
+        opacity: 1;
         transition: opacity 1s;
       }
 
@@ -223,7 +223,17 @@
       <div class="cloud"></div>
       <div class="cloud"></div>
       <div class="cloud"></div>
-      <div class="rain"></div>
+      <div class="rain">
+        <div class="raindrop" style="left: 10%; animation-duration: 1s;"></div>
+        <div class="raindrop" style="left: 20%; animation-duration: 1.2s;"></div>
+        <div class="raindrop" style="left: 30%; animation-duration: 1.4s;"></div>
+        <div class="raindrop" style="left: 40%; animation-duration: 1.6s;"></div>
+        <div class="raindrop" style="left: 50%; animation-duration: 1.8s;"></div>
+        <div class="raindrop" style="left: 60%; animation-duration: 2s;"></div>
+        <div class="raindrop" style="left: 70%; animation-duration: 2.2s;"></div>
+        <div class="raindrop" style="left: 80%; animation-duration: 2.4s;"></div>
+        <div class="raindrop" style="left: 90%; animation-duration: 2.6s;"></div>
+      </div>
     </div>
     <div class="content">
       <div id="mySidenav" class="sidenav">
@@ -236,7 +246,7 @@
         <a href="javascript:void(0)" class="settingsbtn" onclick="toggleSettings()">Settings</a>
         <div id="settings" class="settings">
           <h2>Settings</h2>
-          <label for="unit">Temperature Unit:</label>
+                    <label for="unit">Temperature Unit:</label>
           <select id="unit">
             <option value="celsius">Celsius</option>
             <option value="fahrenheit">Fahrenheit</option>
@@ -263,7 +273,7 @@
 
         function toggleSettings() {
           var settings = document.getElementById("settings");
-          if (          settings.style.display = settings.style.display === "none" ? "block" : "none";
+          settings.style.display = settings.style.display === "none" ? "block" : "none";
         }
 
         function saveSettings() {
@@ -274,6 +284,10 @@
       </script>
       <h1>Weather in Arkansas</h1>
       <p>Stay updated with the latest weather information.</p>
+      <p>Current Temperature: 75°F</p>
+      <p>Condition: Partly Cloudy</p>
+      <p>Humidity: 60%</p>
+      <p>Wind Speed: 10 mph</p>
     </div>
   </body>
 </html>
