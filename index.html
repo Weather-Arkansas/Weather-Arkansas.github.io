@@ -5,313 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather in Arkansas</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Montserrat&display=swap">
-    <link rel="icon" href="./files/favicon.ico" type="image/x-icon"> <!-- Add your favicon path here -->
+    <link rel="icon" href="./files/favicon.ico" type="image/x-icon">
     <style>
-    
-        .background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: -1;
-	    background-size: cover;
-	    background-repeat: no-repeat;
-	    
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-
-        {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-}
-
-main {
-	height: 100vh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-#wind-wrap {
-	position: relative;
-	margin: 0px auto;
-	padding: 0;
-	width: 1920px;
-	height: 1080px;
-	overflow: hidden;
-	background: #fff;
-
-	background: linear-gradient(
-		126deg,
-		rgb(45 253 226 / 77%) 0%,
-		rgb(156 255 230 / 59%) 33%,
-		rgb(255 245 204 / 17%) 100%
-	);
-}
-
-.tree {
-	position: relative;
-	z-index: 1;
-	width: 250px;
-	height: 250px;
-	margin-top: 125px;
-	margin-left: -60px;
-	border-radius: 85% 75% 0% 75%;
-	background: linear-gradient(to right, #53ad71, #77ed9e);
-	transform: rotate(-130deg);
-	box-shadow: inset 5px -5px 30px 5px #3a9659, -7px 5px 0 1px #3f8456,
-		-10px 30px 50px -20px #3a5d46;
-}
-.tree::after {
-	content: "";
-	display: block;
-	width: 55px;
-	height: 220px;
-	border: 20px solid #623204;
-	border-bottom: none;
-	border-right: none;
-	border-top: none;
-	border-radius: 100% 100% 100% 10%;
-	transform: rotate(128deg);
-	position: absolute;
-	top: -30px;
-	left: 5px;
-	box-shadow: inset -30px -60px 0px -30px #623204, -30px -60px 0px -30px #623204,
-		-30px -55px 33px -25px #3a5d46;
-}
-.tree::before {
-	content: "";
-	display: block;
-	width: 30px;
-	height: 30px;
-	background: none;
-	border-radius: 100% 100% 100% 10%;
-	transform: rotate(-60deg);
-	position: absolute;
-	z-index: 1;
-	top: 0px;
-	left: 0px;
-	box-shadow: -40px 233px 0 -8px #53ad71, -70px 263px 0 -10px #53ad71,
-		-80px 243px 0 -12px #53ad71, -95px 255px 0 -13px #53ad71,
-		-60px 185px 0px 1px #53ad71, -63px 186px 0px 1px #77ed9e,
-		-68px 189px 10px 1px #2c653f, -72px 207px 0px -2px #77ed9e,
-		-75px 209px 10px 0px #2c653f, -80px 185px 0 10px #3a9659,
-		-84px 186px 0 10px #2c653f, -90px 189px 10px 10px #3f8456,
-		-85px 140px 0px 2px #77ed9e, -90px 141px 0px 2px #3f8456,
-		-93px 143px 10px 2px #2c653f, -96px 115px 0px 20px #53ad71,
-		-101px 115px 0px 20px #3f8456, -105px 117px 15px 18px #3a5d46,
-		-150px 165px 0 -10px #53ad71, -130px 165px 0 -11px #53ad71,
-		-140px 185px 0 -12px #53ad71, -140px 165px 0px 25px #77ed9e,
-		-145px 167px 0px 25px #3f8456, -149px 170px 15px 23px #3a5d46;
-
-	animation: 2.5s ease-in-out 0s infinite tree;
-}
-
-@keyframes tree {
-	0%,
-	100% {
-		transform: rotate(-60deg);
-	}
-	50% {
-		transform: rotate(-62deg);
-	}
-}
-
-.grass {
-	position: absolute;
-	bottom: -45px;
-	left: 0px;
-	height: 100px;
-	width: 200px;
-	border-radius: 0 100% 0 0;
-	background-color: #3f8456;
-	box-shadow: inset -10px 10px 20px 10px #3a5d46, 0 0 0px 3px #3a5d46,
-		100px 25px 0px 3px #3a5d46, 85px 0px 15px -3px #3f8456,
-		100px -5px 0px 10px #3a5d46, -50px -10px 0px 30px #3b5243,
-		inset 0px 0px 50px -10px #77ed9e, 0px 0px 150px -10px red,
-		80px -100px 150px 50px rgb(253 187 45);
-}
-
-
-
-	animation: 1.5s ease-in 0s 1 fade-in;
-}
-@keyframes fade-in {
-	0% {
-		left: -50px;
-		opacity: 0;
-	}
-	100% {
-		left: 0;
-		opacity: 1;
-	}
-}
-
-.leaf {
-	position: absolute;
-	z-index: 0;
-	width: 50px;
-	height: 50px;
-	border-radius: 75% 75% 0% 75%;
-	background: linear-gradient(to right, #77ed9e, #53ad71);
-	box-shadow: 8px 10px 20px -10px #3a5d46, 2px -1px 0 1px #3f8456,
-		200px -100px 15px -15px #77ed9e, 200px -100px 0 -10px #3f8456,
-		-140px 65px 15px -20px #77ed9e, -140px 65px 0px -13px #3f8456,
-		140px 65px 0px -15px #77ed9e;
-}
-.leaf::after {
-	content: "";
-	display: block;
-	width: 15px;
-	height: 50px;
-	border: 4px solid #3a9659;
-	border-bottom: none;
-	border-right: none;
-	border-top: none;
-	border-radius: 100% 100% 100% 10%;
-	transform: rotate(120deg);
-	position: absolute;
-	top: -3px;
-	left: 5px;
-}
-.leaf::before {
-	content: "";
-	display: block;
-	width: 3px;
-	height: 3px;
-	background: none;
-	border-radius: 100% 100% 100% 10%;
-	transform: rotate(0deg);
-	position: absolute;
-	z-index: 1;
-	top: 0px;
-	left: 0px;
-	box-shadow: 10px 15px 0 1px #3a9659, 10px 18px 0 1px #53ad71,
-		20px 11px 0 1px #3a9659, 23px 11px 0 1px #53ad71, 20px 20px 0 1px #3a9659;
-}
-
-.leaf:nth-child(1) {
-	animation: 3s ease-in 0s infinite leaf-1;
-}
-@keyframes leaf-1 {
-	0% {
-		left: -150px;
-		transform: scale3d(1, 1, 1);
-	}
-	75% {
-		transform: scale3d(1, 0.75, 1) translate(100px, 100px);
-	}
-	100% {
-		left: 100%;
-		transform: scale3d(1, 1, 1) translate(20px, -20px) rotate(-50deg);
-	}
-}
-
-.leaf:nth-child(2) {
-	animation: 2.5s ease-in 0.5s infinite leaf-2;
-}
-@keyframes leaf-2 {
-	0% {
-		left: -50px;
-		transform: scale3d(0.5, 0.5, 0.5);
-	}
-	60% {
-		transform: scale3d(0.75, 0.25, 0.5) translate(100px, -150px);
-	}
-	100% {
-		left: 100%;
-		transform: scale3d(0.5, 0.5, 0.5) translate(0px, -20px);
-	}
-}
-
-.leaf:nth-child(3) {
-	animation: 3.5s ease-in 0.75s infinite leaf-3;
-}
-@keyframes leaf-3 {
-	0% {
-		left: -50px;
-		transform: scale3d(1, 0.5, 0.5);
-	}
-	30% {
-		transform: scale3d(0.25, 0.65, 0.5) translate(100px, 100px) rotate(-30deg);
-	}
-	100% {
-		left: 100%;
-		transform: scale3d(1, 0.5, 0.5) translate(100px, -200px);
-	}
-}
-
-.leaf:nth-child(4) {
-	animation: 4.5s ease-in 0s infinite leaf-4;
-}
-@keyframes leaf-4 {
-	0% {
-		left: -150px;
-		transform: rotate(0deg) scale(0.6);
-	}
-	20% {
-		transform: rotate(5deg) translate(0, 50px);
-	}
-	100% {
-		left: 100%;
-		transform: rotate(90deg) translate(0px, -400px) scale(1);
-	}
-}
-
-.leaf:nth-child(5) {
-	animation: 5.5s ease-in 0.5s infinite leaf-5;
-}
-@keyframes leaf-5 {
-	0% {
-		left: -150px;
-		transform: rotate(0deg) scale(0.5);
-	}
-	20% {
-		transform: translate(300px, 100px) rotate(90deg) scale(0.6);
-	}
-	45% {
-		transform: translate(300px, 0px) rotate(0deg) scale(0.85);
-	}
-	70% {
-		transform: translate(300px, 250px) rotate(-180deg) scale(0.6);
-	}
-	100% {
-		left: 100%;
-		transform: rotate(-200deg) translate(-100px, -200px) scale(1);
-	}
-}
-
-       
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(126deg, rgba(45, 253, 226, 0.77), rgba(156, 255, 230, 0.59));
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #wind-wrap {
+            position: relative;
+            width: 80%;
+            max-width: 1920px;
+            height: 80%;
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .tree {
+            width: 250px; height: 250px; 
+            border-radius: 85% 75% 0 75%; 
+            background: linear-gradient(to right, #53ad71, #77ed9e); 
+            transform: rotate(-130deg); 
+            position: relative; 
+            z-index: 1;
+            box-shadow: inset 5px -5px 30px 5px #3a9659, -7px 5px 0 1px #3f8456, -10px 30px 50px -20px #3a5d46;
+        }
+        .grass {
+            position: absolute; bottom: -45px; left: 0; height: 100px; width: 200px; 
+            background-color: #3f8456; border-radius: 0 100% 0 0;
+        }
+        .leaf {
+            position: absolute; width: 50px; height: 50px; border-radius: 75%; 
+            background: linear-gradient(to right, #77ed9e, #53ad71); 
+            animation: leaf-animation 4s infinite;
+        }
+        @keyframes leaf-animation {
+            0% { left: -50px; }
+            100% { left: 100%; }
+        }
     </style>
 </head>
 <body>
-    <div class="background">
-        <main>
-	<div id="wind-wrap">
-
-		<div class="tree"></div>
-		<div class="grass"></div>
-
-		<ul class="leaf-wrap">
-			<li class="leaf"></li>
-			<li class="leaf"></li>
-			<li class="leaf"></li>
-			<li class="leaf"></li>
-			<li class="leaf"></li>
-		</ul>
-
-	</div>
-</main>
+    <div id="wind-wrap">
+        <div class="tree"></div>
+        <div class="grass"></div>
+        <div class="leaf"></div>
+        <div class="leaf" style="animation-delay: 1s;"></div>
+        <div class="leaf" style="animation-delay: 2s;"></div>
     </div>
     <div class="content">
-        <div id="mySidenav" class="sidenav">
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <nav id="mySidenav" style="width: 0;">
+            <a href="javascript:void(0)" onclick="closeNav()">×</a>
             <a href="./index.html">Home</a>
             <a href="./weather/index.html">Index</a>
             <a href="./weather/Little-Rock.html">Capitol Weather</a>
             <a href="./weather/radar.html">Local Radar</a>
             <a href="./about.html">About</a>
-        </div>
+        </nav>
         <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
         <h1>Weather in Arkansas</h1>
         <p>Stay updated with the latest weather information.</p>
@@ -322,12 +80,8 @@ main {
     </div>
 
     <script>
-        function openNav() {
-            document.getElementById("mySidenav").style.width = "250px";
-        }
-        function closeNav() {
-            document.getElementById("mySidenav").style.width = "0";
-        }
+        function openNav() { document.getElementById("mySidenav").style.width = "250px"; }
+        function closeNav() { document.getElementById("mySidenav").style.width = "0"; }
     </script>
 </body>
-</html>       make the tree and leaves the background and make it behind the text
+</html>
