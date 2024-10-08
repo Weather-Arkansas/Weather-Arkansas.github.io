@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #87ceeb; /* Light blue sky */
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Sun (SVG) */
+        .sun {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+        }
+
+        /* Clouds (animated) */
+        .cloud {
+            position: absolute;
+            top: 50px;
+            width: 80px;
+            height: 40px;
+            background-color: white;
+            border-radius: 20px;
+            animation: moveCloud 10s linear infinite;
+        }
+
+        @keyframes moveCloud {
+            0% {
+                left: -100px;
+            }
+            100% {
+                left: calc(100% + 100px);
+            }
+        }
+
+        /* Navbar */
+        nav {
+            background-color: rgba(255, 255, 255, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav li {
+            margin-right: 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+        }
+    </style>
+    <title>Weather Arkansas</title>
+</head>
+<body>
+    <!-- Sun (SVG) -->
+    <div class="sun">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="yellow" />
+        </svg>
+    </div>
+
+    <!-- Clouds (animated) -->
+    <div class="cloud" style="left: 100px;"></div>
+    <div class="cloud" style="left: 300px;"></div>
+    <div class="cloud" style="left: 500px;"></div>
+
+    <!-- Navbar -->
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="weather/index.html">Weather</a></li>
+            <li><a href="radar.html">Radar</a></li>
+        </ul>
+    </nav>
+
+    <!-- Your content goes here -->
+</body>
+</html>
 
