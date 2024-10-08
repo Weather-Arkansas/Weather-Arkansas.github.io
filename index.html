@@ -1,48 +1,353 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head><script src="//archive.org/includes/athena.js" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app212.us.archive.org';v.server_ms=2627;archive_analytics.send_pageview({});});</script>
+<script type="text/javascript" src="https://web-static.archive.org/_static/js/bundle-playback.js?v=HxkREWBo" charset="utf-8"></script>
+<script type="text/javascript" src="https://web-static.archive.org/_static/js/wombat.js?v=txqj7nKC" charset="utf-8"></script>
+<script>window.RufflePlayer=window.RufflePlayer||{};window.RufflePlayer.config={"autoplay":"on","unmuteOverlay":"hidden"};</script>
+<script type="text/javascript" src="https://web-static.archive.org/_static/js/ruffle/ruffle.js"></script>
+<script type="text/javascript">
+    __wm.init("https://web.archive.org/web");
+  __wm.wombat("https://weather-arkansas.github.io/","20240913204936","https://web.archive.org/","web","https://web-static.archive.org/_static/",
+	      "1726260576");
+</script>
+<link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/banner-styles.css?v=S1zqJCYt">
+<link rel="stylesheet" type="text/css" href="https://web-static.archive.org/_static/css/iconochive.css?v=qtvMKcIJ">
+<!-- End Wayback Rewrite JS Include -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Include Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Add your custom styles (if needed) -->
-    <style>
-        /* Your existing styles here */
-
-        /* Additional styles for weather info */
-        #weather-info {
-            margin-top: 20px;
-            text-align: center;
-        }
-    </style>
     <title>Weather Arkansas</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #87CEEB; /* Sky blue background */
+            transition: background 1s;
+        }
+
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: -30px 30px 60px rgba(255, 255, 255, 0.8), 30px 30px 60px rgba(255, 255, 255, 0.8), 60px 60px 120px rgba(255, 255, 255, 0.5);
+            width: 200px;
+            height: 60px;
+            animation: moveClouds 20s linear infinite;
+            z-index: 2; /* Move clouds in front of the sun */
+        }
+
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .cloud::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+            box-shadow: -20px 20px 40px rgba(255, 255, 255, 0.8), 20px 20px 40px rgba(255, 255, 255, 0.8), 40px 40px 80px rgba(255, 255, 255, 0.5);
+        }
+
+        .cloud::after {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            left: 100px;
+            box-shadow: -25px 25px 50px rgba(255, 255, 255, 0.8), 25px 25px 50px rgba(255, 255, 255, 0.8), 50px 50px 100px rgba(255, 255, 255, 0.5);
+        }
+
+        .sun {
+            position: absolute;
+            background: radial-gradient(circle, #FFD700, #FFA500); /* Gradient for the sun */
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 10%;
+            z-index: 1;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); /* Glow effect */
+        }
+
+        .sun::before {
+            content: '';
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.5), rgba(255, 165, 0, 0));
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            top: -25px;
+            left: -25px;
+            z-index: -1;
+        }
+
+        .rain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(0, 0, 255, 0.5);
+            animation: fall 1s linear infinite;
+        }
+
+        @keyframes moveClouds {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes fall {
+            0% {
+                top: -10px;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: #000; /* Black text color */
+            font-family: 'Roboto', sans-serif; /* Updated font */
+            padding: 20px;
+            transition: color 1s, text-shadow 1s;
+        }
+
+        .content.rainy {
+            text-shadow: 2px 2px 4px #000; /* Black border on letters */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif; /* Updated font */
+        }
+
+        p {
+            font-size: 0.9em;
+            font-family: 'Open Sans', sans-serif; /* Updated font */
+        }
+        body {
+  font-family: "Lato", sans-serif;
+  color: teal;
+}
+
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+  text-align:center;
+}
+
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+
+}
+
+.sidenav a:hover{
+  color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+    </style>
 </head>
-<body>
-    <!-- Sun (SVG) and Clouds (animated) remain unchanged -->
+<body style="background: rgb(135, 206, 235);">
 
-    <!-- Navbar (Bootstrap) remains unchanged -->
 
-    <!-- Your content goes here -->
-    <div id="weather-info">
-        <p>Temperature: <span id="temperature"></span></p>
-        <p>Conditions: <span id="conditions"></span></p>
+<script type="text/javascript">//<![CDATA[
+__wm.bt(725,27,25,2,"web","http://weather-arkansas.github.io/","20240913204936",1996,"https://web-static.archive.org/_static/",["https://web-static.archive.org/_static/css/banner-styles.css?v=S1zqJCYt","https://web-static.archive.org/_static/css/iconochive.css?v=qtvMKcIJ"], false);
+  __wm.rw(1);
+//]]></script>
+<!-- END WAYBACK TOOLBAR INSERT -->
+ 
+    <div class="background">
+        <div class="sun" style="display: block;"></div>
+        <div class="cloud" style="top: 63.888%; left: 43.7136%; animation-duration: 10.1965s; background: rgb(255, 255, 255);"></div>
+        <div class="cloud" style="top: 59.4603%; left: 61.4309%; animation-duration: 27.9838s; background: rgb(255, 255, 255);"></div>
+        <div class="cloud" style="top: 57.5789%; left: 62.2501%; animation-duration: 11.8359s; background: rgb(255, 255, 255);"></div>
+        <div class="rain" style="display: none; opacity: 0;"></div>
     </div>
+    <div class="content" style="color: rgb(0, 0, 0);">
+        <div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+  <a href="./index.html">Home</a>
+  <a href="./weather/index.html">Index</a>
+  <a href="./weather/Little-Rock.html">Capitol Weather</a>
+  <a href="./weather/radar.html">Local Radar</a>
+  <a href="./about.html">About</a>
 
-    <!-- Fetch weather data using JavaScript -->
+</div>
+<span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+
+<script>
+function openNav() {
+  document.getElementById("mySidenav").style.width = "100%";
+}
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+}
+</script>
+        <h1>Welcome to Weather Arkansas</h1>
+        <p>Your go-to source for weather updates in Arkansas!</p>
+        <hr>
+        <hr>
+        <hr>
+        <div class="additional-content">
+            <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
+        </div>
+    <h1 align="center">What's Happening in Weather This Week</h1>
+        <p align="center">
+            This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississipi and south-western Alabama.
+            </p><p>The impact on Louisiana will cause life threatening storm surge and high category 2 hurricane winds!</p>
+            <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
+    </div>
     <script>
-        fetch('https://api.weather.gov/points/34.3623,-92.8125')
-            .then(response => response.json())
-            .then(data => {
-                const temperature = data.properties.temperature.value;
-                const conditions = data.properties.textDescription;
-
-                // Update UI elements
-                document.getElementById('temperature').textContent = `${temperature}°F`;
-                document.getElementById('conditions').textContent = conditions;
-            })
-            .catch(error => {
-                console.error('Error fetching weather data:', error);
+        document.addEventListener('DOMContentLoaded', () => {
+            const clouds = document.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                cloud.style.top = `${Math.random() * 100}%`;
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDuration = `${10 + Math.random() * 20}s`;
             });
+
+            const rainContainer = document.querySelector('.rain');
+            const sun = document.querySelector('.sun');
+            const content = document.querySelector('.content');
+
+            // Function to set a cookie
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+
+            // Function to get a cookie
+            function getCookie(name) {
+                const cname = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(cname) == 0) {
+                        return c.substring(cname.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            // Check if it's raining from the cookie
+            const isRaining = getCookie("isRaining") === "true";
+
+            if (isRaining) {
+                startRain();
+            }
+
+            function startRain() {
+                rainContainer.style.display = 'block';
+                rainContainer.style.opacity = 1;
+                document.body.style.background = '#2F4F4F'; // Dark slate gray background
+                content.style.color = '#fff'; // White text color
+                content.classList.add('rainy'); // Add border to letters
+                sun.style.display = 'none'; // Hide the sun
+                clouds.forEach(cloud => {
+                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
+                });
+                setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
+                for (let i = 0; i < 100; i++) {
+                    const raindrop = document.createElement('div');
+                    raindrop.classList.add('raindrop');
+                    raindrop.style.left = `${Math.random() * 100}%`;
+                    raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
+                    rainContainer.appendChild(raindrop);
+                }
+                setTimeout(stopRain, 60000); // Rain for 1 minute
+            }
+
+            function stopRain() {
+                rainContainer.style.opacity = 0;
+                setTimeout(() => {
+                    rainContainer.style.display = 'none';
+                    document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    content.classList.remove('rainy'); // Remove border from letters
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
+                                        setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                    while (rainContainer.firstChild) {
+                        rainContainer.removeChild(rainContainer.firstChild);
+                    }
+                }, 1000); // Wait for the fade-out transition
+            }
+
+            setInterval(startRain, 30000); // Every 30 seconds
+
+            // Initial rain check
+            if (isRaining) {
+                startRain();
+            }
+        });
     </script>
-</body>
-</html>
+    
+
+
+
+</body></html>
