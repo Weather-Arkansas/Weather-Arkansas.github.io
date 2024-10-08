@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom styles (if needed) -->
     <style>
         body {
             background-color: #87ceeb; /* Light blue sky */
@@ -80,17 +83,30 @@
     <div class="cloud" style="left: 300px;"></div>
     <div class="cloud" style="left: 500px;"></div>
 
-    <!-- Navbar -->
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="weather/index.html">Weather</a></li>
-            <li><a href="radar.html">Radar</a></li>
-        </ul>
+    <!-- Navbar (Bootstrap) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Weather Arkansas</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="index.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="about.html">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="weather/index.html">Weather</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="radar.html">Radar</a>
+                </li>
+            </ul>
+        </div>
     </nav>
 
     <!-- Your content goes here -->
 </body>
 </html>
-
