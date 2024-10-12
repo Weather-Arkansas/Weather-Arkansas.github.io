@@ -3,127 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Arkansas</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS -->
-    <style>
-        /* Add styles for clouds, corals, and stars here */
-        body {
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            background-color: #87CEEB; /* Default to sky blue */
-        }
-
-        .cloud {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            width: 200px;
-            height: 60px;
-            z-index: 1;
-            opacity: 0.8;
-            animation: moveClouds 20s linear infinite;
-        }
-
-        .coral {
-            position: absolute;
-            background: coral;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            z-index: 1;
-        }
-
-        .star {
-            position: absolute;
-            background: yellow;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            z-index: 1;
-        }
-
-        @keyframes moveClouds {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-    </style>
+    <title>Settings</title>
 </head>
 <body>
+    <h1>Settings</h1>
+    <form id="settingsForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+        
+        <label for="theme">Choose a theme:</label>
+        <select id="theme">
+            <option value="weather">Weather</option>
+            <option value="underwater">Underwater</option>
+            <option value="space">Space</option>
+        </select>
 
-    <div id="navbar">
-        <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
-        <div id="mySidenav" class="sidenav" style="display:none;">
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-            <a href="./index.html">Home</a>
-            <a href="./weather/index.html">Index</a>
-            <a href="./weather/Little-Rock.html">Capitol Weather</a>
-            <a href="./weather/radar.html">Local Radar</a>
-            <a href="./about.html">About</a>
-        </div>
-    </div>
-
-    <div class="content">
-        <h1 id="page-title">Welcome to Weather Arkansas</h1>
-        <p>Your go-to source for weather updates in Arkansas!</p>
-        <hr>
-        <div id="environment"></div> <!-- This will hold clouds, corals, or stars -->
-    </div>
+        <button type="submit">Save</button>
+    </form>
 
     <script>
-        // Function to open and close the navbar
-        function openNav() {
-            document.getElementById("mySidenav").style.display = "block";
-        }
+        // Load existing settings
+        const settings = JSON.parse(localStorage.getItem('settings')) || {};
+        document.getElementById('username').value = settings.username || '';
+        document.getElementById('theme').value = settings.theme || 'weather';
 
-        function closeNav() {
-            document.getElementById("mySidenav").style.display = "none";
-        }
-
-        // Load settings
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem('settings')) || {};
-            document.getElementById('page-title').textContent = `${settings.username || "User's"} Weather Arkansas`;
-
-            // Manage environment elements based on the theme
-            const environment = document.getElementById('environment');
-            environment.innerHTML = ''; // Clear existing elements
+        // Handle form submission
+        document.getElementById('settingsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const theme = document.getElementById('theme').value;
             
-            if (settings.theme === 'weather') {
-                // Create clouds
-                for (let i = 0; i < 5; i++) {
-                    const cloud = document.createElement('div');
-                    cloud.className = 'cloud';
-                    cloud.style.top = `${Math.random() * 80}vh`;
-                    cloud.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(cloud);
-                }
-            } else if (settings.theme === 'underwater') {
-                // Create corals
-                for (let i = 0; i < 10; i++) {
-                    const coral = document.createElement('div');
-                    coral.className = 'coral';
-                    coral.style.bottom = '0';
-                    coral.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(coral);
-                }
-                document.body.style.backgroundColor = '#2E8B57'; // Underwater color
-            } else if (settings.theme === 'space') {
-                // Create stars
-                for (let i = 0; i < 50; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.top = `${Math.random() * 100}vh`;
-                    star.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(star);
-                }
-                document.body.style.backgroundColor = '#000'; // Space color
-            }
-        }
-
-        // Load settings on page load
-        window.onload = loadSettings;
+            // Save settings to localStorage
+            localStorage.setItem('settings', JSON.stringify({ username, theme }));
+            alert('Settings saved!');
+            window.location.href = 'index.html'; // Redirect to index.html
+        });
     </script>
-
 </body>
 </html>
