@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Weather Arkansas</title>
+    <style>
+        /* Add your styles here */
+    </style>
+</head>
+<body>
+    <h1>Settings</h1>
+    <form id="settingsForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter your username" required>
+
+        <label for="theme">Select Theme:</label>
+        <select id="theme">
+            <option value="weather">Weather</option>
+            <option value="space">Space</option>
+            <option value="underwater">Underwater</option>
+        </select>
+
+        <label for="textColor">Text Color:</label>
+        <input type="color" id="textColor" value="#000000">
+
+        <button type="submit">Save Settings</button>
+    </form>
+
+    <script>
+        // Load settings from localStorage if available
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('username').value = localStorage.getItem('username') || '';
+            document.getElementById('theme').value = localStorage.getItem('theme') || 'weather';
+            document.getElementById('textColor').value = localStorage.getItem('textColor') || '#000000';
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            localStorage.setItem('username', document.getElementById('username').value);
+            localStorage.setItem('theme', document.getElementById('theme').value);
+            localStorage.setItem('textColor', document.getElementById('textColor').value);
+            alert('Settings saved!');
+            window.location.href = './index.html'; // Redirect to index.html
+        });
+    </script>
+</body>
+</html>
