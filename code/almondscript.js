@@ -100,12 +100,19 @@ async function runCode() {
         const translatedCode = await translateCode(codeInput);
         outputDiv.value = ''; // Clear output before running new code
         
-        // Wrap the translated code execution in an async IIFE
         await eval(`(async () => { ${translatedCode} })();`);
     } catch (error) {
-        outputDiv.value += `Error: ${error.message}\n`; // Print error to output textbox
+        outputDiv.value += `Error on line ${getLineNumber(codeInput, error)}: ${error.message}\n`;
     }
 }
+
+// Function to get line number from error
+function getLineNumber(code, error) {
+    // This is a simple way; consider more robust methods based on error object
+    const lines = code.split('\n');
+    return lines.findIndex(line => line.includes(error.message)) + 1; // Adjust as needed
+}
+
 
 // Event listener for the run button
 document.getElementById('runButton').addEventListener('click', runCode);
