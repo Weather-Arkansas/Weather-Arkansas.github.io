@@ -75,7 +75,7 @@
 
         // A simple Almondscript interpreter
         function runAlmondscript(script) {
-            const lines = script.split('\n').map(line => line.trim());
+            const lines = script.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith("#"));
             const variables = {};
             let output = "";
 
@@ -92,7 +92,7 @@
                     output += `${eval(content)}\n`;
                 } else if (line.startsWith("if")) {
                     // If statement
-                    const condition = line.match(/if\s*\((.+)\)/)[1];
+                    const condition = line.slice(2).trim(); // Get the condition after "if"
                     const endIfIndex = findEndIfIndex(lines, i);
                     if (eval(condition)) {
                         output += processIfBlock(lines, i + 1, endIfIndex);
@@ -107,7 +107,7 @@
         // Helper functions for control flow
         function findEndIfIndex(lines, startIndex) {
             for (let i = startIndex; i < lines.length; i++) {
-                if (lines[i] === "end") {
+                if (lines[i].startsWith('end') && lines[i].includes('"if"')) {
                     return i;
                 }
             }
