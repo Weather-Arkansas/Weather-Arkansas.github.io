@@ -1,118 +1,130 @@
-const keywordMap = {
-    'while': 'while',
-    'if': 'if',
-    'for': 'for',
-    'let': 'let',
-    'function': 'function',
-    'True': 'true',
-    'False': 'false',
-    'and': '&&',
-    'or': '||',
-    'not': '!',
-    'else': 'else',
-    'return': 'return',
-    'elif': 'else if',
-    'input': 'await getUserInput',
-    'print': 'printToOutput',
-    'interval': 'setInterval',
-    'list': 'Array.from',
-    'push': '.push',
-    'try': 'try',
-    'catch': 'catch',
-    'Infinity': 'Infinity',
-    'end': '',
-};
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Almondscript Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            white-space: pre-wrap; /* Preserves whitespace */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Almondscript Runner</h1>
+        <textarea id="almondscript-input" placeholder="Type your Almondscript here..."></textarea>
+        <button id="run-button">Run Almondscript</button>
+        <div id="output"></div>
+    </div>
+    <script>
+        document.getElementById("run-button").addEventListener("click", function() {
+            const input = document.getElementById("almondscript-input").value;
+            const outputDiv = document.getElementById("output");
+            outputDiv.textContent = ""; // Clear previous output
 
-// Function to simulate user input with a prompt
-function getUserInput(promptMessage) {
-    return new Promise((resolve) => {
-        const input = prompt(promptMessage);
-        resolve(input);
-    });
-}
+            try {
+                const output = runAlmondscript(input);
+                outputDiv.textContent = `Output:\n${output}`;
+            } catch (error) {
+                outputDiv.textContent = `Error: ${error.message}`;
+            }
+        });
 
-// Function to print text to the output textbox
-function printToOutput(text) {
-    const outputDiv = document.getElementById('output');
-    outputDiv.value += text + '\n'; // Append text to the textbox
-}
+        // A simple Almondscript interpreter
+        function runAlmondscript(script) {
+            const lines = script.split('\n').map(line => line.trim());
+            const variables = {};
+            let output = "";
 
-// Translation logic
-async function translateCode(code) {
-    const lines = code.split('\n');
-    let translatedLines = [];
-    let blockCount = 0; // To track block openings
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
 
-    for (let line of lines) {
-        line = line.trim();
+                if (line.startsWith("let")) {
+                    // Variable declaration
+                    const [varName, value] = line.slice(4).split('=');
+                    variables[varName.trim()] = eval(value.trim());
+                } else if (line.startsWith("print")) {
+                    // Print statement
+                    const content = line.slice(6, -2); // Extract content between parentheses
+                    output += `${eval(content)}\n`;
+                } else if (line.startsWith("if")) {
+                    // If statement
+                    const condition = line.match(/if\s*\((.+)\)/)[1];
+                    const endIfIndex = findEndIfIndex(lines, i);
+                    if (eval(condition)) {
+                        output += processIfBlock(lines, i + 1, endIfIndex);
+                    }
+                    i = endIfIndex; // Skip to the end of the if block
+                }
+            }
 
-        // Handle comments
-        if (line.startsWith('#')) {
-            translatedLines.push('// ' + line.slice(1).trim());
-            continue;
+            return output;
         }
 
-        // Handle block start
-        if (line.endsWith(':')) {
-            line = line.slice(0, -1) + ' {';
-            blockCount++; // Increment block count
+        // Helper functions for control flow
+        function findEndIfIndex(lines, startIndex) {
+            for (let i = startIndex; i < lines.length; i++) {
+                if (lines[i] === "end") {
+                    return i;
+                }
+            }
+            throw new Error("No matching 'end' for 'if'.");
         }
 
-        // Replace keywords based on the keywordMap
-        for (const [almondKeyword, jsEquivalent] of Object.entries(keywordMap)) {
-            const regex = new RegExp(`\\b${almondKeyword}\\b`, 'g');
-            line = line.replace(regex, jsEquivalent);
+        function processIfBlock(lines, startIndex, endIndex) {
+            let blockOutput = "";
+            for (let i = startIndex; i < endIndex; i++) {
+                const line = lines[i];
+                if (line.startsWith("print")) {
+                    const content = line.slice(6, -2);
+                    blockOutput += `${eval(content)}\n`;
+                }
+            }
+            return blockOutput;
         }
-
-        // Handle list creation
-        line = line.replace(/let\s+(\w+)\s*=\s*list\(([^)]*)\)/g, 'let $1 = [$2];');
-
-        // Handle input syntax
-        line = line.replace(/await getUserInput\s*\("([^"]*)"\)/g, 'await getUserInput("$1")');
-
-        // Handle the 'end' keyword
-        if (line === 'end') {
-            line = '}';
-            blockCount--; // Decrement block count
-        }
-
-        // Add semicolon to the end of the line
-        if (line && line !== '}') {
-            line += ';';
-        }
-
-        translatedLines.push(line);
-    }
-
-    // Check for unmatched blocks
-    if (blockCount > 0) {
-        throw new Error('Unmatched block start (missing "end")');
-    }
-
-    return translatedLines.join('\n');
-}
-
-async function runCode() {
-    const codeInput = document.getElementById('codeInput').value;
-    const outputDiv = document.getElementById('output');
-
-    try {
-        const translatedCode = await translateCode(codeInput);
-        outputDiv.value = ''; // Clear output before running new code
-        
-        await eval(`(async () => { ${translatedCode} })();`);
-    } catch (error) {
-        outputDiv.value += `Error on line ${getLineNumber(codeInput, error)}: ${error.message}\n`;
-    }
-}
-
-// Function to get line number from error
-function getLineNumber(code, error) {
-    // This is a simple way; consider more robust methods based on error object
-    const lines = code.split('\n');
-    return lines.findIndex(line => line.includes(error.message)) + 1; // Adjust as needed
-}
-
-
-// Event listener for the run button
-document.getElementById('runButton').addEventListener('click', runCode);
+    </script>
+</body>
+</html>
