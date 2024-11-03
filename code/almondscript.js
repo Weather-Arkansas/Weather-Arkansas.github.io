@@ -73,57 +73,32 @@
             }
         });
 
-        // A simple Almondscript interpreter
         function runAlmondscript(script) {
-            const lines = script.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith("#"));
-            const variables = {};
+            // Translate Almondscript to JavaScript using regex
+            script = script
+                .replace(/#.*$/gm, '') // Remove comments
+                .replace(/let\s+(\w+)\s*=\s*(.*);/g, 'let $1 = $2;') // Translate let
+                .replace(/print\((.*)\);/g, 'console.log($1);') // Translate print
+                .replace(/if\s+(.+)\s*{/g, 'if ($1) {') // Translate if statement
+                .replace(/end\("if"\);/g, '}'); // Translate end("if")
+
+            // Create an output variable to capture logs
             let output = "";
+            const originalConsoleLog = console.log;
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
+            // Override console.log to capture output
+            console.log = function (message) {
+                output += message + "\n";
+                originalConsoleLog.apply(console, arguments);
+            };
 
-                if (line.startsWith("let")) {
-                    // Variable declaration
-                    const [varName, value] = line.slice(4).split('=').map(part => part.trim());
-                    variables[varName] = eval(value.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match));
-                } else if (line.startsWith("print")) {
-                    // Print statement
-                    const content = line.slice(6, -2).trim(); // Extract content between parentheses
-                    output += `${eval(content.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))}\n`;
-                } else if (line.startsWith("if")) {
-                    // If statement
-                    const condition = line.slice(2).trim(); // Get the condition after "if"
-                    const endIfIndex = findEndIfIndex(lines, i);
-                    if (eval(condition.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))) {
-                        output += processIfBlock(lines, i + 1, endIfIndex, variables);
-                    }
-                    i = endIfIndex; // Skip to the end of the if block
-                }
-            }
+            // Evaluate the translated script
+            eval(script);
+
+            // Restore original console.log
+            console.log = originalConsoleLog;
 
             return output;
-        }
-
-        // Helper functions for control flow
-        function findEndIfIndex(lines, startIndex) {
-            for (let i = startIndex; i < lines.length; i++) {
-                if (lines[i].startsWith('end') && lines[i].includes('"if"')) {
-                    return i;
-                }
-            }
-            throw new Error("No matching 'end' for 'if'.");
-        }
-
-        function processIfBlock(lines, startIndex, endIndex, variables) {
-            let blockOutput = "";
-            for (let i = startIndex; i < endIndex; i++) {
-                const line = lines[i];
-                if (line.startsWith("print")) {
-                    const content = line.slice(6, -2);
-                    blockOutput += `${eval(content.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))}\n`;
-                }
-            }
-            return blockOutput;
         }
     </script>
 </body>
