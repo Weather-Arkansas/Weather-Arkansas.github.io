@@ -84,18 +84,18 @@
 
                 if (line.startsWith("let")) {
                     // Variable declaration
-                    const [varName, value] = line.slice(4).split('=');
-                    variables[varName.trim()] = eval(value.trim());
+                    const [varName, value] = line.slice(4).split('=').map(part => part.trim());
+                    variables[varName] = eval(value.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match));
                 } else if (line.startsWith("print")) {
                     // Print statement
-                    const content = line.slice(6, -2); // Extract content between parentheses
-                    output += `${eval(content)}\n`;
+                    const content = line.slice(6, -2).trim(); // Extract content between parentheses
+                    output += `${eval(content.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))}\n`;
                 } else if (line.startsWith("if")) {
                     // If statement
                     const condition = line.slice(2).trim(); // Get the condition after "if"
                     const endIfIndex = findEndIfIndex(lines, i);
-                    if (eval(condition)) {
-                        output += processIfBlock(lines, i + 1, endIfIndex);
+                    if (eval(condition.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))) {
+                        output += processIfBlock(lines, i + 1, endIfIndex, variables);
                     }
                     i = endIfIndex; // Skip to the end of the if block
                 }
@@ -114,13 +114,13 @@
             throw new Error("No matching 'end' for 'if'.");
         }
 
-        function processIfBlock(lines, startIndex, endIndex) {
+        function processIfBlock(lines, startIndex, endIndex, variables) {
             let blockOutput = "";
             for (let i = startIndex; i < endIndex; i++) {
                 const line = lines[i];
                 if (line.startsWith("print")) {
                     const content = line.slice(6, -2);
-                    blockOutput += `${eval(content)}\n`;
+                    blockOutput += `${eval(content.replace(/\b(\w+)\b/g, (match) => variables[match] !== undefined ? variables[match] : match))}\n`;
                 }
             }
             return blockOutput;
