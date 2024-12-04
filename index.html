@@ -1,133 +1,344 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head><script src="//archive.org/includes/athena.js" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app211.us.archive.org';v.server_ms=353;archive_analytics.send_pageview({});});</script>
+<script type="text/javascript" src="/_static/js/bundle-playback.js?v=HxkREWBo" charset="utf-8"></script>
+<script type="text/javascript" src="/_static/js/wombat.js?v=txqj7nKC" charset="utf-8"></script>
+<script>window.RufflePlayer=window.RufflePlayer||{};window.RufflePlayer.config={"autoplay":"on","unmuteOverlay":"hidden"};</script>
+<script type="text/javascript" src="/_static/js/ruffle/ruffle.js"></script>
+<script type="text/javascript">
+    __wm.init("https://web.archive.org/web");
+  __wm.wombat("https://weather-arkansas.github.io/","20240913204936","https://web.archive.org/","web","/_static/",
+	      "1726260576");
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css?v=S1zqJCYt">
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css?v=3PDvdIFv">
+<!-- End Wayback Rewrite JS Include -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Arkansas</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link your CSS -->
     <style>
-        /* Add styles for clouds, corals, and stars here */
-        body {
+        body, html {
             margin: 0;
-            height: 100vh;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background-color: linear-gradient(blue, blue, white);
+            background: #87CEEB; /* Sky blue background */
+            transition: background 1s;
+        }
+
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
         }
 
         .cloud {
             position: absolute;
             background: #fff;
             border-radius: 50%;
+            box-shadow: -30px 30px 60px rgba(255, 255, 255, 0.8), 30px 30px 60px rgba(255, 255, 255, 0.8), 60px 60px 120px rgba(255, 255, 255, 0.5);
             width: 200px;
             height: 60px;
-            z-index: -1;
-            opacity: 0.8;
             animation: moveClouds 20s linear infinite;
+            z-index: 2; /* Move clouds in front of the sun */
         }
 
-        .coral {
+        .cloud::before, .cloud::after {
+            content: '';
             position: absolute;
-            background: coral;
-            width: 20px;
-            height: 20px;
+            background: #fff;
             border-radius: 50%;
+        }
+
+        .cloud::before {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+            box-shadow: -20px 20px 40px rgba(255, 255, 255, 0.8), 20px 20px 40px rgba(255, 255, 255, 0.8), 40px 40px 80px rgba(255, 255, 255, 0.5);
+        }
+
+        .cloud::after {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            left: 100px;
+            box-shadow: -25px 25px 50px rgba(255, 255, 255, 0.8), 25px 25px 50px rgba(255, 255, 255, 0.8), 50px 50px 100px rgba(255, 255, 255, 0.5);
+        }
+
+        .sun {
+            position: absolute;
+            background: radial-gradient(circle, #FFD700, #FFA500); /* Gradient for the sun */
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 10%;
+            z-index: 1;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); /* Glow effect */
+        }
+
+        .sun::before {
+            content: '';
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.5), rgba(255, 165, 0, 0));
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            top: -25px;
+            left: -25px;
             z-index: -1;
         }
 
-        .star {
+        .rain {
             position: absolute;
-            background: yellow;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            z-index: -1;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+            display: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(0, 0, 255, 0.5);
+            animation: fall 1s linear infinite;
         }
 
         @keyframes moveClouds {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        a {
-            
-    </style>
-</head>
-<body>
-
-    <div id="navbar">
-        <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
-        <div id="mySidenav" class="sidenav" style="display:none;">
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-            <a href="./index.html">Home</a>
-            <a href="./weather/index.html">Index</a>
-            <a href="./weather/Little-Rock.html">Capitol Weather</a>
-            <a href="./weather/radar.html">Local Radar</a>
-            <a href="./about.html">About</a>
-            <a href="./settings.html">Settings</a>
-        </div>
-    </div>
-
-    <div class="content">
-        <h1 id="page-title">Welcome to Weather Arkansas</h1>
-        <p>Your go-to source for weather updates in Arkansas!</p>
-        <hr>
-        <div id="environment"></div> <!-- This will hold clouds, corals, or stars -->
-    </div>
-
-    <script>
-        // Function to open and close the navbar
-        function openNav() {
-            document.getElementById("mySidenav").style.display = "block";
-        }
-
-        function closeNav() {
-            document.getElementById("mySidenav").style.display = "none";
-        }
-
-        // Load settings
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem('settings')) || {};
-            document.getElementById('page-title').textContent = `${settings.username || "User's"} Weather Arkansas`;
-
-            // Manage environment elements based on the theme
-            const environment = document.getElementById('environment');
-            environment.innerHTML = ''; // Clear existing elements
-            
-            if (settings.theme === 'weather') {
-                // Create clouds
-                for (let i = 0; i < 5; i++) {
-                    const cloud = document.createElement('div');
-                    cloud.className = 'cloud';
-                    cloud.style.top = `${Math.random() * 80}vh`;
-                    cloud.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(cloud);
-                }
-            } else if (settings.theme === 'underwater') {
-                // Create corals
-                for (let i = 0; i < 10; i++) {
-                    const coral = document.createElement('div');
-                    coral.className = 'coral';
-                    coral.style.bottom = '0';
-                    coral.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(coral);
-                }
-                document.body.style.backgroundColor = '#2E8B57'; // Underwater color
-            } else if (settings.theme === 'space') {
-                // Create stars
-                for (let i = 0; i < 50; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.top = `${Math.random() * 100}vh`;
-                    star.style.left = `${Math.random() * 100}vw`;
-                    environment.appendChild(star);
-                }
-                document.body.style.backgroundColor = '#000'; // Space color
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
             }
         }
 
-        // Load settings on page load
-        window.onload = loadSettings;
-    </script>
+        @keyframes fall {
+            0% {
+                top: -10px;
+            }
+            100% {
+                top: 100%;
+            }
+        }
 
-</body>
-</html>
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: #000; /* Black text color */
+            font-family: 'Roboto', sans-serif; /* Updated font */
+            padding: 20px;
+            transition: color 1s, text-shadow 1s;
+        }
+
+        .content.rainy {
+            text-shadow: 2px 2px 4px #000; /* Black border on letters */
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 0;
+            font-family: 'Montserrat', sans-serif; /* Updated font */
+        }
+
+        p {
+            font-size: 0.9em;
+            font-family: 'Open Sans', sans-serif; /* Updated font */
+        }
+        body {
+  font-family: "Lato", sans-serif;
+  color: teal;
+}
+
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+  text-align:center;
+}
+
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+
+}
+
+.sidenav a:hover{
+  color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+    </style>
+</head>
+<body style="background: rgb(47, 79, 79);">
+ 
+    <div class="background">
+        <div class="sun" style="display: none;"></div>
+        <div class="cloud" style="top: 73.0251%; left: 27.7735%; animation-duration: 18.4745s; background: rgb(169, 169, 169);"></div>
+        <div class="cloud" style="top: 29.477%; left: 86.926%; animation-duration: 13.9933s; background: rgb(169, 169, 169);"></div>
+        <div class="cloud" style="top: 30.1419%; left: 70.8471%; animation-duration: 23.9102s; background: rgb(169, 169, 169);"></div>
+        <div class="rain" style="display: block; opacity: 1;"><div class="raindrop" style="left: 16.6864%; animation-duration: 0.712033s;"></div><div class="raindrop" style="left: 32.7932%; animation-duration: 0.807772s;"></div><div class="raindrop" style="left: 79.6614%; animation-duration: 1.01359s;"></div><div class="raindrop" style="left: 14.0809%; animation-duration: 1.37888s;"></div><div class="raindrop" style="left: 66.9162%; animation-duration: 0.582643s;"></div><div class="raindrop" style="left: 87.5497%; animation-duration: 0.711304s;"></div><div class="raindrop" style="left: 54.994%; animation-duration: 0.703134s;"></div><div class="raindrop" style="left: 55.6687%; animation-duration: 1.45937s;"></div><div class="raindrop" style="left: 27.8455%; animation-duration: 0.621978s;"></div><div class="raindrop" style="left: 72.7589%; animation-duration: 1.01813s;"></div><div class="raindrop" style="left: 32.3843%; animation-duration: 0.771275s;"></div><div class="raindrop" style="left: 33.882%; animation-duration: 1.07895s;"></div><div class="raindrop" style="left: 0.709019%; animation-duration: 0.657197s;"></div><div class="raindrop" style="left: 30.3961%; animation-duration: 0.851702s;"></div><div class="raindrop" style="left: 38.9926%; animation-duration: 1.41555s;"></div><div class="raindrop" style="left: 72.1776%; animation-duration: 0.953674s;"></div><div class="raindrop" style="left: 83.0376%; animation-duration: 1.03398s;"></div><div class="raindrop" style="left: 76.5106%; animation-duration: 0.965111s;"></div><div class="raindrop" style="left: 20.4981%; animation-duration: 1.24089s;"></div><div class="raindrop" style="left: 23.642%; animation-duration: 0.651445s;"></div><div class="raindrop" style="left: 79.7694%; animation-duration: 1.06097s;"></div><div class="raindrop" style="left: 79.0038%; animation-duration: 0.852182s;"></div><div class="raindrop" style="left: 85.5427%; animation-duration: 1.03743s;"></div><div class="raindrop" style="left: 82.1022%; animation-duration: 1.03646s;"></div><div class="raindrop" style="left: 81.0279%; animation-duration: 1.12088s;"></div><div class="raindrop" style="left: 2.07305%; animation-duration: 0.525261s;"></div><div class="raindrop" style="left: 16.8424%; animation-duration: 1.22491s;"></div><div class="raindrop" style="left: 59.904%; animation-duration: 1.38032s;"></div><div class="raindrop" style="left: 6.56636%; animation-duration: 1.44828s;"></div><div class="raindrop" style="left: 17.3234%; animation-duration: 0.959658s;"></div><div class="raindrop" style="left: 48.9652%; animation-duration: 0.963833s;"></div><div class="raindrop" style="left: 32.356%; animation-duration: 1.13982s;"></div><div class="raindrop" style="left: 16.8784%; animation-duration: 0.574035s;"></div><div class="raindrop" style="left: 81.5449%; animation-duration: 1.20475s;"></div><div class="raindrop" style="left: 12.7752%; animation-duration: 0.933209s;"></div><div class="raindrop" style="left: 48.8409%; animation-duration: 1.40138s;"></div><div class="raindrop" style="left: 90.9765%; animation-duration: 1.43642s;"></div><div class="raindrop" style="left: 81.1574%; animation-duration: 1.16178s;"></div><div class="raindrop" style="left: 46.5441%; animation-duration: 0.775013s;"></div><div class="raindrop" style="left: 10.5933%; animation-duration: 0.992151s;"></div><div class="raindrop" style="left: 70.8359%; animation-duration: 1.15888s;"></div><div class="raindrop" style="left: 43.3213%; animation-duration: 1.02828s;"></div><div class="raindrop" style="left: 73.7286%; animation-duration: 1.20529s;"></div><div class="raindrop" style="left: 15.144%; animation-duration: 1.25782s;"></div><div class="raindrop" style="left: 72.506%; animation-duration: 1.49451s;"></div><div class="raindrop" style="left: 13.7157%; animation-duration: 1.40918s;"></div><div class="raindrop" style="left: 47.4151%; animation-duration: 0.791954s;"></div><div class="raindrop" style="left: 67.4314%; animation-duration: 0.507034s;"></div><div class="raindrop" style="left: 63.888%; animation-duration: 0.937136s;"></div><div class="raindrop" style="left: 0.98251%; animation-duration: 1.0946s;"></div><div class="raindrop" style="left: 61.4309%; animation-duration: 1.39919s;"></div><div class="raindrop" style="left: 57.5789%; animation-duration: 1.1225s;"></div><div class="raindrop" style="left: 9.17953%; animation-duration: 1.4991s;"></div><div class="raindrop" style="left: 87.8378%; animation-duration: 0.504308s;"></div><div class="raindrop" style="left: 28.1216%; animation-duration: 1.29861s;"></div><div class="raindrop" style="left: 5.33951%; animation-duration: 1.33879s;"></div><div class="raindrop" style="left: 79.9854%; animation-duration: 1.15572s;"></div><div class="raindrop" style="left: 8.84945%; animation-duration: 0.798787s;"></div><div class="raindrop" style="left: 22.7958%; animation-duration: 0.946995s;"></div><div class="raindrop" style="left: 71.2071%; animation-duration: 0.686767s;"></div><div class="raindrop" style="left: 33.0959%; animation-duration: 0.956374s;"></div><div class="raindrop" style="left: 94.8817%; animation-duration: 0.657052s;"></div><div class="raindrop" style="left: 94.8362%; animation-duration: 1.43077s;"></div><div class="raindrop" style="left: 34.1941%; animation-duration: 1.1047s;"></div><div class="raindrop" style="left: 54.9306%; animation-duration: 0.802293s;"></div><div class="raindrop" style="left: 84.2061%; animation-duration: 0.721078s;"></div><div class="raindrop" style="left: 45.4775%; animation-duration: 0.577105s;"></div><div class="raindrop" style="left: 36.2757%; animation-duration: 0.716054s;"></div><div class="raindrop" style="left: 72.65%; animation-duration: 0.891011s;"></div><div class="raindrop" style="left: 0.279492%; animation-duration: 0.706914s;"></div><div class="raindrop" style="left: 72.2505%; animation-duration: 0.731666s;"></div><div class="raindrop" style="left: 93.5014%; animation-duration: 1.27391s;"></div><div class="raindrop" style="left: 31.9333%; animation-duration: 0.827465s;"></div><div class="raindrop" style="left: 96.1883%; animation-duration: 1.18246s;"></div><div class="raindrop" style="left: 80.0934%; animation-duration: 1.2031s;"></div><div class="raindrop" style="left: 73.7723%; animation-duration: 1.27209s;"></div><div class="raindrop" style="left: 41.4223%; animation-duration: 1.40178s;"></div><div class="raindrop" style="left: 65.7596%; animation-duration: 1.01192s;"></div><div class="raindrop" style="left: 59.1298%; animation-duration: 1.37412s;"></div><div class="raindrop" style="left: 41.286%; animation-duration: 0.722947s;"></div><div class="raindrop" style="left: 83.8332%; animation-duration: 1.03371s;"></div><div class="raindrop" style="left: 21.3392%; animation-duration: 1.46689s;"></div><div class="raindrop" style="left: 29.1127%; animation-duration: 1.4793s;"></div><div class="raindrop" style="left: 67.6475%; animation-duration: 0.601788s;"></div><div class="raindrop" style="left: 93.7337%; animation-duration: 0.883741s;"></div><div class="raindrop" style="left: 38.2356%; animation-duration: 1.00417s;"></div><div class="raindrop" style="left: 50.5358%; animation-duration: 1.0495s;"></div><div class="raindrop" style="left: 9.64678%; animation-duration: 0.957995s;"></div><div class="raindrop" style="left: 1.98817%; animation-duration: 0.630894s;"></div><div class="raindrop" style="left: 65.8316%; animation-duration: 0.710172s;"></div><div class="raindrop" style="left: 2.41169%; animation-duration: 1.02299s;"></div><div class="raindrop" style="left: 53.7037%; animation-duration: 0.692803s;"></div><div class="raindrop" style="left: 46.8681%; animation-duration: 0.917142s;"></div><div class="raindrop" style="left: 5.3618%; animation-duration: 1.41206s;"></div><div class="raindrop" style="left: 26.7155%; animation-duration: 0.52323s;"></div><div class="raindrop" style="left: 26.9787%; animation-duration: 1.00374s;"></div><div class="raindrop" style="left: 51.8304%; animation-duration: 1.45853s;"></div><div class="raindrop" style="left: 54.357%; animation-duration: 1.45551s;"></div><div class="raindrop" style="left: 39.4967%; animation-duration: 1.30331s;"></div><div class="raindrop" style="left: 75.1509%; animation-duration: 1.49575s;"></div></div>
+    </div>
+    <div class="content rainy" style="color: rgb(255, 255, 255);">
+        <div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+  <a href="./index.html">Home</a>
+  <a href="./weather/index.html">Index</a>
+  <a href="./weather/Little-Rock.html">Capitol Weather</a>
+  <a href="./weather/radar.html">Local Radar</a>
+  <a href="./about.html">About</a>
+
+</div>
+<span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+
+<script>
+function openNav() {
+  document.getElementById("mySidenav").style.width = "100%";
+}
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+}
+</script>
+        <h1>Welcome to Weather Arkansas</h1>
+        <p>Your go-to source for weather updates in Arkansas!</p>
+        <hr>
+        <hr>
+        <hr>
+        <div class="additional-content">
+            <p>Did you know? Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
+        </div>
+    <h1 align="center">What's Happening in Weather This Week</h1>
+        <p align="center">
+            This week Hurricane Francine hit Louisiana and will have impacts on Texas, Mississipi and south-western Alabama.
+            </p><p>The impact on Louisiana will cause life threatening storm surge and high category 2 hurricane winds!</p>
+            <p>Also, Tropical Storm Gordon is expected to form sometime this week. So far it is not going to hit land but hurricanes are unexpected!</p>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const clouds = document.querySelectorAll('.cloud');
+            clouds.forEach(cloud => {
+                cloud.style.top = `${Math.random() * 100}%`;
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDuration = `${10 + Math.random() * 20}s`;
+            });
+
+            const rainContainer = document.querySelector('.rain');
+            const sun = document.querySelector('.sun');
+            const content = document.querySelector('.content');
+
+            // Function to set a cookie
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + date.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+
+            // Function to get a cookie
+            function getCookie(name) {
+                const cname = name + "=";
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(cname) == 0) {
+                        return c.substring(cname.length, c.length);
+                    }
+                }
+                return "";
+            }
+
+            // Check if it's raining from the cookie
+            const isRaining = getCookie("isRaining") === "true";
+
+            if (isRaining) {
+                startRain();
+            }
+
+            function startRain() {
+                rainContainer.style.display = 'block';
+                rainContainer.style.opacity = 1;
+                document.body.style.background = '#2F4F4F'; // Dark slate gray background
+                content.style.color = '#fff'; // White text color
+                content.classList.add('rainy'); // Add border to letters
+                sun.style.display = 'none'; // Hide the sun
+                clouds.forEach(cloud => {
+                    cloud.style.background = '#A9A9A9'; // Dark grey clouds
+                });
+                setCookie("isRaining", "true", 1); // Set cookie to remember it's raining
+                for (let i = 0; i < 100; i++) {
+                    const raindrop = document.createElement('div');
+                    raindrop.classList.add('raindrop');
+                    raindrop.style.left = `${Math.random() * 100}%`;
+                    raindrop.style.animationDuration = `${0.5 + Math.random()}s`;
+                    rainContainer.appendChild(raindrop);
+                }
+                setTimeout(stopRain, 60000); // Rain for 1 minute
+            }
+
+            function stopRain() {
+                rainContainer.style.opacity = 0;
+                setTimeout(() => {
+                    rainContainer.style.display = 'none';
+                    document.body.style.background = '#87CEEB'; // Sky blue background
+                    content.style.color = '#000'; // Black text color
+                    content.classList.remove('rainy'); // Remove border from letters
+                    sun.style.display = 'block'; // Show the sun
+                    clouds.forEach(cloud => {
+                        cloud.style.background = '#fff'; // White clouds
+                    });
+                                        setCookie("isRaining", "false", 1); // Set cookie to remember it's not raining
+                    while (rainContainer.firstChild) {
+                        rainContainer.removeChild(rainContainer.firstChild);
+                    }
+                }, 1000); // Wait for the fade-out transition
+            }
+
+            setInterval(startRain, 30000); // Every 30 seconds
+
+            // Initial rain check
+            if (isRaining) {
+                startRain();
+            }
+        });
+    </script>
+    
+
+</body></html>
