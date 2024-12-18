@@ -1,0 +1,19 @@
+name: Install Python
+
+on: [push, pull_request]
+
+jobs:
+  install-python:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'  # Specify the Python version you want to install
+
+    - name: Verify Python installation
+      run: python --version
