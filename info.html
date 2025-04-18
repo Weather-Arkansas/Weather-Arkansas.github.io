@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visited Links History</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    ul { list-style-type: none; padding: 0; }
+    li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Visited Links History</h1>
+  <ul id="linkHistory"></ul>
+
+  <script>
+    window.onload = function() {
+      const visitedLinks = JSON.parse(localStorage.getItem("visitedLinks")) || [];
+      const list = document.getElementById("linkHistory");
+
+      visitedLinks.forEach(function(link) {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
