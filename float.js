@@ -1,60 +1,52 @@
 function runWidget() {
-  if (document.getElementById('link-color-widget')) return; // Prevent duplicates
+  if (document.getElementById('link-color-widget')) return;
 
-  // Create widget container
   const box = document.createElement('div');
   box.id = 'link-color-widget';
-  box.style.position = 'fixed';
-  box.style.bottom = '20px';
-  box.style.right = '20px';
-  box.style.padding = '10px';
-  box.style.background = 'white';
-  box.style.border = '2px solid black';
-  box.style.borderRadius = '10px';
-  box.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
-  box.style.fontFamily = 'sans-serif';
-  box.style.zIndex = '999999';
+  box.style = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px;
+    background: white;
+    border: 2px solid black;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    font-family: sans-serif;
+    z-index: 999999;
+  `;
 
-  // Title
   const title = document.createElement('div');
-  title.textContent = 'Link Color Control';
-  title.style.fontWeight = 'bold';
-  title.style.marginBottom = '8px';
+  title.textContent = 'Link Color Widget';
+  title.style = 'font-weight: bold; margin-bottom: 8px;';
   box.appendChild(title);
 
-  // Button factory
-  function makeButton(label, color) {
+  const colors = ['red', 'purple', 'blue', 'reset'];
+  colors.forEach(color => {
     const btn = document.createElement('button');
-    btn.textContent = label;
-    btn.style.margin = '3px';
-    btn.style.padding = '5px 10px';
-    btn.style.cursor = 'pointer';
+    btn.textContent = color.charAt(0).toUpperCase() + color.slice(1);
+    btn.style = 'margin: 3px; padding: 5px 10px;';
     btn.onclick = () => {
       document.querySelectorAll('a').forEach(link => {
-        link.style.color = color;
+        link.style.color = color === 'reset' ? '' : color;
       });
     };
-    return btn;
-  }
+    box.appendChild(btn);
+  });
 
-  // Add buttons
-  box.appendChild(makeButton('Red', 'red'));
-  box.appendChild(makeButton('Purple', 'purple'));
-  box.appendChild(makeButton('Blue', 'blue'));
-  box.appendChild(makeButton('Reset', ''));
-
-  // Close button
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = '✖';
-  closeBtn.style.position = 'absolute';
-  closeBtn.style.top = '5px';
-  closeBtn.style.right = '5px';
-  closeBtn.style.border = 'none';
-  closeBtn.style.background = 'transparent';
-  closeBtn.style.fontSize = '14px';
-  closeBtn.style.cursor = 'pointer';
-  closeBtn.onclick = () => box.remove();
-  box.appendChild(closeBtn);
+  const close = document.createElement('button');
+  close.textContent = '×';
+  close.style = `
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    cursor: pointer;
+  `;
+  close.onclick = () => box.remove();
+  box.appendChild(close);
 
   document.body.appendChild(box);
 }
