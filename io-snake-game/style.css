@@ -1,1 +1,13 @@
 
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+#game-container {
+    margin-top: 50px;
+}
+
+#controls button {
+    margin: 10px;
+}
