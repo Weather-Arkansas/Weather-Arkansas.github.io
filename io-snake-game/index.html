@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Multiplayer IO Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>Welcome to My IO Game</h1>
+        <div id="playerInfo">
+            <p id="playerPosition">Position: (0, 0)</p>
+            <p id="playerScore">Score: 0</p>
+        </div>
+        <div id="controls">
+            <button onclick="movePlayer('up')">Move Up</button>
+            <button onclick="movePlayer('down')">Move Down</button>
+            <button onclick="movePlayer('left')">Move Left</button>
+            <button onclick="movePlayer('right')">Move Right</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
