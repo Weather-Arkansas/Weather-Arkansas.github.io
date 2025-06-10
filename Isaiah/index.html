@@ -1,1 +1,47 @@
-hello
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>3D Atom Viewer</title>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+      // Create the scene, camera, and renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Add OrbitControls so we can move around
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      // Add a light so we can see stuff
+      const light = new THREE.PointLight(0xffffff, 1);
+      light.position.set(10, 10, 10);
+      scene.add(light);
+
+      // Add a sphere (an atom!)
+      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      const material = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red atom
+      const sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+
+      camera.position.z = 5;
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
+
