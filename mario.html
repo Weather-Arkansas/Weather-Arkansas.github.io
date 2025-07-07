@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario Platformer with Idle Animation</title>
+<title>Faster Mario with Mushroom Power-Up</title>
 <style>
   body {
     margin: 0;
@@ -21,10 +21,12 @@
 <body>
 <canvas id="game" width="640" height="360"></canvas>
 <script>
-// === REPLACE THESE WITH YOUR OWN IMAGE URLS ===
+// === IMAGE URLS ===
 const marioImages = {
   idle: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Idle1.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Idle2.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Idle3.gif"
   ],
   walk: [
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
@@ -32,29 +34,26 @@ const marioImages = {
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk3.gif"
   ],
   jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
-  swim: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim1.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim2.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim3.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim4.gif"
+  bigIdle: [
+    // Replace with your big Mario idle frames URLs here
   ],
-  // Big Mario if you want to add later
   bigWalk: [
-    // "https://your-site.com/big_mario_walk1.png",
-    // "https://your-site.com/big_mario_walk2.png",
-    // "https://your-site.com/big_mario_walk3.png"
+    // Replace with your big Mario walk frames URLs here
   ],
-  bigJump: "",
-  bigSwim: []
+  bigJump: "", // Replace with big Mario jump frame URL
 };
-// ===============================================
+
+const mushroomUrl = "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario.gif"; // mushroom sprite from your link
+
+// ==================
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const GRAVITY = 0.5;
 const JUMP_SPEED = -10;
-const MOVE_SPEED = 3;
+// Faster Mario speed:
+const MOVE_SPEED = 6;  
 const groundY = 300;
 
 const keys = {};
@@ -65,22 +64,36 @@ window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 const player = {
   x: 50,
   y: groundY - 48,
-  width: 48,  // scale image to 48x48 for visibility
+  width: 48,
   height: 48,
   vx: 0,
   vy: 0,
   onGround: true,
-  facing: "right", // or "left"
+  facing: "right",
   animFrame: 0,
   animTimer: 0,
-  state: "idle" // changed from "stand" to "idle"
+  state: "idle",
+  big: false
+};
+
+// Mushroom collectible
+const mushroom = {
+  x: 400,
+  y: groundY - 32,  // Mushroom smaller, adjust y accordingly
+  width: 32,
+  height: 32,
+  collected: false,
+  image: null
 };
 
 let images = {
   idle: [],
   walk: [],
   jump: null,
-  swim: []
+  bigIdle: [],
+  bigWalk: [],
+  bigJump: null,
+  mushroom: null
 };
 
 function preloadImages(urls, onComplete) {
@@ -102,25 +115,43 @@ function preloadImages(urls, onComplete) {
   }
 }
 
-// Load all images first
+function loadSingleImage(url, onComplete) {
+  if (!url) {
+    onComplete(null);
+    return;
+  }
+  const img = new Image();
+  img.src = url;
+  img.onload = () => onComplete(img);
+  img.onerror = () => {
+    console.warn("Failed to load image:", url);
+    onComplete(null);
+  };
+}
+
 function loadAllImages(callback) {
   preloadImages(marioImages.idle, idleImgs => {
     images.idle = idleImgs;
     preloadImages(marioImages.walk, walkImgs => {
       images.walk = walkImgs;
-      images.jump = new Image();
-      images.jump.src = marioImages.jump;
-      images.jump.onload = () => {
-        preloadImages(marioImages.swim, swimImgs => {
-          images.swim = swimImgs;
-          callback();
+      loadSingleImage(marioImages.jump, jumpImg => {
+        images.jump = jumpImg;
+        // Big Mario images (optional)
+        preloadImages(marioImages.bigIdle, bigIdleImgs => {
+          images.bigIdle = bigIdleImgs;
+          preloadImages(marioImages.bigWalk, bigWalkImgs => {
+            images.bigWalk = bigWalkImgs;
+            loadSingleImage(marioImages.bigJump, bigJumpImg => {
+              images.bigJump = bigJumpImg;
+              loadSingleImage(mushroomUrl, mushroomImg => {
+                images.mushroom = mushroomImg;
+                mushroom.image = mushroomImg;
+                callback();
+              });
+            });
+          });
         });
-      };
-      images.jump.onerror = () => {
-        console.warn("Failed to load jump image");
-        images.swim = [];
-        callback();
-      };
+      });
     });
   });
 }
@@ -132,6 +163,13 @@ function drawGround() {
 
 function checkGroundCollision(y) {
   return y + player.height >= groundY;
+}
+
+function rectsCollide(r1, r2) {
+  return !(r2.x > r1.x + r1.width ||
+           r2.x + r2.width < r1.x ||
+           r2.y > r1.y + r1.height ||
+           r2.y + r2.height < r1.y);
 }
 
 function updatePlayer() {
@@ -166,26 +204,35 @@ function updatePlayer() {
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
+  // Check mushroom collision
+  if (!mushroom.collected && rectsCollide(player, mushroom)) {
+    mushroom.collected = true;
+    player.big = true;
+    player.height = 64; // bigger size
+    player.width = 48;
+    player.y = groundY - player.height; // adjust position to ground
+  }
+
   // Set player state
   if (!player.onGround) {
     player.state = "jump";
   } else if (player.vx !== 0) {
     player.state = "walk";
   } else {
-    player.state = "idle";  // use idle when standing still
+    player.state = "idle";
   }
 
   // Animate faster for walk, slower for idle
   if (player.state === "walk") {
     player.animTimer++;
-    if (player.animTimer > 5) {  // faster animation now
-      player.animFrame = (player.animFrame + 1) % images.walk.length;
+    if (player.animTimer > 5) {
+      player.animFrame = (player.animFrame + 1) % (player.big ? images.bigWalk.length || 1 : images.walk.length || 1);
       player.animTimer = 0;
     }
   } else if (player.state === "idle") {
     player.animTimer++;
-    if (player.animTimer > 15) {  // slower idle animation
-      player.animFrame = (player.animFrame + 1) % images.idle.length;
+    if (player.animTimer > 15) {
+      player.animFrame = (player.animFrame + 1) % (player.big ? images.bigIdle.length || 1 : images.idle.length || 1);
       player.animTimer = 0;
     }
   } else {
@@ -198,19 +245,37 @@ function drawPlayer() {
   ctx.imageSmoothingEnabled = false;
 
   let imgToDraw;
-  switch (player.state) {
-    case "walk":
-      imgToDraw = images.walk[player.animFrame];
-      break;
-    case "idle":
-      imgToDraw = images.idle[player.animFrame];
-      break;
-    case "jump":
-      imgToDraw = images.jump;
-      break;
-    default:
-      imgToDraw = images.idle[0] || images.walk[0];
-      break;
+
+  if (player.big) {
+    switch (player.state) {
+      case "walk":
+        imgToDraw = images.bigWalk[player.animFrame] || images.bigWalk[0];
+        break;
+      case "idle":
+        imgToDraw = images.bigIdle[player.animFrame] || images.bigIdle[0];
+        break;
+      case "jump":
+        imgToDraw = images.bigJump || images.jump;
+        break;
+      default:
+        imgToDraw = images.bigIdle[0] || images.idle[0];
+        break;
+    }
+  } else {
+    switch (player.state) {
+      case "walk":
+        imgToDraw = images.walk[player.animFrame];
+        break;
+      case "idle":
+        imgToDraw = images.idle[player.animFrame];
+        break;
+      case "jump":
+        imgToDraw = images.jump;
+        break;
+      default:
+        imgToDraw = images.idle[0] || images.walk[0];
+        break;
+    }
   }
 
   if (!imgToDraw) return;
@@ -224,11 +289,18 @@ function drawPlayer() {
   ctx.restore();
 }
 
+function drawMushroom() {
+  if (!mushroom.collected && mushroom.image) {
+    ctx.drawImage(mushroom.image, mushroom.x, mushroom.y, mushroom.width, mushroom.height);
+  }
+}
+
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   drawGround();
   updatePlayer();
+  drawMushroom();
   drawPlayer();
 
   requestAnimationFrame(gameLoop);
