@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario Platformer with Image Links</title>
+<title>Jelly Mario Demo</title>
 <style>
   body {
     margin: 0;
@@ -21,36 +21,20 @@
 <body>
 <canvas id="game" width="640" height="360"></canvas>
 <script>
-// === PASTE YOUR OWN IMAGE LINKS HERE ===
-const marioImages = {
-  walk: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk2.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk3.gif"
-  ],
-  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
-  swim: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim1.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim2.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim3.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim4.gif"
-  ]
-};
-// ========================================
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const GRAVITY = 0.5;
-const JUMP_SPEED = -10;
+const GRAVITY = 0.6;
+const JUMP_SPEED = -12;
 const MOVE_SPEED = 4;
 const groundY = 300;
 
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-const player = {
+// Mario state
+const mario = {
   x: 50,
   y: groundY - 48,
   width: 48,
@@ -58,146 +42,132 @@ const player = {
   vx: 0,
   vy: 0,
   onGround: true,
-  facing: "right",
-  animFrame: 0,
-  animTimer: 0,
-  state: "stand"
+
+  // Jelly effect params
+  baseY: groundY - 48,
+  bounce: 0,
+  bounceVelocity: 0,
+
+  // Squish scale
+  scaleX: 1,
+  scaleY: 1,
+  scaleVelocityX: 0,
+  scaleVelocityY: 0,
+
+  facing: 'right'
 };
 
-let images = {
-  walk: [],
-  jump: null,
-  swim: []
+// Ground squish state
+const ground = {
+  baseY: groundY,
+  squish: 0,
+  squishVelocity: 0,
+  width: canvas.width,
+  height: canvas.height - groundY
 };
 
-function preloadImages(urls, onComplete) {
-  let loadedCount = 0;
-  const imgs = [];
-  for (let i = 0; i < urls.length; i++) {
-    imgs[i] = new Image();
-    imgs[i].src = urls[i];
-    imgs[i].onload = () => {
-      loadedCount++;
-      if (loadedCount === urls.length) onComplete(imgs);
-    };
-    imgs[i].onerror = () => {
-      console.warn("Failed to load image:", urls[i]);
-      loadedCount++;
-      if (loadedCount === urls.length) onComplete(imgs);
-    };
+function updateJellyPhysics() {
+  // Update Mario physics and apply jelly bounce on landing
+  mario.vy += GRAVITY;
+  mario.x += mario.vx;
+  mario.y += mario.vy;
+
+  // Check ground collision
+  if (mario.y + mario.height >= groundY) {
+    mario.y = groundY - mario.height;
+    mario.vy = 0;
+    if (!mario.onGround) {
+      // Landed: trigger bounce and squish
+      mario.bounceVelocity = -8;
+      ground.squishVelocity = 5;
+    }
+    mario.onGround = true;
+  } else {
+    mario.onGround = false;
   }
-}
 
-function loadAllImages(callback) {
-  preloadImages(marioImages.walk, imgs => {
-    images.walk = imgs;
-    images.jump = new Image();
-    images.jump.src = marioImages.jump;
-    images.jump.onload = () => {
-      preloadImages(marioImages.swim, swimImgs => {
-        images.swim = swimImgs;
-        callback();
-      });
-    };
-  });
+  // Jelly bounce spring effect for Mario's vertical bounce
+  const bounceSpring = 0.3;
+  const bounceDamping = 0.6;
+  mario.bounceVelocity += mario.bounce * -bounceSpring;
+  mario.bounceVelocity *= bounceDamping;
+  mario.bounce += mario.bounceVelocity;
+
+  // Apply bounce offset to Mario's y
+  mario.baseY = groundY - mario.height;
+  mario.y = mario.baseY + mario.bounce;
+
+  // Jelly squish spring for ground
+  const squishSpring = 0.3;
+  const squishDamping = 0.6;
+  ground.squishVelocity += ground.squish * -squishSpring;
+  ground.squishVelocity *= squishDamping;
+  ground.squish += ground.squishVelocity;
+
+  // Mario horizontal squish scales based on velocity and bounce
+  const squishAmount = 0.1;
+  mario.scaleX = 1 + squishAmount * Math.abs(mario.vx) - mario.bounce * 0.05;
+  mario.scaleY = 1 - squishAmount * Math.abs(mario.vx) + mario.bounce * 0.1;
+
+  // Limit scales to reasonable range
+  mario.scaleX = Math.min(Math.max(mario.scaleX, 0.8), 1.2);
+  mario.scaleY = Math.min(Math.max(mario.scaleY, 0.8), 1.2);
+
+  // Keep Mario inside canvas
+  if (mario.x < 0) mario.x = 0;
+  if (mario.x + mario.width > canvas.width) mario.x = canvas.width - mario.width;
 }
 
 function drawGround() {
-  ctx.fillStyle = "#0B6A0B";
-  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-}
-
-function checkGroundCollision(y) {
-  return y + player.height >= groundY;
-}
-
-function updatePlayer() {
-  if (keys["arrowright"] || keys["d"]) {
-    player.vx = MOVE_SPEED;
-    player.facing = "right";
-  } else if (keys["arrowleft"] || keys["a"]) {
-    player.vx = -MOVE_SPEED;
-    player.facing = "left";
-  } else {
-    player.vx = 0;
-  }
-
-  if ((keys["arrowup"] || keys["w"] || keys[" "]) && player.onGround) {
-    player.vy = JUMP_SPEED;
-    player.onGround = false;
-  }
-
-  player.vy += GRAVITY;
-  player.x += player.vx;
-  player.y += player.vy;
-
-  if (checkGroundCollision(player.y)) {
-    player.y = groundY - player.height;
-    player.vy = 0;
-    player.onGround = true;
-  } else {
-    player.onGround = false;
-  }
-
-  if (player.x < 0) player.x = 0;
-  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-
-  if (!player.onGround) {
-    player.state = "jump";
-  } else if (player.vx !== 0) {
-    player.state = "walk";
-  } else {
-    player.state = "stand";
-  }
-
-  if (player.state === "walk") {
-    player.animTimer++;
-    if (player.animTimer > 7) {
-      player.animFrame = (player.animFrame + 1) % images.walk.length;
-      player.animTimer = 0;
-    }
-  } else {
-    player.animFrame = 0;
-    player.animTimer = 0;
-  }
-}
-
-function drawPlayer() {
-  ctx.imageSmoothingEnabled = false;
-  let imgToDraw;
-  switch (player.state) {
-    case "walk":
-      imgToDraw = images.walk[player.animFrame];
-      break;
-    case "jump":
-      imgToDraw = images.jump;
-      break;
-    case "stand":
-    default:
-      imgToDraw = images.walk[0];
-      break;
-  }
-
-  if (!imgToDraw) return;
-
   ctx.save();
-  ctx.translate(player.x + player.width/2, player.y + player.height/2);
-  if (player.facing === "left") ctx.scale(-1,1);
-  ctx.drawImage(imgToDraw, -player.width/2, -player.height/2, player.width, player.height);
+  ctx.fillStyle = '#0B6A0B';
+  // Squish ground vertically by ground.squish
+  ctx.translate(0, ground.squish);
+  ctx.fillRect(0, ground.baseY, ground.width, ground.height);
   ctx.restore();
+}
+
+function drawMario() {
+  ctx.save();
+  ctx.translate(mario.x + mario.width / 2, mario.y + mario.height / 2);
+  // Flip horizontally if facing left
+  if (mario.facing === 'left') ctx.scale(-1, 1);
+  // Apply jelly squish scale
+  ctx.scale(mario.scaleX, mario.scaleY);
+  ctx.fillStyle = '#d6336c'; // Classic Mario-ish red color
+  ctx.fillRect(-mario.width / 2, -mario.height / 2, mario.width, mario.height);
+  ctx.restore();
+}
+
+function update() {
+  // Controls
+  if (keys['arrowright'] || keys['d']) {
+    mario.vx = MOVE_SPEED;
+    mario.facing = 'right';
+  } else if (keys['arrowleft'] || keys['a']) {
+    mario.vx = -MOVE_SPEED;
+    mario.facing = 'left';
+  } else {
+    mario.vx = 0;
+  }
+
+  if ((keys['arrowup'] || keys['w'] || keys[' ']) && mario.onGround) {
+    mario.vy = JUMP_SPEED;
+    mario.onGround = false;
+  }
+
+  updateJellyPhysics();
 }
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawGround();
-  updatePlayer();
-  drawPlayer();
+  drawMario();
+  update();
   requestAnimationFrame(gameLoop);
 }
 
-loadAllImages(() => {
-  gameLoop();
-});
+gameLoop();
 </script>
 </body>
 </html>
