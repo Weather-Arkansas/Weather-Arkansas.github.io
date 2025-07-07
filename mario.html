@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario with custom ground and animation</title>
+<title>Mario Platformer with Separate Images</title>
 <style>
   body {
     margin: 0;
@@ -14,75 +14,124 @@
     display: block;
     margin: auto;
     background: #8ED0F7;
+    image-rendering: pixelated; /* keep pixel art crisp */
   }
 </style>
 </head>
 <body>
 <canvas id="game" width="640" height="360"></canvas>
-
 <script>
-// Canvas setup
+// === REPLACE THESE WITH YOUR OWN IMAGE URLS ===
+const marioImages = {
+  walk: [
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk2.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk3.gif"
+  ],
+  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
+  swim: [
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim1.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim2.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim3.gif",
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim4.gif"
+  ],
+  // Big Mario if you want to add later
+  bigWalk: [
+    // "https://your-site.com/big_mario_walk1.png",
+    // "https://your-site.com/big_mario_walk2.png",
+    // "https://your-site.com/big_mario_walk3.png"
+  ],
+  bigJump: "",
+  bigSwim: []
+};
+// ===============================================
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const GRAVITY = 0.5;
 const JUMP_SPEED = -10;
 const MOVE_SPEED = 3;
+const groundY = 300;
 
-const groundY = 300; // vertical position of the ground (lower on screen)
-
-// Keyboard input
 const keys = {};
 window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Mario sprite frames from videgamesprites.net SMB1 character sheet
-const marioSprite = new Image();
-marioSprite.src = "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/spritesheet.png";
-
-// Frame data: each frame's x,y,width,height on the sprite sheet
-// These correspond to standing and walking small Mario frames (16x16 px)
-const frames = {
-  standRight: { x: 0, y: 0, w: 16, h: 16 },
-  walkRight1: { x: 16, y: 0, w: 16, h: 16 },
-  walkRight2: { x: 32, y: 0, w: 16, h: 16 },
-  standLeft: { x: 0, y: 16, w: 16, h: 16 },
-  walkLeft1: { x: 16, y: 16, w: 16, h: 16 },
-  walkLeft2: { x: 32, y: 16, w: 16, h: 16 }
-};
-
-// Player object
+// Player state
 const player = {
   x: 50,
-  y: groundY - 32,  // 32 is scaled height of mario (16*2)
-  width: 32,
-  height: 32,
+  y: groundY - 48,
+  width: 48,  // scale image to 48x48 for visibility
+  height: 48,
   vx: 0,
   vy: 0,
   onGround: true,
   facing: "right", // or "left"
-  frameIndex: 0,
-  frameTimer: 0
+  animFrame: 0,
+  animTimer: 0,
+  state: "stand" // "stand", "walk", "jump"
 };
 
-// Animation sequence arrays for walking
-const walkRightFrames = [frames.walkRight1, frames.walkRight2];
-const walkLeftFrames = [frames.walkLeft1, frames.walkLeft2];
+let images = {
+  walk: [],
+  jump: null,
+  swim: []
+};
 
-// Draw ground as a simple green rectangle
+function preloadImages(urls, onComplete) {
+  let loadedCount = 0;
+  const imgs = [];
+  for (let i = 0; i < urls.length; i++) {
+    imgs[i] = new Image();
+    imgs[i].src = urls[i];
+    imgs[i].onload = () => {
+      loadedCount++;
+      if (loadedCount === urls.length) onComplete(imgs);
+    };
+    imgs[i].onerror = () => {
+      console.warn("Failed to load image:", urls[i]);
+      loadedCount++;
+      if (loadedCount === urls.length) onComplete(imgs);
+    };
+  }
+}
+
+// Load all images first
+function loadAllImages(callback) {
+  preloadImages(marioImages.walk, imgs => {
+    images.walk = imgs;
+    images.jump = new Image();
+    images.jump.src = marioImages.jump;
+    images.jump.onload = () => {
+      preloadImages(marioImages.swim, swimImgs => {
+        images.swim = swimImgs;
+        callback();
+      });
+      images.jump.onerror = () => {
+        console.warn("Failed to load jump image");
+        images.swim = [];
+        callback();
+      };
+    };
+    images.jump.onerror = () => {
+      console.warn("Failed to load jump image");
+      images.swim = [];
+      callback();
+    };
+  });
+}
+
 function drawGround() {
-  ctx.fillStyle = "#0B6A0B"; // dark green
+  ctx.fillStyle = "#0B6A0B";
   ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 }
 
-// Check collision with ground
 function checkGroundCollision(y) {
   return y + player.height >= groundY;
 }
 
-// Update player position and physics
 function updatePlayer() {
-  // Horizontal movement
   if (keys["arrowright"] || keys["d"]) {
     player.vx = MOVE_SPEED;
     player.facing = "right";
@@ -93,20 +142,15 @@ function updatePlayer() {
     player.vx = 0;
   }
 
-  // Jumping
   if ((keys["arrowup"] || keys["w"] || keys[" "]) && player.onGround) {
     player.vy = JUMP_SPEED;
     player.onGround = false;
   }
 
-  // Apply gravity
   player.vy += GRAVITY;
-
-  // Apply velocities
   player.x += player.vx;
   player.y += player.vy;
 
-  // Ground collision
   if (checkGroundCollision(player.y)) {
     player.y = groundY - player.height;
     player.vy = 0;
@@ -115,41 +159,60 @@ function updatePlayer() {
     player.onGround = false;
   }
 
-  // Keep player inside canvas horizontally
+  // Keep inside canvas horizontally
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-  // Animation frame control
-  if (player.vx !== 0 && player.onGround) {
-    player.frameTimer++;
-    if (player.frameTimer > 10) {
-      player.frameIndex = (player.frameIndex + 1) % 2;
-      player.frameTimer = 0;
+  // Set player state
+  if (!player.onGround) {
+    player.state = "jump";
+  } else if (player.vx !== 0) {
+    player.state = "walk";
+  } else {
+    player.state = "stand";
+  }
+
+  // Animate
+  if (player.state === "walk") {
+    player.animTimer++;
+    if (player.animTimer > 10) {
+      player.animFrame = (player.animFrame + 1) % images.walk.length;
+      player.animTimer = 0;
     }
   } else {
-    player.frameIndex = 0; // idle frame
-    player.frameTimer = 0;
+    player.animFrame = 0;
+    player.animTimer = 0;
   }
 }
 
-// Draw Mario based on facing and animation frame
 function drawPlayer() {
-  let frame;
-  if (player.facing === "right") {
-    frame = player.vx === 0 ? frames.standRight : walkRightFrames[player.frameIndex];
-  } else {
-    frame = player.vx === 0 ? frames.standLeft : walkLeftFrames[player.frameIndex];
+  ctx.imageSmoothingEnabled = false;
+
+  let imgToDraw;
+  switch (player.state) {
+    case "walk":
+      imgToDraw = images.walk[player.animFrame];
+      break;
+    case "jump":
+      imgToDraw = images.jump;
+      break;
+    case "stand":
+    default:
+      imgToDraw = images.walk[0];
+      break;
   }
 
-  ctx.imageSmoothingEnabled = false; // preserve pixel art sharpness
-  ctx.drawImage(
-    marioSprite,
-    frame.x, frame.y, frame.w, frame.h,
-    player.x, player.y, player.width, player.height
-  );
+  if (!imgToDraw) return;
+
+  ctx.save();
+  ctx.translate(player.x + player.width/2, player.y + player.height/2);
+  if (player.facing === "left") {
+    ctx.scale(-1,1);
+  }
+  ctx.drawImage(imgToDraw, -player.width/2, -player.height/2, player.width, player.height);
+  ctx.restore();
 }
 
-// Main game loop
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -160,10 +223,9 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-// Wait for Mario sprite to load before starting
-marioSprite.onload = () => {
+loadAllImages(() => {
   gameLoop();
-};
+});
 </script>
 </body>
 </html>
