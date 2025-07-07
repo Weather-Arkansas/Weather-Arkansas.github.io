@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simple Mario Demo</title>
+<style>
+  body {
+    margin: 0;
+    background: #5c94fc;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    margin: auto;
+    background: #8ED0F7;
+  }
+</style>
+</head>
+<body>
+<canvas id="game" width="640" height="360"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Load spritesheets
+const marioImg = new Image();
+marioImg.src = "https://www.spriters-resource.com/resources/sheets/13/13718.png";
+
+const tilesImg = new Image();
+tilesImg.src = "https://www.spriters-resource.com/resources/sheets/13/13720.png";
+
+// Constants
+const TILE_SIZE = 16;
+const GRAVITY = 0.5;
+const JUMP_VELOCITY = -10;
+const MOVE_SPEED = 2.5;
+
+// Keyboard input
+const keys = {};
+window.addEventListener("keydown", e => { keys[e.key] = true; });
+window.addEventListener("keyup", e => { keys[e.key] = false; });
+
+// Level layout (simple 2D array, each number = tile index)
+// 0 = empty, 1 = ground tile (from tileset), etc.
+// This is just a small demo level
+const level = [
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+// Player object
+const player = {
+  x: 32,
+  y: 200,
+  width: 16,
+  height: 16,
+  vx: 0,
+  vy: 0,
+  onGround: false,
+  frame: 0,
+  frameTimer: 0
+};
+
+// Animation frames info for Mario (small Mario walking frames)
+const marioFrames = [
+  { sx: 0, sy: 0 },     // standing
+  { sx: 16, sy: 0 },    // step 1
+  { sx: 32, sy: 0 }     // step 2
+];
+
+// Draw the level tiles
+function drawLevel() {
+  for(let row=0; row < level.length; row++) {
+    for(let col=0; col < level[row].length; col++) {
+      let tile = level[row][col];
+      if(tile === 1) {
+        // Draw ground tile from tileset
+        // Tile 1 in tilesImg is at sx=0, sy=0 (16x16)
+        ctx.drawImage(tilesImg, 0, 0, 16, 16, col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      }
+    }
+  }
+}
+
+// Collision detection with level tiles
+function checkCollision(x, y) {
+  const col = Math.floor(x / TILE_SIZE);
+  const row = Math.floor(y / TILE_SIZE);
+
+  if(row < 0 || row >= level.length || col < 0 || col >= level[0].length) return false;
+  return level[row][col] !== 0;
+}
+
+// Update player physics and controls
+function updatePlayer() {
+  // Horizontal movement
+  if(keys.ArrowRight || keys.d) {
+    player.vx = MOVE_SPEED;
+  } else if(keys.ArrowLeft || keys.a) {
+    player.vx = -MOVE_SPEED;
+  } else {
+    player.vx = 0;
+  }
+
+  // Jumping
+  if((keys.ArrowUp || keys.w || keys.Space) && player.onGround) {
+    player.vy = JUMP_VELOCITY;
+    player.onGround = false;
+  }
+
+  // Apply gravity
+  player.vy += GRAVITY;
+
+  // Horizontal collision
+  let newX = player.x + player.vx;
+  if(!checkCollision(newX, player.y) && !checkCollision(newX + player.width - 1, player.y)) {
+    player.x = newX;
+  }
+
+  // Vertical collision
+  let newY = player.y + player.vy;
+  if(player.vy > 0) {
+    // Falling down: check bottom collision
+    if(checkCollision(player.x, newY + player.height) || checkCollision(player.x + player.width - 1, newY + player.height)) {
+      player.y = Math.floor((newY + player.height) / TILE_SIZE) * TILE_SIZE - player.height;
+      player.vy = 0;
+      player.onGround = true;
+    } else {
+      player.y = newY;
+      player.onGround = false;
+    }
+  } else {
+    // Going up: check head collision
+    if(checkCollision(player.x, newY) || checkCollision(player.x + player.width - 1, newY)) {
+      player.vy = 0;
+    } else {
+      player.y = newY;
+    }
+  }
+
+  // Animate Mario walking if moving
+  if(player.vx !== 0 && player.onGround) {
+    player.frameTimer++;
+    if(player.frameTimer > 10) {
+      player.frame = (player.frame + 1) % marioFrames.length;
+      player.frameTimer = 0;
+    }
+  } else {
+    player.frame = 0;
+  }
+}
+
+// Draw Mario sprite at player position
+function drawPlayer() {
+  let frame = marioFrames[player.frame];
+  ctx.drawImage(
+    marioImg,
+    frame.sx, frame.sy, player.width, player.height,
+    player.x, player.y, player.width * 2, player.height * 2
+  );
+}
+
+// Main game loop
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawLevel();
+  updatePlayer();
+  drawPlayer();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Wait until images loaded
+let imagesLoaded = 0;
+[marioImg, tilesImg].forEach(img => {
+  img.onload = () => {
+    imagesLoaded++;
+    if(imagesLoaded === 2) {
+      gameLoop();
+    }
+  };
+});
+</script>
+</body>
+</html>
