@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Simple Mario Demo</title>
+<title>Mario with custom ground and animation</title>
 <style>
   body {
     margin: 0;
@@ -21,148 +21,131 @@
 <canvas id="game" width="640" height="360"></canvas>
 
 <script>
+// Canvas setup
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Load spritesheets
-const marioImg = new Image();
-marioImg.src = "https://www.spriters-resource.com/resources/sheets/13/13718.png";
-
-const tilesImg = new Image();
-tilesImg.src = "https://www.spriters-resource.com/resources/sheets/13/13720.png";
-
-// Constants
-const TILE_SIZE = 16;
 const GRAVITY = 0.5;
-const JUMP_VELOCITY = -10;
-const MOVE_SPEED = 2.5;
+const JUMP_SPEED = -10;
+const MOVE_SPEED = 3;
+
+const groundY = 300; // vertical position of the ground (lower on screen)
 
 // Keyboard input
 const keys = {};
-window.addEventListener("keydown", e => { keys[e.key] = true; });
-window.addEventListener("keyup", e => { keys[e.key] = false; });
+window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// Level layout (simple 2D array, each number = tile index)
-// 0 = empty, 1 = ground tile (from tileset), etc.
-// This is just a small demo level
-const level = [
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-];
+// Mario sprite frames from videgamesprites.net SMB1 character sheet
+const marioSprite = new Image();
+marioSprite.src = "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/spritesheet.png";
+
+// Frame data: each frame's x,y,width,height on the sprite sheet
+// These correspond to standing and walking small Mario frames (16x16 px)
+const frames = {
+  standRight: { x: 0, y: 0, w: 16, h: 16 },
+  walkRight1: { x: 16, y: 0, w: 16, h: 16 },
+  walkRight2: { x: 32, y: 0, w: 16, h: 16 },
+  standLeft: { x: 0, y: 16, w: 16, h: 16 },
+  walkLeft1: { x: 16, y: 16, w: 16, h: 16 },
+  walkLeft2: { x: 32, y: 16, w: 16, h: 16 }
+};
 
 // Player object
 const player = {
-  x: 32,
-  y: 200,
-  width: 16,
-  height: 16,
+  x: 50,
+  y: groundY - 32,  // 32 is scaled height of mario (16*2)
+  width: 32,
+  height: 32,
   vx: 0,
   vy: 0,
-  onGround: false,
-  frame: 0,
+  onGround: true,
+  facing: "right", // or "left"
+  frameIndex: 0,
   frameTimer: 0
 };
 
-// Animation frames info for Mario (small Mario walking frames)
-const marioFrames = [
-  { sx: 0, sy: 0 },     // standing
-  { sx: 16, sy: 0 },    // step 1
-  { sx: 32, sy: 0 }     // step 2
-];
+// Animation sequence arrays for walking
+const walkRightFrames = [frames.walkRight1, frames.walkRight2];
+const walkLeftFrames = [frames.walkLeft1, frames.walkLeft2];
 
-// Draw the level tiles
-function drawLevel() {
-  for(let row=0; row < level.length; row++) {
-    for(let col=0; col < level[row].length; col++) {
-      let tile = level[row][col];
-      if(tile === 1) {
-        // Draw ground tile from tileset
-        // Tile 1 in tilesImg is at sx=0, sy=0 (16x16)
-        ctx.drawImage(tilesImg, 0, 0, 16, 16, col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-      }
-    }
-  }
+// Draw ground as a simple green rectangle
+function drawGround() {
+  ctx.fillStyle = "#0B6A0B"; // dark green
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 }
 
-// Collision detection with level tiles
-function checkCollision(x, y) {
-  const col = Math.floor(x / TILE_SIZE);
-  const row = Math.floor(y / TILE_SIZE);
-
-  if(row < 0 || row >= level.length || col < 0 || col >= level[0].length) return false;
-  return level[row][col] !== 0;
+// Check collision with ground
+function checkGroundCollision(y) {
+  return y + player.height >= groundY;
 }
 
-// Update player physics and controls
+// Update player position and physics
 function updatePlayer() {
   // Horizontal movement
-  if(keys.ArrowRight || keys.d) {
+  if (keys["arrowright"] || keys["d"]) {
     player.vx = MOVE_SPEED;
-  } else if(keys.ArrowLeft || keys.a) {
+    player.facing = "right";
+  } else if (keys["arrowleft"] || keys["a"]) {
     player.vx = -MOVE_SPEED;
+    player.facing = "left";
   } else {
     player.vx = 0;
   }
 
   // Jumping
-  if((keys.ArrowUp || keys.w || keys.Space) && player.onGround) {
-    player.vy = JUMP_VELOCITY;
+  if ((keys["arrowup"] || keys["w"] || keys[" "]) && player.onGround) {
+    player.vy = JUMP_SPEED;
     player.onGround = false;
   }
 
   // Apply gravity
   player.vy += GRAVITY;
 
-  // Horizontal collision
-  let newX = player.x + player.vx;
-  if(!checkCollision(newX, player.y) && !checkCollision(newX + player.width - 1, player.y)) {
-    player.x = newX;
-  }
+  // Apply velocities
+  player.x += player.vx;
+  player.y += player.vy;
 
-  // Vertical collision
-  let newY = player.y + player.vy;
-  if(player.vy > 0) {
-    // Falling down: check bottom collision
-    if(checkCollision(player.x, newY + player.height) || checkCollision(player.x + player.width - 1, newY + player.height)) {
-      player.y = Math.floor((newY + player.height) / TILE_SIZE) * TILE_SIZE - player.height;
-      player.vy = 0;
-      player.onGround = true;
-    } else {
-      player.y = newY;
-      player.onGround = false;
-    }
+  // Ground collision
+  if (checkGroundCollision(player.y)) {
+    player.y = groundY - player.height;
+    player.vy = 0;
+    player.onGround = true;
   } else {
-    // Going up: check head collision
-    if(checkCollision(player.x, newY) || checkCollision(player.x + player.width - 1, newY)) {
-      player.vy = 0;
-    } else {
-      player.y = newY;
-    }
+    player.onGround = false;
   }
 
-  // Animate Mario walking if moving
-  if(player.vx !== 0 && player.onGround) {
+  // Keep player inside canvas horizontally
+  if (player.x < 0) player.x = 0;
+  if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+  // Animation frame control
+  if (player.vx !== 0 && player.onGround) {
     player.frameTimer++;
-    if(player.frameTimer > 10) {
-      player.frame = (player.frame + 1) % marioFrames.length;
+    if (player.frameTimer > 10) {
+      player.frameIndex = (player.frameIndex + 1) % 2;
       player.frameTimer = 0;
     }
   } else {
-    player.frame = 0;
+    player.frameIndex = 0; // idle frame
+    player.frameTimer = 0;
   }
 }
 
-// Draw Mario sprite at player position
+// Draw Mario based on facing and animation frame
 function drawPlayer() {
-  let frame = marioFrames[player.frame];
+  let frame;
+  if (player.facing === "right") {
+    frame = player.vx === 0 ? frames.standRight : walkRightFrames[player.frameIndex];
+  } else {
+    frame = player.vx === 0 ? frames.standLeft : walkLeftFrames[player.frameIndex];
+  }
+
+  ctx.imageSmoothingEnabled = false; // preserve pixel art sharpness
   ctx.drawImage(
-    marioImg,
-    frame.sx, frame.sy, player.width, player.height,
-    player.x, player.y, player.width * 2, player.height * 2
+    marioSprite,
+    frame.x, frame.y, frame.w, frame.h,
+    player.x, player.y, player.width, player.height
   );
 }
 
@@ -170,23 +153,17 @@ function drawPlayer() {
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  drawLevel();
+  drawGround();
   updatePlayer();
   drawPlayer();
 
   requestAnimationFrame(gameLoop);
 }
 
-// Wait until images loaded
-let imagesLoaded = 0;
-[marioImg, tilesImg].forEach(img => {
-  img.onload = () => {
-    imagesLoaded++;
-    if(imagesLoaded === 2) {
-      gameLoop();
-    }
-  };
-});
+// Wait for Mario sprite to load before starting
+marioSprite.onload = () => {
+  gameLoop();
+};
 </script>
 </body>
 </html>
