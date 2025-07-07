@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario Platformer with Separate Images</title>
+<title>Mario Platformer with Idle Animation</title>
 <style>
   body {
     margin: 0;
@@ -23,6 +23,9 @@
 <script>
 // === REPLACE THESE WITH YOUR OWN IMAGE URLS ===
 const marioImages = {
+  idle: [
+    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario.gif",
+  ],
   walk: [
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk2.gif",
@@ -70,10 +73,11 @@ const player = {
   facing: "right", // or "left"
   animFrame: 0,
   animTimer: 0,
-  state: "stand" // "stand", "walk", "jump"
+  state: "idle" // changed from "stand" to "idle"
 };
 
 let images = {
+  idle: [],
   walk: [],
   jump: null,
   swim: []
@@ -82,6 +86,7 @@ let images = {
 function preloadImages(urls, onComplete) {
   let loadedCount = 0;
   const imgs = [];
+  if (urls.length === 0) { onComplete([]); return; }
   for (let i = 0; i < urls.length; i++) {
     imgs[i] = new Image();
     imgs[i].src = urls[i];
@@ -99,26 +104,24 @@ function preloadImages(urls, onComplete) {
 
 // Load all images first
 function loadAllImages(callback) {
-  preloadImages(marioImages.walk, imgs => {
-    images.walk = imgs;
-    images.jump = new Image();
-    images.jump.src = marioImages.jump;
-    images.jump.onload = () => {
-      preloadImages(marioImages.swim, swimImgs => {
-        images.swim = swimImgs;
-        callback();
-      });
+  preloadImages(marioImages.idle, idleImgs => {
+    images.idle = idleImgs;
+    preloadImages(marioImages.walk, walkImgs => {
+      images.walk = walkImgs;
+      images.jump = new Image();
+      images.jump.src = marioImages.jump;
+      images.jump.onload = () => {
+        preloadImages(marioImages.swim, swimImgs => {
+          images.swim = swimImgs;
+          callback();
+        });
+      };
       images.jump.onerror = () => {
         console.warn("Failed to load jump image");
         images.swim = [];
         callback();
       };
-    };
-    images.jump.onerror = () => {
-      console.warn("Failed to load jump image");
-      images.swim = [];
-      callback();
-    };
+    });
   });
 }
 
@@ -169,14 +172,20 @@ function updatePlayer() {
   } else if (player.vx !== 0) {
     player.state = "walk";
   } else {
-    player.state = "stand";
+    player.state = "idle";  // use idle when standing still
   }
 
-  // Animate
+  // Animate faster for walk, slower for idle
   if (player.state === "walk") {
     player.animTimer++;
-    if (player.animTimer > 10) {
+    if (player.animTimer > 5) {  // faster animation now
       player.animFrame = (player.animFrame + 1) % images.walk.length;
+      player.animTimer = 0;
+    }
+  } else if (player.state === "idle") {
+    player.animTimer++;
+    if (player.animTimer > 15) {  // slower idle animation
+      player.animFrame = (player.animFrame + 1) % images.idle.length;
       player.animTimer = 0;
     }
   } else {
@@ -193,12 +202,14 @@ function drawPlayer() {
     case "walk":
       imgToDraw = images.walk[player.animFrame];
       break;
+    case "idle":
+      imgToDraw = images.idle[player.animFrame];
+      break;
     case "jump":
       imgToDraw = images.jump;
       break;
-    case "stand":
     default:
-      imgToDraw = images.walk[0];
+      imgToDraw = images.idle[0] || images.walk[0];
       break;
   }
 
