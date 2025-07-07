@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario Platformer</title>
-<style>
-  body {
-    margin: 0;
-    background: #5c94fc;
-    overflow: hidden;
-  }
-  canvas {
-    display: block;
-    margin: auto;
-    background: #8ED0F7;
-    image-rendering: pixelated;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mario Platformer</title>
+  <style>
+    body {
+      margin: 0;
+      background: #5c94fc;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #8ED0F7;
+      image-rendering: pixelated;
+    }
+  </style>
 </head>
 <body>
 <canvas id="game" width="640" height="360"></canvas>
 <script>
 // === IMAGE LINKS ===
 const marioImages = {
-  idle: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Idle1.gif"
-  ],
   walk: [
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk2.gif",
     "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk3.gif"
   ],
-  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
+  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif"
 };
 
 const mushroomUrl = "https://www.videogamesprites.net/SuperMarioBros1/Items/Mushroom.gif";
@@ -61,7 +58,7 @@ const player = {
   facing: "right",
   animFrame: 0,
   animTimer: 0,
-  state: "idle",
+  state: "stand",
   big: false
 };
 
@@ -76,7 +73,6 @@ const mushroom = {
 };
 
 let images = {
-  idle: [],
   walk: [],
   jump: null,
   mushroom: null
@@ -104,27 +100,24 @@ function preloadImages(urls, callback) {
 }
 
 function loadAllImages(callback) {
-  preloadImages(marioImages.idle, idleImgs => {
-    images.idle = idleImgs;
-    preloadImages(marioImages.walk, walkImgs => {
-      images.walk = walkImgs;
-      const jmp = new Image();
-      jmp.src = marioImages.jump;
-      jmp.onload = () => {
-        images.jump = jmp;
-        const mush = new Image();
-        mush.src = mushroomUrl;
-        mush.onload = () => {
-          images.mushroom = mush;
-          mushroom.image = mush;
-          callback();
-        };
+  preloadImages(marioImages.walk, walkImgs => {
+    images.walk = walkImgs;
+    const jmp = new Image();
+    jmp.src = marioImages.jump;
+    jmp.onload = () => {
+      images.jump = jmp;
+      const mush = new Image();
+      mush.src = mushroomUrl;
+      mush.onload = () => {
+        images.mushroom = mush;
+        mushroom.image = mush;
+        callback();
       };
-    });
+    };
   });
 }
 
-// === GAME FUNCTIONS ===
+// === GAME LOGIC ===
 function drawGround() {
   ctx.fillStyle = "#0B6A0B";
   ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
@@ -172,7 +165,7 @@ function updatePlayer() {
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-  // Mushroom pickup
+  // Mushroom
   if (!mushroom.collected && rectsCollide(player, mushroom)) {
     mushroom.collected = true;
     player.big = true;
@@ -183,32 +176,29 @@ function updatePlayer() {
   // State
   if (!player.onGround) player.state = "jump";
   else if (player.vx !== 0) player.state = "walk";
-  else player.state = "idle";
+  else player.state = "stand";
 
   // Animation
-  const frameCount = player.state === "walk" ? images.walk.length : images.idle.length;
-  const speed = player.state === "walk" ? 5 : 15;
-
-  if (frameCount > 1) {
+  if (player.state === "walk") {
     player.animTimer++;
-    if (player.animTimer >= speed) {
-      player.animFrame = (player.animFrame + 1) % frameCount;
+    if (player.animTimer > 5) {
+      player.animFrame = (player.animFrame + 1) % images.walk.length;
       player.animTimer = 0;
     }
   } else {
     player.animFrame = 0;
+    player.animTimer = 0;
   }
 }
 
 function drawPlayer() {
   ctx.imageSmoothingEnabled = false;
   let img = null;
-  if (player.state === "walk") {
-    img = images.walk[player.animFrame] || images.walk[0];
-  } else if (player.state === "jump") {
+
+  if (player.state === "jump") {
     img = images.jump;
   } else {
-    img = images.idle[0];
+    img = images.walk[player.animFrame] || images.walk[0];
   }
 
   if (!img) return;
