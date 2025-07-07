@@ -35,12 +35,12 @@ const marioImages = {
   ],
   jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
   bigIdle: [
-    // Replace with your big Mario idle frames URLs here
+    // Put your big Mario idle frames here or leave empty to fallback to small Mario
   ],
   bigWalk: [
-    // Replace with your big Mario walk frames URLs here
+    // Put your big Mario walk frames here or leave empty to fallback to small Mario
   ],
-  bigJump: "", // Replace with big Mario jump frame URL
+  bigJump: "", // Put big Mario jump frame here or fallback
 };
 
 const mushroomUrl = "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario.gif"; // mushroom sprite from your link
@@ -52,8 +52,7 @@ const ctx = canvas.getContext("2d");
 
 const GRAVITY = 0.5;
 const JUMP_SPEED = -10;
-// Faster Mario speed:
-const MOVE_SPEED = 6;  
+const MOVE_SPEED = 6;  // Faster Mario speed
 const groundY = 300;
 
 const keys = {};
@@ -225,14 +224,16 @@ function updatePlayer() {
   // Animate faster for walk, slower for idle
   if (player.state === "walk") {
     player.animTimer++;
+    let walkFrames = player.big && images.bigWalk.length ? images.bigWalk.length : images.walk.length;
     if (player.animTimer > 5) {
-      player.animFrame = (player.animFrame + 1) % (player.big ? images.bigWalk.length || 1 : images.walk.length || 1);
+      player.animFrame = (player.animFrame + 1) % walkFrames;
       player.animTimer = 0;
     }
   } else if (player.state === "idle") {
     player.animTimer++;
+    let idleFrames = player.big && images.bigIdle.length ? images.bigIdle.length : images.idle.length;
     if (player.animTimer > 15) {
-      player.animFrame = (player.animFrame + 1) % (player.big ? images.bigIdle.length || 1 : images.idle.length || 1);
+      player.animFrame = (player.animFrame + 1) % idleFrames;
       player.animTimer = 0;
     }
   } else {
@@ -247,45 +248,35 @@ function drawPlayer() {
   let imgToDraw;
 
   if (player.big) {
-    switch (player.state) {
-      case "walk":
-        imgToDraw = images.bigWalk[player.animFrame] || images.bigWalk[0];
-        break;
-      case "idle":
-        imgToDraw = images.bigIdle[player.animFrame] || images.bigIdle[0];
-        break;
-      case "jump":
-        imgToDraw = images.bigJump || images.jump;
-        break;
-      default:
-        imgToDraw = images.bigIdle[0] || images.idle[0];
-        break;
+    if (player.state === "walk") {
+      imgToDraw = (images.bigWalk.length ? images.bigWalk[player.animFrame] : images.walk[player.animFrame]) || images.walk[0];
+    } else if (player.state === "idle") {
+      imgToDraw = (images.bigIdle.length ? images.bigIdle[player.animFrame] : images.idle[player.animFrame]) || images.idle[0];
+    } else if (player.state === "jump") {
+      imgToDraw = images.bigJump || images.jump;
+    } else {
+      imgToDraw = (images.bigIdle.length ? images.bigIdle[0] : images.idle[0]) || images.idle[0];
     }
   } else {
-    switch (player.state) {
-      case "walk":
-        imgToDraw = images.walk[player.animFrame];
-        break;
-      case "idle":
-        imgToDraw = images.idle[player.animFrame];
-        break;
-      case "jump":
-        imgToDraw = images.jump;
-        break;
-      default:
-        imgToDraw = images.idle[0] || images.walk[0];
-        break;
+    if (player.state === "walk") {
+      imgToDraw = images.walk[player.animFrame];
+    } else if (player.state === "idle") {
+      imgToDraw = images.idle[player.animFrame];
+    } else if (player.state === "jump") {
+      imgToDraw = images.jump;
+    } else {
+      imgToDraw = images.idle[0] || images.walk[0];
     }
   }
 
   if (!imgToDraw) return;
 
   ctx.save();
-  ctx.translate(player.x + player.width/2, player.y + player.height/2);
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
   if (player.facing === "left") {
-    ctx.scale(-1,1);
+    ctx.scale(-1, 1);
   }
-  ctx.drawImage(imgToDraw, -player.width/2, -player.height/2, player.width, player.height);
+  ctx.drawImage(imgToDraw, -player.width / 2, -player.height / 2, player.width, player.height);
   ctx.restore();
 }
 
