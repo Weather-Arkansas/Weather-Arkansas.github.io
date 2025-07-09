@@ -1,55 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mario Platformer with Image Links</title>
-<style>
-  body {
-    margin: 0;
-    background: #5c94fc;
-    overflow: hidden;
-  }
-  canvas {
-    display: block;
-    margin: auto;
-    background: #8ED0F7;
-    image-rendering: pixelated;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mario Platformer</title>
+  <style>
+    body {
+      margin: 0;
+      background: white;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: white;
+      image-rendering: pixelated;
+    }
+  </style>
 </head>
 <body>
 <canvas id="game" width="640" height="360"></canvas>
 <script>
-// === PASTE YOUR OWN IMAGE LINKS HERE ===
-const marioImages = {
-  walk: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk1.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk2.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Walk3.gif"
-  ],
-  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif",
-  swim: [
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim1.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim2.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim3.gif",
-    "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Swim4.gif"
-  ]
-};
-// ========================================
+// === IMAGE LINKS ===
+// 🔁 Walking animated GIF (looping)
+const marioWalkGifUrl = "https://mario.wiki.gallery/images/1/17/SMAS_SMB_Super_Mario_Running_Sprite.gif";
 
+// 🧍 Idle PNG or GIF (single frame)
+const marioIdleImgUrl = "https://mario.wiki.gallery/images/5/56/SMAS_SMB_Super_Mario.png";
+
+// 🪂 Jumping PNG or GIF (single frame)
+const marioJumpImgUrl = "https://mario.wiki.gallery/images/f/f4/SMAS_SMB_Super_Mario_Jumping.png?20201004105838";
+
+// === SETUP CANVAS ===
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const GRAVITY = 0.5;
 const JUMP_SPEED = -10;
-const MOVE_SPEED = 4;
+const MOVE_SPEED = 5;
 const groundY = 300;
 
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
+// === PLAYER OBJECT ===
 const player = {
   x: 50,
   y: groundY - 48,
@@ -59,79 +54,53 @@ const player = {
   vy: 0,
   onGround: true,
   facing: "right",
-  animFrame: 0,
-  animTimer: 0,
-  state: "stand"
+  state: "idle" // "idle", "walk", "jump"
 };
 
-let images = {
-  walk: [],
-  jump: null,
-  swim: []
-};
+// === LOAD IMAGES ===
+const marioWalkGif = new Image();
+marioWalkGif.src = marioWalkGifUrl;
 
-function preloadImages(urls, onComplete) {
-  let loadedCount = 0;
-  const imgs = [];
-  for (let i = 0; i < urls.length; i++) {
-    imgs[i] = new Image();
-    imgs[i].src = urls[i];
-    imgs[i].onload = () => {
-      loadedCount++;
-      if (loadedCount === urls.length) onComplete(imgs);
-    };
-    imgs[i].onerror = () => {
-      console.warn("Failed to load image:", urls[i]);
-      loadedCount++;
-      if (loadedCount === urls.length) onComplete(imgs);
-    };
-  }
-}
+const marioIdleImg = new Image();
+marioIdleImg.src = marioIdleImgUrl;
 
-function loadAllImages(callback) {
-  preloadImages(marioImages.walk, imgs => {
-    images.walk = imgs;
-    images.jump = new Image();
-    images.jump.src = marioImages.jump;
-    images.jump.onload = () => {
-      preloadImages(marioImages.swim, swimImgs => {
-        images.swim = swimImgs;
-        callback();
-      });
-    };
-  });
-}
+const marioJumpImg = new Image();
+marioJumpImg.src = marioJumpImgUrl;
 
 function drawGround() {
-  ctx.fillStyle = "#0B6A0B";
+  ctx.fillStyle = "#cccccc"; // light gray ground
   ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 }
 
-function checkGroundCollision(y) {
+function checkCollisionWithGround(y) {
   return y + player.height >= groundY;
 }
 
 function updatePlayer() {
-  if (keys["arrowright"] || keys["d"]) {
+  // Movement
+  if (keys["ArrowRight"] || keys["d"]) {
     player.vx = MOVE_SPEED;
     player.facing = "right";
-  } else if (keys["arrowleft"] || keys["a"]) {
+  } else if (keys["ArrowLeft"] || keys["a"]) {
     player.vx = -MOVE_SPEED;
     player.facing = "left";
   } else {
     player.vx = 0;
   }
 
-  if ((keys["arrowup"] || keys["w"] || keys[" "]) && player.onGround) {
+  // Jump
+  if ((keys["ArrowUp"] || keys["w"] || keys[" "]) && player.onGround) {
     player.vy = JUMP_SPEED;
     player.onGround = false;
   }
 
+  // Gravity
   player.vy += GRAVITY;
   player.x += player.vx;
   player.y += player.vy;
 
-  if (checkGroundCollision(player.y)) {
+  // Ground Collision
+  if (checkCollisionWithGround(player.y)) {
     player.y = groundY - player.height;
     player.vy = 0;
     player.onGround = true;
@@ -139,51 +108,34 @@ function updatePlayer() {
     player.onGround = false;
   }
 
+  // Horizontal Bounds
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-  if (!player.onGround) {
-    player.state = "jump";
-  } else if (player.vx !== 0) {
-    player.state = "walk";
-  } else {
-    player.state = "stand";
-  }
-
-  if (player.state === "walk") {
-    player.animTimer++;
-    if (player.animTimer > 7) {
-      player.animFrame = (player.animFrame + 1) % images.walk.length;
-      player.animTimer = 0;
-    }
-  } else {
-    player.animFrame = 0;
-    player.animTimer = 0;
-  }
+  // State
+  if (!player.onGround) player.state = "jump";
+  else if (player.vx !== 0) player.state = "walk";
+  else player.state = "idle";
 }
 
 function drawPlayer() {
   ctx.imageSmoothingEnabled = false;
-  let imgToDraw;
-  switch (player.state) {
-    case "walk":
-      imgToDraw = images.walk[player.animFrame];
-      break;
-    case "jump":
-      imgToDraw = images.jump;
-      break;
-    case "stand":
-    default:
-      imgToDraw = images.walk[0];
-      break;
+
+  let img = null;
+  if (player.state === "walk") {
+    img = marioWalkGif;
+  } else if (player.state === "jump") {
+    img = marioJumpImg;
+  } else {
+    img = marioIdleImg;
   }
 
-  if (!imgToDraw) return;
+  if (!img || !img.complete) return;
 
   ctx.save();
-  ctx.translate(player.x + player.width/2, player.y + player.height/2);
-  if (player.facing === "left") ctx.scale(-1,1);
-  ctx.drawImage(imgToDraw, -player.width/2, -player.height/2, player.width, player.height);
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+  if (player.facing === "left") ctx.scale(-1, 1);
+  ctx.drawImage(img, -player.width / 2, -player.height / 2, player.width, player.height);
   ctx.restore();
 }
 
@@ -195,9 +147,7 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-loadAllImages(() => {
-  gameLoop();
-});
+gameLoop();
 </script>
 </body>
 </html>
