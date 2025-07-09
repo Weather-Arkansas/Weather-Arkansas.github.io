@@ -21,86 +21,78 @@
 <body>
 <canvas id="game" width="640" height="360"></canvas>
 <script>
-// === IMAGE LINKS ===
-// 🔁 Walking animated GIF (looping)
-const marioWalkGifUrl = "https://mario.wiki.gallery/images/1/17/SMAS_SMB_Super_Mario_Running_Sprite.gif";
-
-// 🧍 Idle PNG or GIF (single frame)
-const marioIdleImgUrl = "https://mario.wiki.gallery/images/5/56/SMAS_SMB_Super_Mario.png";
-
-// 🪂 Jumping PNG or GIF (single frame)
-const marioJumpImgUrl = "https://mario.wiki.gallery/images/f/f4/SMAS_SMB_Super_Mario_Jumping.png?20201004105838";
-
-// === SETUP CANVAS ===
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const groundY = 300;
 const GRAVITY = 0.5;
 const JUMP_SPEED = -10;
-const MOVE_SPEED = 5;
-const groundY = 300;
+const MOVE_SPEED = 6;
 
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// === PLAYER OBJECT ===
+// Player object
 const player = {
   x: 50,
-  y: groundY - 48,
+  y: groundY - 64,  // Big Mario height = 64
   width: 48,
-  height: 48,
+  height: 64,
   vx: 0,
   vy: 0,
   onGround: true,
   facing: "right",
-  state: "idle" // "idle", "walk", "jump"
+  state: "idle"
 };
 
-// === LOAD IMAGES ===
+// Image URLs
+const marioWalkGifUrl = "https://mario.wiki.gallery/images/1/17/SMAS_SMB_Super_Mario_Running_Sprite.gif"; // example, replace with your GIF URL
+const marioIdleUrl = "https://mario.wiki.gallery/images/5/56/SMAS_SMB_Super_Mario.png";
+const marioJumpUrl = "https://mario.wiki.gallery/images/f/f4/SMAS_SMB_Super_Mario_Jumping.png?20201004105838";
+
+// Load images once
 const marioWalkGif = new Image();
 marioWalkGif.src = marioWalkGifUrl;
 
 const marioIdleImg = new Image();
-marioIdleImg.src = marioIdleImgUrl;
+marioIdleImg.src = marioIdleUrl;
 
 const marioJumpImg = new Image();
-marioJumpImg.src = marioJumpImgUrl;
+marioJumpImg.src = marioJumpUrl;
 
 function drawGround() {
-  ctx.fillStyle = "#cccccc"; // light gray ground
+  ctx.fillStyle = "#0B6A0B"; // green ground
   ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 }
 
-function checkCollisionWithGround(y) {
-  return y + player.height >= groundY;
-}
-
 function updatePlayer() {
-  // Movement
-  if (keys["ArrowRight"] || keys["d"]) {
+  // Horizontal movement
+  if (keys["arrowright"] || keys["d"]) {
     player.vx = MOVE_SPEED;
     player.facing = "right";
-  } else if (keys["ArrowLeft"] || keys["a"]) {
+  } else if (keys["arrowleft"] || keys["a"]) {
     player.vx = -MOVE_SPEED;
     player.facing = "left";
   } else {
     player.vx = 0;
   }
 
-  // Jump
-  if ((keys["ArrowUp"] || keys["w"] || keys[" "]) && player.onGround) {
+  // Jumping
+  if ((keys["arrowup"] || keys["w"] || keys[" "]) && player.onGround) {
     player.vy = JUMP_SPEED;
     player.onGround = false;
   }
 
-  // Gravity
+  // Apply gravity
   player.vy += GRAVITY;
+
+  // Update position
   player.x += player.vx;
   player.y += player.vy;
 
-  // Ground Collision
-  if (checkCollisionWithGround(player.y)) {
+  // Ground collision
+  if (player.y + player.height >= groundY) {
     player.y = groundY - player.height;
     player.vy = 0;
     player.onGround = true;
@@ -108,11 +100,11 @@ function updatePlayer() {
     player.onGround = false;
   }
 
-  // Horizontal Bounds
+  // Keep inside canvas horizontally
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-  // State
+  // Update state
   if (!player.onGround) player.state = "jump";
   else if (player.vx !== 0) player.state = "walk";
   else player.state = "idle";
@@ -121,33 +113,42 @@ function updatePlayer() {
 function drawPlayer() {
   ctx.imageSmoothingEnabled = false;
 
-  let img = null;
-  if (player.state === "walk") {
-    img = marioWalkGif;
-  } else if (player.state === "jump") {
-    img = marioJumpImg;
-  } else {
-    img = marioIdleImg;
+  let imgToDraw;
+
+  switch (player.state) {
+    case "walk":
+      imgToDraw = marioWalkGif;
+      break;
+    case "jump":
+      imgToDraw = marioJumpImg;
+      break;
+    case "idle":
+    default:
+      imgToDraw = marioIdleImg;
+      break;
   }
 
-  if (!img || !img.complete) return;
+  if (!imgToDraw.complete) return; // wait till loaded
 
   ctx.save();
   ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
   if (player.facing === "left") ctx.scale(-1, 1);
-  ctx.drawImage(img, -player.width / 2, -player.height / 2, player.width, player.height);
+  ctx.drawImage(imgToDraw, -player.width / 2, -player.height / 2, player.width, player.height);
   ctx.restore();
 }
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   drawGround();
   updatePlayer();
   drawPlayer();
+
   requestAnimationFrame(gameLoop);
 }
 
 gameLoop();
+
 </script>
 </body>
 </html>
