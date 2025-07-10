@@ -2,116 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Hop-Only Mario</title>
+  <title>Embedded Mario Game</title>
   <style>
     body {
       margin: 0;
       background: white;
-      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
-    canvas {
-      display: block;
-      margin: auto;
-      image-rendering: pixelated;
+    iframe {
+      border: none;
+      width: 640px;
+      height: 360px;
     }
   </style>
 </head>
 <body>
-<canvas id="game" width="640" height="360"></canvas>
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const GRAVITY = 0.5;
-const JUMP_VELOCITY = -10;
-const HOP_SPEED = 4;
-const GROUND_Y = 300;
-
-const keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-// Updated Mario Image URLs
-const marioSprites = {
-  idle: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario.gif",
-  jump: "https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Mario%20-%20Jump.gif"
-};
-
-const mario = {
-  x: 100,
-  y: GROUND_Y - 64,
-  width: 48,
-  height: 64,
-  vx: 0,
-  vy: 0,
-  onGround: false,
-  facing: "right",
-  state: "idle"
-};
-
-const images = {
-  idle: new Image(),
-  jump: new Image()
-};
-images.idle.src = marioSprites.idle;
-images.jump.src = marioSprites.jump;
-
-function update() {
-  if ((keys["w"] || keys["ArrowUp"] || keys[" "]) && mario.onGround) {
-    mario.vy = JUMP_VELOCITY;
-    mario.onGround = false;
-
-    if (keys["ArrowLeft"] || keys["a"]) {
-      mario.vx = -HOP_SPEED;
-      mario.facing = "left";
-    } else if (keys["ArrowRight"] || keys["d"]) {
-      mario.vx = HOP_SPEED;
-      mario.facing = "right";
-    } else {
-      mario.vx = 0;
-    }
-  }
-
-  mario.vy += GRAVITY;
-  mario.x += mario.vx;
-  mario.y += mario.vy;
-
-  if (mario.y + mario.height >= GROUND_Y) {
-    mario.y = GROUND_Y - mario.height;
-    mario.vy = 0;
-    mario.vx = 0;
-    mario.onGround = true;
-  } else {
-    mario.onGround = false;
-  }
-
-  mario.state = mario.onGround ? "idle" : "jump";
-}
-
-function drawGround() {
-  ctx.fillStyle = "#228B22";
-  ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-}
-
-function drawMario() {
-  let img = mario.state === "jump" ? images.jump : images.idle;
-
-  ctx.save();
-  ctx.translate(mario.x + mario.width / 2, mario.y + mario.height / 2);
-  if (mario.facing === "left") ctx.scale(-1, 1);
-  ctx.drawImage(img, -mario.width / 2, -mario.height / 2, mario.width, mario.height);
-  ctx.restore();
-}
-
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawGround();
-  update();
-  drawMario();
-  requestAnimationFrame(loop);
-}
-
-loop();
-</script>
+  <iframe src="https://super-mario-flop.w3spaces.com"></iframe>
 </body>
 </html>
