@@ -1,25 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Embedded Mario Game</title>
+  <meta charset="UTF-8">
+  <title>Mario Game with Water</title>
   <style>
-    body {
-      margin: 0;
-      background: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    iframe {
-      border: none;
-      width: 640px;
-      height: 360px;
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: white;
     }
   </style>
 </head>
 <body>
-  <iframe src="https://super-mario-flop.w3spaces.com"></iframe>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Constants
+const GRAVITY = 0.5;
+const GROUND_LEVEL = 500;
+const MOVE_SPEED = 2;
+const JUMP_POWER = -10;
+const WATER_TOP = 400;
+const WATER_HEIGHT = 100;
+
+const keys = {
+  left: false,
+  right: false,
+  up: false
+};
+
+const mario = {
+  x: 100,
+  y: 100,
+  vx: 0,
+  vy: 0,
+  onGround: false,
+  facing: 1, // 1 = right, -1 = left
+  state: 'idle',
+  frame: 0,
+  frameTimer: 0,
+  frameInterval: 150,
+  sprites: {
+    idle: ['https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario.gif'],
+    walk: [
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Walk1.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Walk2.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Walk3.gif'
+    ],
+    jump: ['https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Jump.gif'],
+    skid: ['https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Skid.gif'],
+    swim: [
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim1.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim2.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim3.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim4.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim5.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Swim6.gif'
+    ],
+    climb: [
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Climb1.gif',
+      'https://www.videogamesprites.net/SuperMarioBros1/Characters/Mario/Super%20Mario%20-%20Climb2.gif'
+    ],
+    duck: [],
+    dead: []
+  },
+  images: {}
+};
+
+// Load sprites
+function loadSprites(callback) {
+  let total = 0, loaded = 0;
+  for (const [state, urls] of Object.entries(mario.sprites)) {
+    mario.images[state] = [];
+    for (const url of urls) {
+      total++;
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        loaded++;
+        if (loaded === total) callback();
+      };
+      mario.images[state].push(img);
+    }
+  }
+}
+
+// Input
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'ArrowLeft') keys.left = true;
+  if (e.code === 'ArrowRight') keys.right = true;
+  if (e.code === 'ArrowUp') keys.up = true;
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'ArrowLeft') keys.left = false;
+  if (e.code === 'ArrowRight') keys.right = false;
+  if (e.code === 'ArrowUp') keys.up = false;
+});
+
+// Game logic
+function updateMario(deltaTime) {
+  // Horizontal movement
+  if (keys.left) {
+    mario.vx = -MOVE_SPEED;
+    mario.facing = -1;
+  } else if (keys.right) {
+    mario.vx = MOVE_SPEED;
+    mario.facing = 1;
+  } else {
+    mario.vx = 0;
+  }
+
+  // Jump
+  if (keys.up && mario.onGround) {
+    mario.vy = JUMP_POWER;
+    mario.onGround = false;
+  }
+
+  // Apply gravity
+  mario.vy += GRAVITY;
+  mario.x += mario.vx;
+  mario.y += mario.vy;
+
+  // Check if in water
+  const inWater = mario.y + 32 > WATER_TOP && mario.y + 32 < WATER_TOP + WATER_HEIGHT;
+
+  // Swim logic
+  if (inWater) {
+    mario.state = 'swim';
+    if (mario.vy > 2) mario.vy *= 0.8; // slow fall in water
+    mario.onGround = false;
+  } else {
+    // Ground collision
+    if (mario.y + 32 >= GROUND_LEVEL) {
+      mario.y = GROUND_LEVEL - 32;
+      mario.vy = 0;
+      mario.onGround = true;
+    } else {
+      mario.onGround = false;
+    }
+
+    // State logic
+    if (!mario.onGround) {
+      mario.state = 'jump';
+    } else if (mario.vx !== 0) {
+      mario.state = 'walk';
+    } else {
+      mario.state = 'idle';
+    }
+  }
+
+  // Animate frames
+  mario.frameTimer += deltaTime;
+  if (mario.frameTimer > mario.frameInterval) {
+    mario.frame = (mario.frame + 1) % mario.images[mario.state].length;
+    mario.frameTimer = 0;
+  }
+}
+
+// Draw water
+function drawWater() {
+  ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+  ctx.fillRect(0, WATER_TOP, canvas.width, WATER_HEIGHT);
+}
+
+// Draw ground
+function drawGround() {
+  ctx.fillStyle = 'saddlebrown';
+  ctx.fillRect(0, GROUND_LEVEL, canvas.width, canvas.height - GROUND_LEVEL);
+}
+
+// Draw Mario (flipped if facing left)
+function drawMario() {
+  const frames = mario.images[mario.state];
+  const frameImage = frames[mario.frame % frames.length];
+
+  ctx.save();
+  if (mario.facing === -1) {
+    ctx.translate(mario.x + frameImage.width, mario.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(frameImage, 0, 0);
+  } else {
+    ctx.drawImage(frameImage, mario.x, mario.y);
+  }
+  ctx.restore();
+}
+
+// Main game loop
+let lastTime = 0;
+function gameLoop(timeStamp) {
+  const deltaTime = timeStamp - lastTime;
+  lastTime = timeStamp;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGround();
+  drawWater();
+
+  updateMario(deltaTime);
+  drawMario();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start game
+loadSprites(() => {
+  requestAnimationFrame(gameLoop);
+});
+</script>
 </body>
 </html>
