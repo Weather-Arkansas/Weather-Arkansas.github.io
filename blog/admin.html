@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Weather Blog</title>
+<style>
+body, html {
+    margin:0; padding:0;
+    font-family:"Lato", sans-serif;
+    background:#87CEEB; color:teal;
+    display:flex; flex-direction:column; align-items:center; padding:20px;
+}
+input, textarea, button { margin:10px 0; padding:8px; border-radius:5px; border:1px solid #ccc; width:300px; }
+button { background:teal; color:white; cursor:pointer; border:none; }
+button:hover { background:#006666; }
+.post { background: rgba(255,255,255,0.8); margin:10px; padding:10px; border-radius:6px; width:300px; }
+</style>
+</head>
+<body>
+
+<h1>Admin - Weather Blog</h1>
+
+<!-- Login form -->
+<div id="login-form">
+    <input type="password" id="adminPass" placeholder="Enter admin password">
+    <button id="loginBtn">Login</button>
+</div>
+
+<!-- Blog editor -->
+<div id="editor" style="display:none;">
+    <input type="text" id="postTitle" placeholder="Post Title">
+    <textarea id="postContent" rows="5" placeholder="Post Content"></textarea>
+    <button id="savePost">Save Post</button>
+    <h2>Current Posts</h2>
+    <div id="currentPosts"></div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "yourpassword"; // Change this to your secret
+
+document.getElementById("loginBtn").addEventListener("click", ()=>{
+    const pass = document.getElementById("adminPass").value;
+    if(pass === ADMIN_PASSWORD){
+        localStorage.setItem("adminSignedIn","true");
+        showEditor();
+    } else {
+        alert("Incorrect password!");
+    }
+});
+
+// Show editor if already signed in
+function showEditor(){
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("editor").style.display = "block";
+    loadCurrentPosts();
+}
+
+// Save post
+document.getElementById("savePost").addEventListener("click", ()=>{
+    const title = document.getElementById("postTitle").value;
+    const content = document.getElementById("postContent").value;
+    if(title && content){
+        const posts = JSON.parse(localStorage.getItem("blogPosts") || "[]");
+        posts.unshift({title, content, date: new Date().toLocaleString()});
+        localStorage.setItem("blogPosts", JSON.stringify(posts));
+        alert("Post saved!");
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postContent").value = "";
+        loadCurrentPosts();
+    }
+});
+
+// Load current posts in admin
+function loadCurrentPosts(){
+    const container = document.getElementById("currentPosts");
+    const posts = JSON.parse(localStorage.getItem("blogPosts") || "[]");
+    if(posts.length === 0){
+        container.innerHTML = "<p>No posts yet.</p>";
+    } else {
+        container.innerHTML = posts.map(p => `<div class='post'><h3>${p.title}</h3><p>${p.content}</p><small>${p.date}</small></div>`).join('');
+    }
+}
+
+// Auto-login check
+if(localStorage.getItem("adminSignedIn") === "true"){
+    showEditor();
+}
+</script>
+
+</body>
+</html>
