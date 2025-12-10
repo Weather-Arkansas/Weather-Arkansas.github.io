@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect Weather Stations | Weather Arkansas</title>
+
+<style>
+body, html {
+    margin:0; padding:0;
+    font-family:"Lato", sans-serif;
+    width:100%; height:100%;
+    overflow-x:hidden;
+    background: #87CEEB;
+    color: teal;
+}
+
+/* Top bar */
+.topbar {
+    width: 100%;
+    background: teal;
+    color: white;
+    padding: 12px;
+    font-size: 20px;
+    text-align: center;
+    position: sticky;
+    top:0;
+    z-index: 5;
+}
+
+/* Sidebar Navigation */
+.sidenav {
+    height:100%; width:0; position:fixed; z-index:10; top:0; left:0;
+    background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;
+}
+.sidenav a {
+    padding:8px 8px 8px 32px;
+    text-decoration:none; font-size:25px;
+    color:#818181; display:block; transition:0.3s;
+}
+.sidenav a:hover{ color:white; }
+.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; cursor:pointer; }
+.menu { font-size:30px; cursor:pointer; }
+
+/* Background & Clouds */
+.background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
+.cloud {
+    position:absolute; background:#fff; border-radius:50%;
+    width:200px; height:60px; animation: moveClouds 25s linear infinite;
+}
+.cloud::before, .cloud::after { content:""; position:absolute; background:#fff; border-radius:50%; }
+.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
+.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
+
+.sun {
+    position:absolute; width:100px; height:100px;
+    top:10%; left:10%;
+    background: radial-gradient(circle, #FFD700, #FFA500);
+    border-radius:50%;
+    box-shadow:0 0 50px rgba(255,215,0,0.5);
+}
+
+/* Forecast / Stations UI */
+.container {
+    position: relative;
+    z-index: 2;
+    max-width:900px;
+    margin: 60px auto 40px auto;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.2);
+}
+
+.container h2 { text-align:center; }
+.container label { display:block; margin-top:10px; font-weight:bold; }
+.container input { width:100%; padding:8px; margin-top:4px; border-radius:6px; border:1px solid #ccc; }
+.container button {
+    margin-top:12px;
+    padding:10px 20px;
+    background:teal;
+    color:white;
+    border:none; border-radius:8px;
+    cursor:pointer;
+}
+.container button:hover { background:#006666; }
+
+.station-data {
+    margin-top:20px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    background:#f0f8ff;
+}
+
+.station-warning {
+    color:red;
+    font-style:italic;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background">
+    <div class="sun"></div>
+    <div class="cloud" style="top:20%; animation-duration:20s;"></div>
+    <div class="cloud" style="top:50%; animation-duration:28s;"></div>
+    <div class="cloud" style="top:70%; animation-duration:24s;"></div>
+</div>
+
+<div class="topbar">Weather Arkansas • Connect Weather Stations</div>
+
+<!-- Side Navigation -->
+<div id="mySidenav" class="sidenav">
+    <span class="closebtn" onclick="closeNav()">×</span>
+    <a href="/index.html">Home</a>
+    <a href="/weather/index.html">Index</a>
+    <a href="/weather/Little-Rock.html">Capitol Weather</a>
+    <a href="/weather/10day.html">10-Day Forecast</a>
+    <a href="/weather/stations.html">Weather Stations</a>
+    <a href="/about.html">About</a>
+    <a href="/settings.html">Settings</a>
+</div>
+<span class="menu" onclick="openNav()">☰</span>
+
+<div class="container">
+    <h2>Connect Your Weather Station</h2>
+    <p>Currently, WUnderground stations work fully in-browser. Other brands may require server-side access.</p>
+
+    <label for="stationId">Station ID (WUnderground)</label>
+    <input type="text" id="stationId" placeholder="e.g., KARLITTLE1">
+
+    <label for="apiKey">API Key</label>
+    <input type="text" id="apiKey" placeholder="Your WUnderground API Key">
+
+    <button onclick="saveStation()">Save & Load Station</button>
+
+    <div class="station-data" id="stationData">
+        <p>No station loaded yet.</p>
+    </div>
+</div>
+
+<script>
+// Sidebar nav
+function openNav(){ document.getElementById("mySidenav").style.width="100%"; }
+function closeNav(){ document.getElementById("mySidenav").style.width="0"; }
+
+// Randomize clouds
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.cloud').forEach(c => {
+        c.style.left = Math.random()*100 + "%";
+        c.style.animationDuration = (18 + Math.random()*12) + "s";
+    });
+
+    // Load saved station
+    if(localStorage.getItem("stationId") && localStorage.getItem("apiKey")){
+        document.getElementById("stationId").value = localStorage.getItem("stationId");
+        document.getElementById("apiKey").value = localStorage.getItem("apiKey");
+        loadStation(localStorage.getItem("stationId"), localStorage.getItem("apiKey"));
+    }
+});
+
+// Save station and load
+function saveStation(){
+    const stationId = document.getElementById("stationId").value.trim();
+    const apiKey = document.getElementById("apiKey").value.trim();
+
+    if(!stationId || !apiKey){
+        alert("Please enter both Station ID and API Key.");
+        return;
+    }
+
+    localStorage.setItem("stationId", stationId);
+    localStorage.setItem("apiKey", apiKey);
+
+    loadStation(stationId, apiKey);
+}
+
+// Load WUnderground station
+async function loadStation(stationId, apiKey){
+    const display = document.getElementById("stationData");
+    display.innerHTML = "<p>Loading data...</p>";
+
+    try{
+        const url = `https://api.weather.com/v2/pws/observations/current?stationId=${stationId}&format=json&units=e&apiKey=${apiKey}`;
+        const response = await fetch(url);
+        if(!response.ok) throw new Error("Unable to fetch");
+
+        const data = await response.json();
+        const obs = data.observations[0];
+
+        display.innerHTML = `
+            <h3>${stationId} - ${obs.obsTimeLocal}</h3>
+            <p>Temperature: ${obs.imperial.temp} °F</p>
+            <p>Humidity: ${obs.humidity} %</p>
+            <p>Wind: ${obs.imperial.windSpeed} mph</p>
+            <p>Pressure: ${obs.imperial.pressure} inHg</p>
+            <p>Rain Today: ${obs.imperial.precipTotal} in</p>
+        `;
+    } catch(e){
+        display.innerHTML = `<p class="station-warning">Could not load station data. Check ID & API key or the station may require server access.</p>`;
+    }
+}
+</script>
+
+</body>
+</html>
