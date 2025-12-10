@@ -1,75 +1,92 @@
-<!-- Your existing HTML layout goes here, unchanged -->
-<div class="post">
-  <h3 id="post-title-display">My First Post</h3>
-  <p id="post-content-display">This is the content of the post.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Weather Blog</title>
+<style>
+body, html {
+    margin:0; padding:0;
+    font-family:"Lato", sans-serif;
+    background:#87CEEB; color:teal;
+    display:flex; flex-direction:column; align-items:center; padding:20px;
+}
+input, textarea, button { margin:10px 0; padding:8px; border-radius:5px; border:1px solid #ccc; width:300px; }
+button { background:teal; color:white; cursor:pointer; border:none; }
+button:hover { background:#006666; }
+.post { background: rgba(255,255,255,0.8); margin:10px; padding:10px; border-radius:6px; width:300px; }
+</style>
+</head>
+<body>
+
+<h1>Admin - Weather Blog</h1>
+
+<!-- Login form -->
+<div id="login-form">
+    <input type="password" id="adminPass" placeholder="Enter admin password">
+    <button id="loginBtn">Login</button>
 </div>
 
-<!-- Admin Panel Section (added) -->
-<div class="admin-panel">
-  <h2>Admin Editor</h2>
-
-  <label for="post-title">Post Title:</label>
-  <input type="text" id="post-title" value="My First Post">
-
-  <label for="post-content">Post Content:</label>
-  <textarea id="post-content" rows="5">This is the content of the post.</textarea>
-
-  <label for="text-color">Text Color:</label>
-  <input type="color" id="text-color" value="#000000">
-
-  <label for="bg-color">Background Color:</label>
-  <input type="color" id="bg-color" value="#ffffff">
-
-  <button id="save-btn">Save Changes</button>
+<!-- Blog editor -->
+<div id="editor" style="display:none;">
+    <input type="text" id="postTitle" placeholder="Post Title">
+    <textarea id="postContent" rows="5" placeholder="Post Content"></textarea>
+    <button id="savePost">Save Post</button>
+    <h2>Current Posts</h2>
+    <div id="currentPosts"></div>
 </div>
 
 <script>
-// Elements
-const titleInput = document.getElementById('post-title');
-const contentInput = document.getElementById('post-content');
-const textColorInput = document.getElementById('text-color');
-const bgColorInput = document.getElementById('bg-color');
-const saveBtn = document.getElementById('save-btn');
+const ADMIN_PASSWORD = "yourpassword"; // Change this to your secret
 
-const postTitleDisplay = document.getElementById('post-title-display');
-const postContentDisplay = document.getElementById('post-content-display');
+document.getElementById("loginBtn").addEventListener("click", ()=>{
+    const pass = document.getElementById("adminPass").value;
+    if(pass === ADMIN_PASSWORD){
+        localStorage.setItem("adminSignedIn","true");
+        showEditor();
+    } else {
+        alert("Incorrect password!");
+    }
+});
 
-// Live Preview Function
-function updatePreview() {
-  postTitleDisplay.textContent = titleInput.value;
-  postContentDisplay.textContent = contentInput.value;
-  postTitleDisplay.style.color = textColorInput.value;
-  postContentDisplay.style.color = textColorInput.value;
-  postTitleDisplay.parentElement.style.backgroundColor = bgColorInput.value;
+// Show editor if already signed in
+function showEditor(){
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("editor").style.display = "block";
+    loadCurrentPosts();
 }
 
-// Update preview on input
-titleInput.addEventListener('input', updatePreview);
-contentInput.addEventListener('input', updatePreview);
-textColorInput.addEventListener('input', updatePreview);
-bgColorInput.addEventListener('input', updatePreview);
-
-// Save changes to localStorage
-saveBtn.addEventListener('click', () => {
-  const postData = {
-    title: titleInput.value,
-    content: contentInput.value,
-    textColor: textColorInput.value,
-    bgColor: bgColorInput.value
-  };
-  localStorage.setItem('postData', JSON.stringify(postData));
-  alert('Post saved!');
+// Save post
+document.getElementById("savePost").addEventListener("click", ()=>{
+    const title = document.getElementById("postTitle").value;
+    const content = document.getElementById("postContent").value;
+    if(title && content){
+        const posts = JSON.parse(localStorage.getItem("blogPosts") || "[]");
+        posts.unshift({title, content, date: new Date().toLocaleString()});
+        localStorage.setItem("blogPosts", JSON.stringify(posts));
+        alert("Post saved!");
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postContent").value = "";
+        loadCurrentPosts();
+    }
 });
 
-// Load saved data on page load
-window.addEventListener('load', () => {
-  const savedData = JSON.parse(localStorage.getItem('postData'));
-  if (savedData) {
-    titleInput.value = savedData.title;
-    contentInput.value = savedData.content;
-    textColorInput.value = savedData.textColor;
-    bgColorInput.value = savedData.bgColor;
-    updatePreview();
-  }
-});
+// Load current posts in admin
+function loadCurrentPosts(){
+    const container = document.getElementById("currentPosts");
+    const posts = JSON.parse(localStorage.getItem("blogPosts") || "[]");
+    if(posts.length === 0){
+        container.innerHTML = "<p>No posts yet.</p>";
+    } else {
+        container.innerHTML = posts.map(p => `<div class='post'><h3>${p.title}</h3><p>${p.content}</p><small>${p.date}</small></div>`).join('');
+    }
+}
+
+// Auto-login check
+if(localStorage.getItem("adminSignedIn") === "true"){
+    showEditor();
+}
 </script>
+
+</body>
+</html>
