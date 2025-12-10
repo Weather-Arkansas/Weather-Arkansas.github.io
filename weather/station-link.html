@@ -60,7 +60,7 @@ body, html {
     box-shadow:0 0 50px rgba(255,215,0,0.5);
 }
 
-/* Forecast / Stations UI */
+/* Container & Tabs */
 .container {
     position: relative;
     z-index: 2;
@@ -71,11 +71,30 @@ body, html {
     border-radius:12px;
     box-shadow:0 2px 10px rgba(0,0,0,0.2);
 }
-
 .container h2 { text-align:center; }
-.container label { display:block; margin-top:10px; font-weight:bold; }
-.container input { width:100%; padding:8px; margin-top:4px; border-radius:6px; border:1px solid #ccc; }
-.container button {
+
+.tabs {
+    display:flex; margin-bottom:10px;
+}
+.tab {
+    flex:1; padding:10px;
+    text-align:center;
+    cursor:pointer;
+    background:#eee; border-radius:6px 6px 0 0;
+    border:1px solid #ccc; border-bottom:none;
+    margin-right:2px;
+}
+.tab.active { background: teal; color:white; }
+
+.tab-content {
+    border:1px solid #ccc; border-radius:0 0 6px 6px;
+    padding:15px;
+}
+
+/* Form */
+label { display:block; margin-top:10px; font-weight:bold; }
+input { width:100%; padding:8px; margin-top:4px; border-radius:6px; border:1px solid #ccc; }
+button {
     margin-top:12px;
     padding:10px 20px;
     background:teal;
@@ -83,24 +102,16 @@ body, html {
     border:none; border-radius:8px;
     cursor:pointer;
 }
-.container button:hover { background:#006666; }
+button:hover { background:#006666; }
 
-.station-data {
-    margin-top:20px;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    background:#f0f8ff;
-}
+.station-data { margin-top:20px; padding:10px; border:1px solid #ccc; border-radius:8px; background:#f0f8ff; }
+.station-warning { color:red; font-style:italic; margin-top:10px; }
 
-.station-warning {
-    color:red;
-    font-style:italic;
-    margin-top:10px;
-}
+/* Cloud Animation */
+@keyframes moveClouds { 0% {transform:translateX(-100%);} 100% {transform:translateX(100%);} }
+
 </style>
 </head>
-
 <body>
 
 <div class="background">
@@ -126,19 +137,28 @@ body, html {
 <span class="menu" onclick="openNav()">☰</span>
 
 <div class="container">
-    <h2>Connect Your Weather Station</h2>
-    <p>Currently, WUnderground stations work fully in-browser. Other brands may require server-side access.</p>
+    <h2>Connect Your Weather Stations</h2>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('wunderground')">WUnderground</div>
+        <div class="tab" onclick="showTab('other')">Other Stations</div>
+    </div>
 
-    <label for="stationId">Station ID (WUnderground)</label>
-    <input type="text" id="stationId" placeholder="e.g., KARLITTLE1">
+    <div class="tab-content" id="wunderground">
+        <label for="stationId">Station ID</label>
+        <input type="text" id="stationId" placeholder="e.g., KARMALVE22">
 
-    <label for="apiKey">API Key</label>
-    <input type="text" id="apiKey" placeholder="Your WUnderground API Key">
+        <label for="apiKey">API Key</label>
+        <input type="text" id="apiKey" placeholder="Your WUnderground API Key">
 
-    <button onclick="saveStation()">Save & Load Station</button>
+        <button onclick="saveStation()">Save & Load Station</button>
 
-    <div class="station-data" id="stationData">
-        <p>No station loaded yet.</p>
+        <div class="station-data" id="stationData">
+            <p>No WUnderground station loaded yet.</p>
+        </div>
+    </div>
+
+    <div class="tab-content" id="other" style="display:none;">
+        <p>This section is reserved for other brands (Ambient, Ecowitt, WeatherFlow, Davis). Many require server access or cloud API keys. Coming soon!</p>
     </div>
 </div>
 
@@ -147,6 +167,14 @@ body, html {
 function openNav(){ document.getElementById("mySidenav").style.width="100%"; }
 function closeNav(){ document.getElementById("mySidenav").style.width="0"; }
 
+// Tabs
+function showTab(tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+    document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('active');
+    document.getElementById(tab).style.display='block';
+}
+
 // Randomize clouds
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.cloud').forEach(c => {
@@ -154,7 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
         c.style.animationDuration = (18 + Math.random()*12) + "s";
     });
 
-    // Load saved station
+    // Load saved WU station
     if(localStorage.getItem("stationId") && localStorage.getItem("apiKey")){
         document.getElementById("stationId").value = localStorage.getItem("stationId");
         document.getElementById("apiKey").value = localStorage.getItem("apiKey");
@@ -162,15 +190,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Save station and load
+// Save station
 function saveStation(){
     const stationId = document.getElementById("stationId").value.trim();
     const apiKey = document.getElementById("apiKey").value.trim();
 
-    if(!stationId || !apiKey){
-        alert("Please enter both Station ID and API Key.");
-        return;
-    }
+    if(!stationId || !apiKey){ alert("Enter both Station ID and API Key."); return; }
 
     localStorage.setItem("stationId", stationId);
     localStorage.setItem("apiKey", apiKey);
@@ -200,7 +225,7 @@ async function loadStation(stationId, apiKey){
             <p>Rain Today: ${obs.imperial.precipTotal} in</p>
         `;
     } catch(e){
-        display.innerHTML = `<p class="station-warning">Could not load station data. Check ID & API key or the station may require server access.</p>`;
+        display.innerHTML = `<p class="station-warning">Could not load WUnderground station data. Check Station ID & API key, or the station may require server access.</p>`;
     }
 }
 </script>
