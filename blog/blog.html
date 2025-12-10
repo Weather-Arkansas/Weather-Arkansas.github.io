@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Arkansas Blog</title>
+<style>
+body, html {
+    margin:0; padding:0;
+    font-family:"Lato", sans-serif;
+    background:#87CEEB; color:teal;
+}
+.sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
+.sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
+.sidenav a:hover{ color:#f1f1f1; }
+.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
+@media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
+.post { background: rgba(255,255,255,0.8); margin:20px auto; padding:15px; border-radius:8px; max-width:800px; }
+.post h2 { margin-top:0; }
+</style>
+</head>
+<body>
+
+<!-- Side nav -->
+<div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+  <a href="/index.html">Home</a>
+  <a href="/weather/10-day.html">10-Day Forecast</a>
+  <a href="/weather/station-link.html">Weather Stations</a>
+  <a href="/weather/Little-Rock.html">Capitol Weather</a>
+  <a href="/weather/radar.html">Local Radar</a>
+  <a href="/blog/blog.html">Blog</a>
+  <a href="/about.html">About</a>
+  <a href="/settings.html">Settings</a>
+</div>
+<span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+
+<h1 style="text-align:center;">Weather Arkansas Blog</h1>
+<div id="posts-container"></div>
+
+<script>
+// Side nav
+function openNav(){ document.getElementById("mySidenav").style.width="100%";}
+function closeNav(){ document.getElementById("mySidenav").style.width="0";}
+
+// Load posts from localStorage
+function loadPosts(){
+    const container = document.getElementById("posts-container");
+    const posts = JSON.parse(localStorage.getItem("blogPosts") || "[]");
+    if(posts.length === 0){
+        container.innerHTML = "<p style='text-align:center;'>No posts yet.</p>";
+    } else {
+        container.innerHTML = posts.map(p => `<div class='post'><h2>${p.title}</h2><p>${p.content}</p><small>${p.date}</small></div>`).join('');
+    }
+}
+loadPosts();
+</script>
+
+</body>
+</html>
