@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Radar - Weather Arkansas</title>
+<style>
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    font-family: "Lato", sans-serif;
+    background: #87CEEB;
+    color: teal;
+}
+.sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
+.sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
+.sidenav a:hover{ color:#f1f1f1; }
+.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
+@media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
+</style>
+</head>
+<body>
+
+<!-- Require sign-in -->
+<script>
+const signedIn = localStorage.getItem("signedIn") === "true";
+if(!signedIn){
+    window.location.href = "/signin.html"; // redirect to sign-in page
+}
+</script>
+
+<!-- Side navigation -->
+<div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+  
+  <a href="/index.html">Home</a>
+  <a href="/weather/10-day.html">10-Day Forecast</a>
+  <a href="/weather/station-link.html">Weather Stations</a>
+  <a href="/weather/Little-Rock.html">Capitol Weather</a>
+  <a href="/weather/radar.html">Local Radar</a>
+  <a href="/about.html">About</a>
+  <a href="/settings.html">Settings</a>
+  <a href="/signin.html" id="signInLink">Sign In</a>
+</div>
+<span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+
+<h1 style="text-align:center;">Local Radar</h1>
+
+<!-- Windy.io Interactive Radar -->
+<div style="display:flex; justify-content:center; margin-top:20px;">
+  <iframe src="https://embed.windy.com/embed2.html?lat=34.7465&amp;lon=-92.2896&amp;zoom=6&amp;level=surface&amp;overlay=radar&amp;product=radar&amp;menu=&amp;message=&amp;marker=&amp;calendar=now&amp;pressure=&amp;type=map&amp;location=coordinates&amp;detail=true&amp;detailLat=34.7465&amp;detailLon=-92.2896" 
+  width="90%" height="600" frameborder="0"></iframe>
+</div>
+
+<script>
+function openNav(){ document.getElementById("mySidenav").style.width="100%";}
+function closeNav(){ document.getElementById("mySidenav").style.width="0";}
+
+// Dynamic Sign In / Sign Out in menu
+const signInLink = document.getElementById("signInLink");
+if(signedIn){
+    signInLink.textContent = "Sign Out";
+    signInLink.href = "#";
+    signInLink.addEventListener("click", ()=>{
+        localStorage.removeItem("signedIn");
+        localStorage.removeItem("lastVisit");
+        alert("You have been signed out.");
+        window.location.href="/signin.html";
+    });
+} else {
+    signInLink.textContent = "Sign In";
+    signInLink.href = "/signin.html";
+}
+</script>
+
+</body>
+</html>
