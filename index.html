@@ -88,13 +88,22 @@ if(!signedIn){
     <!-- Side navigation -->
     <div id="mySidenav" class="sidenav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-      <a href="./index.html">Home</a>
-      <a href="./weather/index.html">Index</a>
-      <a href="./weather/Little-Rock.html">Capitol Weather</a>
-      <a href="./weather/radar.html">Local Radar</a>
-      <a href="./about.html">About</a>
-      <a href="./settings.html">Settings</a>
-      <a href="/signin.html">Sign In</a>
+      
+      <!-- Main pages -->
+      <a href="/index.html">Home</a>
+      
+      <!-- Weather pages -->
+      <a href="/weather/10day.html">10-Day Forecast</a>
+      <a href="/weather/station.html">Weather Stations</a>
+      <a href="/weather/Little-Rock.html">Capitol Weather</a>
+      <a href="/weather/radar.html">Local Radar</a>
+      
+      <!-- Other pages -->
+      <a href="/about.html">About</a>
+      <a href="/settings.html">Settings</a>
+      
+      <!-- Sign In / Out -->
+      <a href="/signin.html" id="signInLink">Sign In</a>
     </div>
     <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
 
@@ -132,13 +141,29 @@ if(!signedIn){
 function openNav(){ document.getElementById("mySidenav").style.width="100%";}
 function closeNav(){ document.getElementById("mySidenav").style.width="0";}
 
-// Sign out
+// Sign out button
 document.getElementById("signOutBtn").addEventListener("click", ()=>{
     localStorage.removeItem("signedIn");
     localStorage.removeItem("lastVisit");
     alert("You have been signed out.");
     window.location.href="/signin.html";
 });
+
+// Dynamic Sign In / Sign Out in menu
+const signInLink = document.getElementById("signInLink");
+if(signedIn){
+    signInLink.textContent = "Sign Out";
+    signInLink.href = "#";
+    signInLink.addEventListener("click", ()=>{
+        localStorage.removeItem("signedIn");
+        localStorage.removeItem("lastVisit");
+        alert("You have been signed out.");
+        window.location.href="/signin.html";
+    });
+} else {
+    signInLink.textContent = "Sign In";
+    signInLink.href = "/signin.html";
+}
 
 // Weekly Forecast
 async function fetchWeeklyForecast() {
@@ -171,8 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const rainContainer=document.querySelector('.rain');
     const sun=document.querySelector('.sun');
     const content=document.querySelector('.content');
-
-    const isRaining=false;
 
     function startRain(){
         rainContainer.style.display='block';
