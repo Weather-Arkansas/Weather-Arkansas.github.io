@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Weather Widget</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #87CEEB;
+        overflow: hidden;
+    }
+
+    #container {
+        padding: 12px;
+    }
+
+    #title {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 6px;
+    }
+
+    #forecast {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    #details {
+        font-size: 12px;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    /* Rain animation */
+    .rain-drop {
+        position: fixed;
+        width: 2px;
+        height: 10px;
+        background: rgba(255,255,255,0.7);
+        animation: rain 0.5s linear infinite;
+    }
+    @keyframes rain {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(200px); }
+    }
+
+    /* Snow animation */
+    .snow-flake {
+        position: fixed;
+        color: white;
+        font-size: 14px;
+        animation: snow 3s linear infinite;
+    }
+    @keyframes snow {
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(200px) rotate(360deg); }
+    }
+
+    /* Hail animation */
+    .hail {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: white;
+        border-radius: 50%;
+        animation: hail 0.8s linear infinite;
+    }
+    @keyframes hail {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(200px); }
+    }
+</style>
+</head>
+<body>
+
+<div id="container">
+    <div id="title">Weather Widget</div>
+    <div id="forecast">Loading...</div>
+    <div id="details"></div>
+</div>
+
+<script>
+async function loadWeather() {
+    const url = "https://api.weather.gov/gridpoints/LZK/36,91/forecast";
+
+    let data;
+    try {
+        const r = await fetch(url, {cache: "no-store"});
+        data = await r.json();
+    } catch (e) {
+        document.getElementById("forecast").innerText = "Unable to load forecast.";
+        return;
+    }
+
+    const p = data.properties.periods[0];
+    const forecast = document.getElementById("forecast");
+    const details = document.getElementById("details");
+
+    const desc = p.shortForecast.toLowerCase();
+    let emoji = "☀️";
+
+    if (desc.includes("rain") || desc.includes("shower")) emoji = "🌧️";
+    else if (desc.includes("snow") || desc.includes("flurry")) emoji = "❄️";
+    else if (desc.includes("hail")) emoji = "🧊";
+    else if (desc.includes("cloud")) emoji = "☁️";
+    else if (desc.includes("storm") || desc.includes("thunder")) emoji = "⛈️";
+
+    forecast.innerHTML =
+        `${emoji} <strong>${p.name}</strong><br>
+        ${p.temperature}°${p.temperatureUnit} — ${p.shortForecast}`;
+
+    details.innerText = p.detailedForecast;
+
+    // Start animation based on weather
+    if (emoji === "🌧️") startRain();
+    if (emoji === "❄️") startSnow();
+    if (emoji === "🧊") startHail();
+}
+
+function startRain() {
+    for (let i = 0; i < 40; i++) {
+        const d = document.createElement("div");
+        d.className = "rain-drop";
+        d.style.left = Math.random() * window.innerWidth + "px";
+        d.style.top = Math.random() * -200 + "px";
+        d.style.animationDuration = (0.3 + Math.random()*0.5) + "s";
+        document.body.appendChild(d);
+    }
+}
+
+function startSnow() {
+    for (let i = 0; i < 25; i++) {
+        const s = document.createElement("div");
+        s.className = "snow-flake";
+        s.textContent = "❄";
+        s.style.left = Math.random() * window.innerWidth + "px";
+        s.style.top = Math.random() * -200 + "px";
+        s.style.animationDuration = (2 + Math.random()*3) + "s";
+        document.body.appendChild(s);
+    }
+}
+
+function startHail() {
+    for (let i = 0; i < 30; i++) {
+        const h = document.createElement("div");
+        h.className = "hail";
+        h.style.left = Math.random() * window.innerWidth + "px";
+        h.style.top = Math.random() * -200 + "px";
+        h.style.animationDuration = (0.4 + Math.random()*0.5) + "s";
+        document.body.appendChild(h);
+    }
+}
+
+loadWeather();
+</script>
+
+</body>
+</html>
+
