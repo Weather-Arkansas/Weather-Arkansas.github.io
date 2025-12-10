@@ -2,82 +2,119 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Weather Widget</title>
+<title>Weather Widget Pro</title>
 <style>
     body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: #87CEEB;
+        font-family: "Lato", sans-serif;
+        background: linear-gradient(180deg, #4fa3ff, #87ceeb);
         overflow: hidden;
     }
 
-    #container {
-        padding: 12px;
+    #widget {
+        width: 300px;
+        height: 480px;
+        background: #ffffffdd;
+        border-radius: 18px;
+        border: 2px solid #1d6fa5;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        margin: auto;
+        margin-top: 20px;
+        padding: 16px;
+        backdrop-filter: blur(6px);
     }
 
-    #title {
+    #header {
+        font-size: 20px;
         font-weight: bold;
-        font-size: 18px;
-        margin-bottom: 6px;
-    }
-
-    #forecast {
-        font-size: 14px;
+        text-align: center;
         margin-bottom: 10px;
+        color: #004e7a;
     }
 
-    #details {
-        font-size: 12px;
-        max-height: 120px;
-        overflow-y: auto;
+    #current {
+        text-align: center;
+        font-size: 16px;
+        margin-bottom: 15px;
     }
 
-    /* Rain animation */
+    #daily-title {
+        text-align: center;
+        font-size: 15px;
+        font-weight: bold;
+        margin-top: 10px;
+        margin-bottom: 6px;
+        color: #004e7a;
+    }
+
+    .day {
+        background: #ffffffcc;
+        border: 1px solid #1d6fa588;
+        border-radius: 12px;
+        padding: 6px;
+        margin: 4px 0;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .left {
+        font-weight: bold;
+    }
+
+    .right {
+        text-align: right;
+        max-width: 140px;
+    }
+
+    /* Weather animations */
     .rain-drop {
         position: fixed;
         width: 2px;
         height: 10px;
-        background: rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.8);
         animation: rain 0.5s linear infinite;
     }
     @keyframes rain {
         0% { transform: translateY(0); }
-        100% { transform: translateY(200px); }
+        100% { transform: translateY(300px); }
     }
 
-    /* Snow animation */
     .snow-flake {
         position: fixed;
         color: white;
         font-size: 14px;
-        animation: snow 3s linear infinite;
+        animation: snow 4s linear infinite;
     }
     @keyframes snow {
         0% { transform: translateY(0) rotate(0deg); }
-        100% { transform: translateY(200px) rotate(360deg); }
+        100% { transform: translateY(300px) rotate(360deg); }
     }
 
-    /* Hail animation */
     .hail {
         position: fixed;
         width: 6px;
         height: 6px;
-        background: white;
         border-radius: 50%;
-        animation: hail 0.8s linear infinite;
+        background: white;
+        animation: hail 0.9s linear infinite;
     }
     @keyframes hail {
         0% { transform: translateY(0); }
-        100% { transform: translateY(200px); }
+        100% { transform: translateY(300px); }
     }
 </style>
 </head>
 <body>
 
-<div id="container">
-    <div id="title">Weather Widget</div>
-    <div id="forecast">Loading...</div>
-    <div id="details"></div>
+<div id="widget">
+    <div id="header">Weather Arkansas</div>
+    <div id="current">Loading...</div>
+
+    <div id="daily-title">10-Day Forecast</div>
+    <div id="ten-day"></div>
 </div>
 
 <script>
@@ -88,66 +125,78 @@ async function loadWeather() {
     try {
         const r = await fetch(url, {cache: "no-store"});
         data = await r.json();
-    } catch (e) {
-        document.getElementById("forecast").innerText = "Unable to load forecast.";
+    } catch {
+        document.getElementById("current").innerHTML = "Unable to load weather.";
         return;
     }
 
-    const p = data.properties.periods[0];
-    const forecast = document.getElementById("forecast");
-    const details = document.getElementById("details");
+    const periods = data.properties.periods;
+    const current = periods[0];
+    const currentDiv = document.getElementById("current");
 
-    const desc = p.shortForecast.toLowerCase();
+    const lower = current.shortForecast.toLowerCase();
     let emoji = "☀️";
 
-    if (desc.includes("rain") || desc.includes("shower")) emoji = "🌧️";
-    else if (desc.includes("snow") || desc.includes("flurry")) emoji = "❄️";
-    else if (desc.includes("hail")) emoji = "🧊";
-    else if (desc.includes("cloud")) emoji = "☁️";
-    else if (desc.includes("storm") || desc.includes("thunder")) emoji = "⛈️";
+    if (lower.includes("rain")) emoji = "🌧️";
+    else if (lower.includes("snow")) emoji = "❄️";
+    else if (lower.includes("hail")) emoji = "🧊";
+    else if (lower.includes("cloud")) emoji = "☁️";
+    else if (lower.includes("storm") || lower.includes("thunder")) emoji = "⛈️";
 
-    forecast.innerHTML =
-        `${emoji} <strong>${p.name}</strong><br>
-        ${p.temperature}°${p.temperatureUnit} — ${p.shortForecast}`;
+    currentDiv.innerHTML = `
+        <div style="font-size:40px;">${emoji}</div>
+        <strong>${current.temperature}°${current.temperatureUnit}</strong><br>
+        ${current.shortForecast}
+    `;
 
-    details.innerText = p.detailedForecast;
+    const ten = document.getElementById("ten-day");
+    ten.innerHTML = "";
 
-    // Start animation based on weather
+    periods.slice(0, 10).forEach(p => {
+        const e = document.createElement("div");
+        e.className = "day";
+        e.innerHTML = `
+            <div class="left">${p.name}</div>
+            <div class="right">${p.temperature}°${p.temperatureUnit}<br>${p.shortForecast}</div>
+        `;
+        ten.appendChild(e);
+    });
+
     if (emoji === "🌧️") startRain();
     if (emoji === "❄️") startSnow();
     if (emoji === "🧊") startHail();
 }
 
 function startRain() {
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 50; i++) {
         const d = document.createElement("div");
         d.className = "rain-drop";
         d.style.left = Math.random() * window.innerWidth + "px";
         d.style.top = Math.random() * -200 + "px";
-        d.style.animationDuration = (0.3 + Math.random()*0.5) + "s";
+        d.style.animationDuration = (0.3 + Math.random()*0.6) + "s";
         document.body.appendChild(d);
     }
 }
 
 function startSnow() {
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 35; i++) {
         const s = document.createElement("div");
         s.className = "snow-flake";
         s.textContent = "❄";
         s.style.left = Math.random() * window.innerWidth + "px";
         s.style.top = Math.random() * -200 + "px";
-        s.style.animationDuration = (2 + Math.random()*3) + "s";
+        s.style.animationDuration = (3 + Math.random()*3) + "s";
         document.body.appendChild(s);
     }
 }
 
 function startHail() {
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
         const h = document.createElement("div");
         h.className = "hail";
         h.style.left = Math.random() * window.innerWidth + "px";
         h.style.top = Math.random() * -200 + "px";
-        h.style.animationDuration = (0.4 + Math.random()*0.5) + "s";
+        h.style.animationDuration = (0.4 + Math.random()*0.4) + "s";
         document.body.appendChild(h);
     }
 }
@@ -157,4 +206,3 @@ loadWeather();
 
 </body>
 </html>
-
