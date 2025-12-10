@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10-Day Forecast – Weather Arkansas</title>
+
+<style>
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+    font-family: "Lato", sans-serif;
+    background: #87CEEB;
+    color: teal;
+}
+
+/* Background */
+.background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
+.cloud {
+    position:absolute;
+    background:#fff;
+    border-radius:50%;
+    width:200px; height:60px;
+    animation: moveClouds 25s linear infinite;
+}
+.cloud::before, .cloud::after { content:""; position:absolute; background:#fff; border-radius:50%; }
+.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
+.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
+
+.sun {
+    position:absolute; width:100px; height:100px;
+    top:10%; left:10%;
+    background: radial-gradient(circle, #FFD700, #FFA500);
+    border-radius:50%;
+    box-shadow:0 0 50px rgba(255,215,0,0.5);
+}
+
+@keyframes moveClouds {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+
+/* Content */
+.content {
+    position:relative;
+    z-index:2;
+    padding:30px;
+    text-align:center;
+}
+
+/* Forecast Cards */
+.forecast-container {
+    max-width:900px;
+    margin:auto;
+}
+.day-card {
+    background:white;
+    color:#333;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);
+    text-align:left;
+}
+
+/* Side Navigation */
+.sidenav {
+    height:100%; width:0; position:fixed; z-index:10; top:0; left:0;
+    background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;
+}
+.sidenav a {
+    padding:8px 8px 8px 32px; text-decoration:none; font-size:25px;
+    color:#818181; display:block; transition:0.3s;
+}
+.sidenav a:hover { color:white; }
+.sidenav .closebtn {
+    position:absolute; top:0; right:25px; font-size:36px; cursor:pointer;
+}
+.menu { font-size:30px; cursor:pointer; }
+
+</style>
+</head>
+<body>
+
+<!-- SKY BG -->
+<div class="background">
+    <div class="sun"></div>
+    <div class="cloud" style="top:20%; animation-duration:20s;"></div>
+    <div class="cloud" style="top:50%; animation-duration:28s;"></div>
+    <div class="cloud" style="top:70%; animation-duration:24s;"></div>
+</div>
+
+<div class="content">
+
+    <!-- Side Navigation -->
+    <div id="mySidenav" class="sidenav">
+        <span class="closebtn" onclick="closeNav()">×</span>
+        <a href="/index.html">Home</a>
+        <a href="/weather/index.html">Index</a>
+        <a href="/weather/Little-Rock.html">Capitol Weather</a>
+        <a href="/weather/radar.html">Local Radar</a>
+        <a href="/weather/10day.html">10-Day Forecast</a>
+        <a href="/about.html">About</a>
+        <a href="/settings.html">Settings</a>
+    </div>
+
+    <span class="menu" onclick="openNav()">☰</span>
+
+    <h1>10-Day Forecast</h1>
+    <p>Automatically detects your location. If blocked, defaults to Little Rock.</p>
+
+    <div id="forecast" class="forecast-container">
+        <p>Loading forecast...</p>
+    </div>
+
+</div>
+
+<script>
+function openNav(){ document.getElementById("mySidenav").style.width="100%"; }
+function closeNav(){ document.getElementById("mySidenav").style.width="0"; }
+
+// Fetch 10-day forecast from NOAA
+async function loadForecast(lat, lon) {
+    const container = document.getElementById("forecast");
+
+    try {
+        // Step 1: Find nearest gridpoint
+        const gridReq = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+        const gridData = await gridReq.json();
+
+        const forecastURL = gridData.properties.forecast;
+        
+        // Step 2: Get forecast periods
+        const req = await fetch(forecastURL);
+        const data = await req.json();
+
+        const periods = data.properties.periods.slice(0, 20); // 10 days = 20 day/night periods
+
+        container.innerHTML = "";
+        periods.forEach(period => {
+            container.innerHTML += `
+                <div class="day-card">
+                    <h3>${period.name}</h3>
+                    <p>${period.detailedForecast}</p>
+                </div>
+            `;
+        });
+
+    } catch (e) {
+        container.innerHTML = "<p>Unable to load forecast.</p>";
+    }
+}
+
+// Try geolocation
+navigator.geolocation.getCurrentPosition(
+    pos => {
+        loadForecast(pos.coords.latitude, pos.coords.longitude);
+    },
+    err => {
+        // Default to Little Rock
+        loadForecast(34.7465, -92.2896);
+    }
+);
+</script>
+
+</body>
+</html>
