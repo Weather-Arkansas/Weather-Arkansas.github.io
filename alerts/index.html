@@ -28,6 +28,7 @@ body {
     font-weight: bold;
     text-align: center;
     color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .alert-warning { background: #ff4d4d; }
 .alert-watch { background: #ff944d; }
@@ -40,7 +41,7 @@ body {
 </head>
 <body>
 
-<div class="header">Weather Warnings - Arkansas</div>
+<div class="header">Weather Warnings - Your Location</div>
 <div class="container">
     <div id="alerts">Detecting warnings...</div>
 </div>
@@ -48,15 +49,13 @@ body {
 <script>
 async function fetchWarnings(lat, lon) {
     try {
-        const zoneRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
-            headers: { "User-Agent": "WeatherArkansasSite (example@example.com)" }
-        });
+        // Get zone info for your coordinates
+        const zoneRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
         const zoneData = await zoneRes.json();
         const zoneId = zoneData.properties.zoneId;
 
-        const alertRes = await fetch(`https://api.weather.gov/alerts/active?zone=${zoneId}`, {
-            headers: { "User-Agent": "WeatherArkansasSite (example@example.com)" }
-        });
+        // Fetch active alerts for that zone
+        const alertRes = await fetch(`https://api.weather.gov/alerts/active?zone=${zoneId}`);
         const alertData = await alertRes.json();
         const alerts = alertData.features;
 
@@ -85,7 +84,7 @@ async function fetchWarnings(lat, lon) {
     } catch (err) {
         console.error(err);
         const container = document.getElementById('alerts');
-        container.innerHTML = '<div class="alert-banner alert-warning">Unable to load alerts. Make sure you are running this page via a web server (not file://) and have an internet connection.</div>';
+        container.innerHTML = '<div class="alert-banner alert-warning">Unable to load alerts. Please check your internet connection.</div>';
     }
 }
 
