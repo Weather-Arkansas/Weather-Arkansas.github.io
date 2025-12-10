@@ -59,6 +59,7 @@ p { font-size:0.9em; }
 .sidenav a:hover{ color:#f1f1f1; }
 .sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
 @media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
+
 #signOutBtn {
     position: absolute; top:12px; right:12px; padding:6px 12px;
     border:none; border-radius:6px; background:teal; color:white; cursor:pointer;
@@ -97,8 +98,10 @@ if(!signedIn){
       <a href="/weather/station-link.html">Weather Stations</a>
       <a href="/weather/Little-Rock.html">Capitol Weather</a>
       <a href="/weather/radar.html">Local Radar</a>
+      <a href="/rain/index.html">Precipitation Map</a>
       
       <!-- Other pages -->
+      <a href="/blog/blog.html">Blog</a>
       <a href="/about.html">About</a>
       <a href="/settings.html">Settings</a>
       
@@ -124,14 +127,11 @@ if(!signedIn){
     <h2>Precipitation Forecast</h2>
     <img src="https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif" alt="Precipitation Forecast" style="width:90%; max-width:800px;">
 
-    <!-- Windy.io Interactive Map -->
-   
     <!-- Home Weather Station Placeholder -->
     <h2>My Home Weather Station</h2>
     <div id="home-station">
         <p>Link your weather station widget here!</p>
     </div>
-
 </div>
 
 <script>
@@ -230,4 +230,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
