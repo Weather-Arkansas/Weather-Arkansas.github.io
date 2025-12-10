@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Warnings - Arkansas</title>
+<style>
+body {
+    font-family: 'Lato', sans-serif;
+    margin: 0;
+    background: #f0f4f7;
+    color: #333;
+}
+.header {
+    background: #004e7a;
+    color: #fff;
+    padding: 16px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+.alert-banner {
+    margin: 10px auto;
+    padding: 12px;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+}
+.alert-warning { background: #ff4d4d; }
+.alert-watch { background: #ff944d; }
+.alert-advisory { background: #ffcc00; color: #000; }
+.alert-none { background: #4caf50; }
+.container {
+    padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">Weather Warnings - Arkansas</div>
+<div class="container">
+    <div id="alerts">Detecting warnings...</div>
+</div>
+
+<script>
+async function fetchWarnings(lat, lon) {
+    try {
+        // Get forecast zone from lat/lon
+        const zoneRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+        const zoneData = await zoneRes.json();
+        const zoneId = zoneData.properties.zoneId;
+
+        // Fetch active alerts for this zone
+        const alertRes = await fetch(`https://api.weather.gov/alerts/active?zone=${zoneId}`);
+        const alertData = await alertRes.json();
+        const alerts = alertData.features;
+
+        const container = document.getElementById('alerts');
+        container.innerHTML = '';
+
+        if (alerts.length === 0) {
+            const div = document.createElement('div');
+            div.className = 'alert-banner alert-none';
+            div.textContent = 'No active weather warnings at your location.';
+            container.appendChild(div);
+        } else {
+            alerts.forEach(alert => {
+                const div = document.createElement('div');
+                let typeClass = 'alert-warning';
+                const event = alert.properties.event.toLowerCase();
+                if (event.includes('watch')) typeClass = 'alert-watch';
+                else if (event.includes('advisory')) typeClass = 'alert-advisory';
+
+                div.className = `alert-banner ${typeClass}`;
+                div.innerHTML = `<strong>${alert.properties.event}</strong><br>${alert.properties.headline}<br><em>${new Date(alert.properties.effective).toLocaleString()} - ${new Date(alert.properties.expires).toLocaleString()}</em>`;
+                container.appendChild(div);
+            });
+        }
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('alerts').textContent = 'Unable to load alerts at this time.';
+    }
+}
+
+function getLocationAndFetch() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                fetchWarnings(position.coords.latitude, position.coords.longitude);
+            },
+            error => {
+                console.warn(error);
+                document.getElementById('alerts').textContent = 'Location permission denied. Please allow location access.';
+            }
+        );
+    } else {
+        document.getElementById('alerts').textContent = 'Geolocation is not supported by this browser.';
+    }
+}
+
+getLocationAndFetch();
+</script>
+
+</body>
+</html>
