@@ -48,13 +48,15 @@ body {
 <script>
 async function fetchWarnings(lat, lon) {
     try {
-        // Get forecast zone from lat/lon
-        const zoneRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+        const zoneRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
+            headers: { "User-Agent": "WeatherArkansasSite (example@example.com)" }
+        });
         const zoneData = await zoneRes.json();
         const zoneId = zoneData.properties.zoneId;
 
-        // Fetch active alerts for this zone
-        const alertRes = await fetch(`https://api.weather.gov/alerts/active?zone=${zoneId}`);
+        const alertRes = await fetch(`https://api.weather.gov/alerts/active?zone=${zoneId}`, {
+            headers: { "User-Agent": "WeatherArkansasSite (example@example.com)" }
+        });
         const alertData = await alertRes.json();
         const alerts = alertData.features;
 
@@ -82,7 +84,8 @@ async function fetchWarnings(lat, lon) {
 
     } catch (err) {
         console.error(err);
-        document.getElementById('alerts').textContent = 'Unable to load alerts at this time.';
+        const container = document.getElementById('alerts');
+        container.innerHTML = '<div class="alert-banner alert-warning">Unable to load alerts. Make sure you are running this page via a web server (not file://) and have an internet connection.</div>';
     }
 }
 
@@ -94,11 +97,11 @@ function getLocationAndFetch() {
             },
             error => {
                 console.warn(error);
-                document.getElementById('alerts').textContent = 'Location permission denied. Please allow location access.';
+                document.getElementById('alerts').innerHTML = '<div class="alert-banner alert-warning">Location permission denied. Please allow location access to see local warnings.</div>';
             }
         );
     } else {
-        document.getElementById('alerts').textContent = 'Geolocation is not supported by this browser.';
+        document.getElementById('alerts').innerHTML = '<div class="alert-banner alert-warning">Geolocation is not supported by this browser.</div>';
     }
 }
 
