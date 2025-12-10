@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Not Found – Weather Arkansas</title>
+
+<style>
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+    font-family: "Lato", sans-serif;
+    color: teal;
+    background: #87CEEB;
+}
+
+/* Background & Clouds */
+.background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
+.cloud {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    width:200px; height:60px;
+    animation: moveClouds 20s linear infinite;
+    z-index:2;
+}
+.cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
+.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
+.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
+
+.sun {
+    position: absolute; width:100px; height:100px;
+    top:10%; left:10%; border-radius:50%;
+    background: radial-gradient(circle, #FFD700, #FFA500);
+    z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
+}
+.sun::before {
+    content: '';
+    position: absolute;
+    width: 150px; height: 150px;
+    top:-25px; left:-25px;
+    background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,165,0,0));
+    border-radius:50%; z-index:-1;
+}
+
+@keyframes moveClouds {
+    0% { transform:translateX(-100%); }
+    100% { transform:translateX(100%); }
+}
+
+/* Content box */
+.content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 40px;
+    color: black;
+}
+
+/* Side Navigation */
+.sidenav {
+    height:100%; width:0; position:fixed; z-index:10; top:0; left:0;
+    background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;
+}
+.sidenav a {
+    padding:8px 8px 8px 32px; text-decoration:none; font-size:25px;
+    color:#818181; display:block; transition:0.3s;
+}
+.sidenav a:hover { color:#f1f1f1; }
+.sidenav .closebtn {
+    position:absolute; top:0; right:25px; font-size:36px;
+}
+span.menu { font-size:30px; cursor:pointer; }
+
+.button-home {
+    background: teal;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 20px;
+}
+.button-home:hover {
+    background: #006666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background">
+    <div class="sun"></div>
+
+    <!-- Random clouds -->
+    <div class="cloud" style="top:20%; animation-duration:22s;"></div>
+    <div class="cloud" style="top:50%; animation-duration:18s;"></div>
+    <div class="cloud" style="top:75%; animation-duration:25s;"></div>
+</div>
+
+<div class="content">
+    <!-- Side navigation -->
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="/index.html">Home</a>
+        <a href="/weather/index.html">Index</a>
+        <a href="/weather/Little-Rock.html">Capitol Weather</a>
+        <a href="/weather/radar.html">Local Radar</a>
+        <a href="/about.html">About</a>
+        <a href="/settings.html">Settings</a>
+    </div>
+
+    <span class="menu" onclick="openNav()">☰</span>
+
+    <h1>404 – Page Not Found</h1>
+    <p>Looks like the weather blew this page away!<br>
+    The file you're looking for doesn't exist.</p>
+
+    <br><br>
+
+    <a class="button-home" href="/index.html">Return to Weather Arkansas</a>
+</div>
+
+<script>
+function openNav(){ document.getElementById("mySidenav").style.width="100%"; }
+function closeNav(){ document.getElementById("mySidenav").style.width="0"; }
+
+// randomize cloud positions on load
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.cloud').forEach(c => {
+        c.style.left = Math.random()*100 + "%";
+        c.style.animationDuration = (18 + Math.random()*12) + "s";
+    });
+});
+</script>
+
+</body>
+</html>
