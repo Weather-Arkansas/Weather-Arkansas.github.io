@@ -3,39 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In / Sign Up - Weather Arkansas</title>
+<title>Sign In / Sign Up</title>
 <style>
 body {
     font-family: "Lato", sans-serif;
     background: #87CEEB;
-    margin: 0; padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh; margin: 0;
 }
 .container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    width: 300px;
-    text-align: center;
+    background: white; padding: 30px; border-radius: 10px; text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2); width: 300px;
 }
-h2 { margin-top: 0; }
-input[type=text], button {
-    width: 90%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-button {
-    background: teal;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
+input, button { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+button { background: teal; color: white; border: none; cursor: pointer; }
 button:hover { background: #006666; }
 label { font-size: 0.85em; }
 </style>
@@ -53,7 +34,6 @@ label { font-size: 0.85em; }
     <button onclick="signIn()">Sign In</button>
 </div>
 
-<!-- Supabase JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
@@ -62,20 +42,13 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Sign up
 async function signUp() {
-    const user = document.getElementById("signup-user").value;
+    const user = document.getElementById("signup-user").value.trim();
     const botChecked = document.getElementById("signup-bot").checked;
 
-    if(!botChecked){
-        alert("Please verify you're not a robot.");
-        return;
-    }
-    if(!user){ 
-        alert("Enter a username"); 
-        return; 
-    }
+    if(!botChecked){ alert("Please verify you're not a robot."); return; }
+    if(!user){ alert("Enter a username"); return; }
 
     const { error } = await supabase.from("users").insert([{ username: user }]);
-
     if(error){
         alert("Error creating user: " + error.message);
         return;
@@ -86,30 +59,20 @@ async function signUp() {
 
 // Sign in
 async function signIn() {
-    const user = document.getElementById("signin-user").value;
+    const user = document.getElementById("signin-user").value.trim();
     const botChecked = document.getElementById("signin-bot").checked;
 
-    if(!botChecked){
-        alert("Please verify you're not a robot.");
-        return;
-    }
-    if(!user){ 
-        alert("Enter a username"); 
-        return; 
-    }
+    if(!botChecked){ alert("Please verify you're not a robot."); return; }
+    if(!user){ alert("Enter a username"); return; }
 
-    const { data, error } = await supabase.from("users").select("*").eq("username", user).single();
-
+    const { data, error } = await supabase.from("users").select("*").eq("username", user).maybeSingle();
     if(error || !data){
         alert("User not found");
         return;
     }
 
-    // Store username locally
     localStorage.setItem("username", user);
-
-    // Redirect to main page
-    window.location.href = "/index.html";
+    window.location.href = "/index.html"; // Redirect to Weather Arkansas
 }
 </script>
 </body>
