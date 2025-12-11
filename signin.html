@@ -3,76 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In / Sign Up</title>
-<style>
-body {
-    font-family: "Lato", sans-serif;
-    background: #87CEEB;
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh; margin: 0;
-}
-.container {
-    background: white; padding: 30px; border-radius: 10px; text-align: center;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2); width: 300px;
-}
-input, button { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-button { background: teal; color: white; border: none; cursor: pointer; }
-button:hover { background: #006666; }
-label { font-size: 0.85em; }
-</style>
+<title>Test Redirect</title>
 </head>
 <body>
-<div class="container">
-    <h2>Sign Up</h2>
-    <input id="signup-user" type="text" placeholder="Username"><br>
-    <input type="checkbox" id="signup-bot"> <label for="signup-bot">I'm not a robot</label><br>
-    <button onclick="signUp()">Sign Up</button>
+<button onclick="testRedirect()">Test Redirect</button>
 
-    <h2>Sign In</h2>
-    <input id="signin-user" type="text" placeholder="Username"><br>
-    <input type="checkbox" id="signin-bot"> <label for="signin-bot">I'm not a robot</label><br>
-    <button onclick="signIn()">Sign In</button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
-const supabaseKey = "sb_publishable_BY7itjr1ic3USKsHtrmsng_zP9ue2PQ";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// Sign up
-async function signUp() {
-    const user = document.getElementById("signup-user").value.trim();
-    const botChecked = document.getElementById("signup-bot").checked;
-
-    if(!botChecked){ alert("Please verify you're not a robot."); return; }
-    if(!user){ alert("Enter a username"); return; }
-
-    const { error } = await supabase.from("users").insert([{ username: user }]);
-    if(error){
-        alert("Error creating user: " + error.message);
-        return;
-    }
-
-    alert("User created! You can now sign in.");
-}
-
-// Sign in
-async function signIn() {
-    const user = document.getElementById("signin-user").value.trim();
-    const botChecked = document.getElementById("signin-bot").checked;
-
-    if(!botChecked){ alert("Please verify you're not a robot."); return; }
-    if(!user){ alert("Enter a username"); return; }
-
-    const { data, error } = await supabase.from("users").select("*").eq("username", user).maybeSingle();
-    if(error || !data){
-        alert("User not found");
-        return;
-    }
-
-    localStorage.setItem("username", user);
-    window.location.href = "/index.html"; // Redirect to Weather Arkansas
+function testRedirect(){
+    localStorage.setItem("username", "testuser");
+    window.location.href = "/index.html";
 }
 </script>
 </body>
