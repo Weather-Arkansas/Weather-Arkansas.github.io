@@ -23,6 +23,13 @@ button:hover { background:#006666; }
 </style>
 </head>
 <body>
+    <script>
+const username = localStorage.getItem("username");
+if(!username){
+    window.location.href = "/signin.html"; // redirect to login page
+}
+</script>
+
 
 <div class="container">
     <h1>Sign In</h1>
