@@ -4,32 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weather Arkansas API</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// Initialize Supabase
-const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
-const supabaseKey = "sb_publishable_BY7itjr1ic3USKsHtrmsng_zP9ue2PQ";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// Fetch weather data from Supabase
-async function loadAPI() {
-    const output = document.getElementById("api-output");
-    try {
-        const { data, error } = await supabase
-            .from('weather_data')
-            .select('*')
-            .order('timestamp', { ascending: false })
-            .limit(50);
-
-        if(error) throw error;
-        output.textContent = JSON.stringify(data, null, 2);
-    } catch (err) {
-        output.textContent = JSON.stringify({ error: err.message }, null, 2);
-    }
-}
-
-window.addEventListener('DOMContentLoaded', loadAPI);
-</script>
 <style>
 body {
     font-family: "Lato", sans-serif;
@@ -37,51 +11,72 @@ body {
     color: #006666;
     padding: 20px;
 }
-h1 { text-align:center; margin-bottom:10px; }
-h2 { margin-top:30px; }
+h1 { text-align:center; }
 pre { background:#e0ffff; padding:15px; border-radius:6px; overflow-x:auto; }
+code { background:#f0f0f0; padding:2px 4px; border-radius:4px; }
 </style>
 </head>
 <body>
 <h1>Weather Arkansas API</h1>
 
-<p>Welcome to the Weather Arkansas API! Here you can fetch the latest weather data we collect from Arkansas locations.</p>
+<p>Welcome! This page provides live weather data from NOAA. Developers can use it for their own projects.</p>
 
-<h2>Latest Weather Data (JSON)</h2>
+<h2>Latest Weather Data</h2>
 <pre id="api-output">Loading...</pre>
 
 <h2>Instructions for Developers</h2>
-<p>You can access this data programmatically using JavaScript like this:</p>
+<p>To access the data programmatically:</p>
 <pre>
 fetch('https://weather-arkansas.github.io/api.html')
   .then(res => res.text())
-  .then(txt => {
-      const data = JSON.parse(txt);
-      console.log(data); // array of weather records
+  .then(html => {
+      // Extract the weatherData variable from the page
+      const dataMatch = html.match(/const weatherData = (\[.*\]);/s);
+      if(dataMatch){
+          const weatherData = JSON.parse(dataMatch[1]);
+          console.log(weatherData);
+      }
   });
 </pre>
 
-<p><strong>Note:</strong> Since GitHub Pages is static, this page returns JSON inside HTML. Use <code>JSON.parse()</code> to convert it to a usable object.</p>
-
 <h2>Data Structure</h2>
-<p>Each weather record has the following fields:</p>
+<p>Each record has:</p>
 <ul>
   <li><strong>id</strong> - Unique record ID</li>
-  <li><strong>location</strong> - City or area name</li>
-  <li><strong>temperature</strong> - Current temperature (°F)</li>
-  <li><strong>forecast</strong> - Short forecast description</li>
-  <li><strong>timestamp</strong> - When the data was recorded</li>
+  <li><strong>location</strong> - Forecast period (Today, Tonight, etc.)</li>
+  <li><strong>temperature</strong> - Temperature in °F</li>
+  <li><strong>forecast</strong> - Short description</li>
+  <li><strong>timestamp</strong> - Date/time of forecast start</li>
 </ul>
 
-<p>Example record:</p>
-<pre>
-{
-  "id": 1,
-  "location": "Little Rock",
-  "temperature": 72,
-  "forecast": "Sunny",
-  "timestamp": "2025-12-11T14:00:00Z"
+<script>
+// Initialize weatherData
+let weatherData = [];
+
+// Fetch NOAA forecast
+async function fetchNOAA() {
+    try {
+        const response = await fetch('https://api.weather.gov/gridpoints/LZK/36,91/forecast');
+        const data = await response.json();
+
+        weatherData = data.properties.periods.slice(0, 7).map((period, i) => ({
+            id: i + 1,
+            location: period.name,
+            temperature: period.temperature,
+            forecast: period.shortForecast,
+            timestamp: period.startTime
+        }));
+
+        // Display on page
+        document.getElementById('api-output').textContent = JSON.stringify(weatherData, null, 2);
+
+    } catch (err) {
+        document.getElementById('api-output').textContent = "Error loading data: " + err;
+    }
 }
-</pre>
+
+// Load on page load
+fetchNOAA();
+</script>
 </body>
 </html>
