@@ -3,16 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test Redirect</title>
+<title>Sign In | Weather Arkansas</title>
+<style>
+body, html {
+    margin:0; padding:0;
+    width:100%; height:100%;
+    font-family:"Lato", sans-serif;
+    background: linear-gradient(to bottom,#87CEEB,#fff);
+    display:flex; justify-content:center; align-items:center;
+}
+.container {
+    background:white; padding:30px; border-radius:12px;
+    box-shadow:0 2px 15px rgba(0,0,0,0.2); text-align:center;
+}
+h1 { color: teal; margin-bottom:20px; }
+input { width:80%; padding:10px; margin:10px 0; font-size:1em; border-radius:6px; border:1px solid #ccc; }
+button { padding:12px 25px; font-size:1.1em; border:none; border-radius:8px; background:teal; color:white; cursor:pointer; }
+button:hover { background:#006666; }
+</style>
 </head>
 <body>
-<button onclick="testRedirect()">Test Redirect</button>
+
+<div class="container">
+    <h1>Sign In</h1>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button id="signInBtn">Sign In</button>
+</div>
 
 <script>
-function testRedirect(){
-    localStorage.setItem("username", "testuser");
-    window.location.href = "/index.html";
-}
+// Simple simulated sign-in
+document.getElementById("signInBtn").addEventListener("click", () => {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    if(username && password){
+        // Save signed-in state
+        localStorage.setItem("signedIn", "true");
+        localStorage.setItem("lastVisit", new Date().getTime());
+        alert("Signed in successfully!");
+        window.location.href = "/index.html"; // redirect to main dashboard
+    } else {
+        alert("Enter both username and password.");
+    }
+});
 </script>
+
 </body>
 </html>
