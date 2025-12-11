@@ -3,47 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In | Weather Arkansas</title>
+<title>Sign In / Sign Up - Weather Arkansas</title>
 <style>
-body, html {
-    margin:0; padding:0;
-    width:100%; height:100%;
-    font-family:"Lato", sans-serif;
-    background: linear-gradient(to bottom,#87CEEB,#fff);
-    display:flex; justify-content:center; align-items:center;
-}
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap');
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body, html { font-family:"Lato", sans-serif; height:100vh; background:#87CEEB; display:flex; justify-content:center; align-items:center; }
+
 .container {
-    background:white; padding:30px; border-radius:12px;
-    box-shadow:0 2px 15px rgba(0,0,0,0.2); text-align:center;
+    background:white; width:380px; max-width:95%; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.2); overflow:hidden; position:relative;
 }
-h1 { color: teal; margin-bottom:20px; }
-input { width:80%; padding:10px; margin:10px 0; font-size:1em; border-radius:6px; border:1px solid #ccc; }
-button { padding:12px 25px; font-size:1.1em; border:none; border-radius:8px; background:teal; color:white; cursor:pointer; }
+
+.form-container { position: absolute; top:0; height:100%; width:200%; transition: transform 0.6s ease-in-out; display:flex; }
+
+.sign-in, .sign-up {
+    width:50%; padding:40px; display:flex; flex-direction:column; justify-content:center; align-items:center;
+}
+
+h2 { margin-bottom:20px; color:teal; }
+input { margin:10px 0; padding:10px; width:100%; border:1px solid #ccc; border-radius:5px; }
+button { padding:10px 20px; border:none; border-radius:5px; background:teal; color:white; cursor:pointer; margin-top:10px; }
 button:hover { background:#006666; }
+
+.toggle-container { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; pointer-events:none; }
+.toggle-container button { pointer-events:auto; }
+
+.slide-right { transform: translateX(-50%); }
+.slide-left { transform: translateX(0); }
+
+.recaptcha-container { margin-top:10px; }
 </style>
+
+<!-- Load Google reCAPTCHA -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
 
 <div class="container">
-    <h1>Sign In</h1>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button id="signInBtn">Sign In</button>
+    <div class="form-container" id="formContainer">
+
+        <!-- Sign In Form -->
+        <div class="sign-in">
+            <h2>Sign In</h2>
+            <input type="text" id="signinUsername" placeholder="Username" required>
+            <input type="password" id="signinPassword" placeholder="Password" required>
+            <div class="recaptcha-container">
+                <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+            </div>
+            <button id="signInBtn">Sign In</button>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div class="sign-up">
+            <h2>Sign Up</h2>
+            <input type="text" id="signupUsername" placeholder="Username" required>
+            <input type="password" id="signupPassword" placeholder="Password" required>
+            <div class="recaptcha-container">
+                <div class="g-recaptcha" data-sitekey="YOUR_RECAPTCHA_SITE_KEY"></div>
+            </div>
+            <button id="signUpBtn">Sign Up</button>
+        </div>
+
+    </div>
+
+    <!-- Toggle Buttons -->
+    <div class="toggle-container">
+        <button onclick="showSignIn()">Sign In</button>
+        <button onclick="showSignUp()">Sign Up</button>
+    </div>
 </div>
 
 <script>
-// Simple simulated sign-in
-document.getElementById("signInBtn").addEventListener("click", () => {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-    if(username && password){
-        // Save signed-in state
+// Slide functions
+const formContainer = document.getElementById("formContainer");
+function showSignUp() { formContainer.classList.add("slide-right"); }
+function showSignIn() { formContainer.classList.remove("slide-right"); }
+
+// Store users in localStorage (simple client-side database)
+const users = JSON.parse(localStorage.getItem("users") || "[]");
+
+// Sign Up
+document.getElementById("signUpBtn").addEventListener("click", ()=>{
+    const username = document.getElementById("signupUsername").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
+
+    if(!username || !password){
+        alert("Please fill out all fields!");
+        return;
+    }
+
+    if(!grecaptcha.getResponse()) {
+        alert("Please verify you are not a robot!");
+        return;
+    }
+
+    if(users.find(u => u.username === username)){
+        alert("Username already exists!");
+        return;
+    }
+
+    users.push({ username, password });
+    localStorage.setItem("users", JSON.stringify(users));
+    localStorage.setItem("signedIn", "true");
+    localStorage.setItem("username", username);
+    alert("Sign up successful!");
+    window.location.href="/index.html";
+});
+
+// Sign In
+document.getElementById("signInBtn").addEventListener("click", ()=>{
+    const username = document.getElementById("signinUsername").value.trim();
+    const password = document.getElementById("signinPassword").value.trim();
+
+    if(!username || !password){
+        alert("Please fill out all fields!");
+        return;
+    }
+
+    if(!grecaptcha.getResponse()) {
+        alert("Please verify you are not a robot!");
+        return;
+    }
+
+    const user = users.find(u => u.username === username && u.password === password);
+    if(user){
         localStorage.setItem("signedIn", "true");
-        localStorage.setItem("lastVisit", new Date().getTime());
-        alert("Signed in successfully!");
-        window.location.href = "/index.html"; // redirect to main dashboard
+        localStorage.setItem("username", username);
+        alert("Sign in successful!");
+        window.location.href="/index.html";
     } else {
-        alert("Enter both username and password.");
+        alert("Invalid username or password!");
     }
 });
 </script>
