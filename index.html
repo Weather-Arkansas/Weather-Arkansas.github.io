@@ -68,6 +68,22 @@ p { font-size:0.9em; }
 </style>
 </head>
 <body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
+const supabaseKey = "sb_publishable_BY7itjr1ic3USKsHtrmsng_zP9ue2PQ";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// Check if user is signed in
+const username = localStorage.getItem("username");
+if(!username){
+    window.location.href = "/signup.html"; // redirect to sign-in page
+} else {
+    // Log visit
+    supabase.from("visits").insert([{ username: username, visited_at: new Date() }]);
+}
+</script>
+
 
 <!-- Require sign-in -->
 <script>
@@ -230,3 +246,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
