@@ -243,7 +243,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(startRain,30000);
 });
 </script>
+    <script>
+// Redirect to mobile version if on a small screen
+if (window.innerWidth <= 480) {
+    window.location.href = "index-mobile.html"; // Replace with your mobile version filename
+}
+</script>
+
 
 </body>
 </html>
+
 
