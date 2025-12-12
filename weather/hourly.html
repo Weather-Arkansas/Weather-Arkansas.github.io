@@ -3,59 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather Arkansas - Hourly Forecast</title>
+<title>Weather Arkansas - Foldout Hourly Forecast</title>
 <style>
-body, html {
-    margin:0; padding:0;
-    font-family:"Lato", sans-serif;
-    width:100%; height:100%;
-    background:#87CEEB;
-    color: teal;
-    overflow-x:hidden;
-}
-
-/* --- Background animation --- */
+body, html { margin:0; padding:0; font-family:"Lato",sans-serif; background:#87CEEB; color:teal; overflow-x:hidden;}
 .background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
 .cloud { position:absolute; background:#fff; border-radius:50%; width:200px; height:60px; animation:moveClouds 20s linear infinite; z-index:2; }
-.cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
-.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
-.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
-.sun { position:absolute; width:100px; height:100px; top:10%; left:10%; border-radius:50%; background: radial-gradient(circle,#FFD700,#FFA500); z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5); }
-.sun::before { content:''; position:absolute; width:150px; height:150px; top:-25px; left:-25px; background: radial-gradient(circle,rgba(255,215,0,0.5),rgba(255,165,0,0)); border-radius:50%; z-index:-1; }
-.rain { position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none; }
-.raindrop { position:absolute; width:2px; height:10px; background:rgba(0,0,255,0.5); animation:fall 1s linear infinite; }
-@keyframes moveClouds { 0% { transform:translateX(-100%);} 100% { transform:translateX(100%);} }
-@keyframes fall { 0% {top:-10px;} 100% {top:100%;} }
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%;}
+.cloud::before{width:100px;height:100px;top:-50px;left:50px;}
+.cloud::after{width:120px;height:120px;top:-60px;left:100px;}
+.sun{position:absolute;width:100px;height:100px;top:10%;left:10%;border-radius:50%;background:radial-gradient(circle,#FFD700,#FFA500);z-index:1;box-shadow:0 0 50px rgba(255,215,0,0.5);}
+.sun::before{content:'';position:absolute;width:150px;height:150px;top:-25px;left:-25px;background:radial-gradient(circle,rgba(255,215,0,0.5),rgba(255,165,0,0));border-radius:50%;z-index:-1;}
+.rain{position:absolute;width:100%;height:100%;top:0;left:0;z-index:1;display:none;opacity:0;transition:opacity 1s;pointer-events:none;}
+.raindrop{position:absolute;width:2px;height:10px;background:rgba(0,0,255,0.5);animation:fall 1s linear infinite;}
+@keyframes moveClouds {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+@keyframes fall{0%{top:-10px;}100%{top:100%;}}
 
-/* --- Hamburger Menu --- */
-.sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
-.sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
-.sidenav a:hover{ color:#f1f1f1; }
-.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
-#hamburger { font-size:30px; cursor:pointer; z-index:4; position:fixed; top:12px; left:12px; color: teal; }
+/* Hamburger menu */
+.sidenav {height:100%;width:0;position:fixed;z-index:3;top:0;left:0;background:#111;overflow-x:hidden;transition:0.5s;padding-top:60px;text-align:center;}
+.sidenav a{padding:8px 8px 8px 32px;text-decoration:none;font-size:25px;color:#818181;display:block;transition:0.3s;}
+.sidenav a:hover{color:#f1f1f1;}
+.sidenav .closebtn{position:absolute;top:0;right:25px;font-size:36px;margin-left:50px;}
+#hamburger{font-size:30px;cursor:pointer;z-index:4;position:fixed;top:12px;left:12px;color: teal;}
 
-/* --- Hourly forecast horizontal scroll --- */
-.forecast-container {
-    position:relative;
-    z-index:2;
-    padding: 120px 10px 20px 10px;
-    overflow-x:auto;
-    white-space:nowrap;
-    width:100%;
-}
-.hour-card {
-    display:inline-block;
-    background:white;
-    border-radius:12px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.15);
-    padding:12px;
-    width:100px;
-    margin-right:8px;
-    text-align:center;
-}
-.hour-card .time { font-weight:bold; margin-bottom:4px; font-size:0.8em; }
-.hour-card .temp { font-size:1.2em; margin:2px 0; }
-.hour-card .cond { font-size:0.8em; color:#444; }
+/* Forecast container */
+.forecast-container{position:relative;z-index:2;padding:120px 10px 20px 10px;overflow-x:auto;white-space:nowrap;width:100%;}
+.daypart-card{display:inline-block;background:white;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.15);padding:12px;width:120px;margin-right:8px;text-align:center;vertical-align:top;cursor:pointer;}
+.daypart-card .time{font-weight:bold;margin-bottom:4px;font-size:0.85em;}
+.daypart-card .temp{font-size:1.1em;margin:4px 0;}
+.daypart-card .cond{font-size:0.8em;color:#444;}
+.daypart-details{display:none;margin-top:8px;font-size:0.8em;text-align:left;}
+.daypart-card.expanded .daypart-details{display:block;}
 </style>
 </head>
 <body>
@@ -68,7 +45,6 @@ body, html {
     <div class="rain"></div>
 </div>
 
-<!-- Hamburger Menu -->
 <div id="mySidenav" class="sidenav">
   <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
   <a href="/index.html">Home</a>
@@ -78,77 +54,51 @@ body, html {
 </div>
 <span id="hamburger" onclick="openNav()">☰</span>
 
-<div class="forecast-container" id="forecast">Loading hourly forecast...</div>
+<div class="forecast-container" id="forecast">Loading forecast...</div>
 
 <script>
-// Hamburger menu
-function openNav(){ document.getElementById("mySidenav").style.width="100%";}
-function closeNav(){ document.getElementById("mySidenav").style.width="0";}
+function openNav(){document.getElementById("mySidenav").style.width="100%";}
+function closeNav(){document.getElementById("mySidenav").style.width="0";}
 
-// Clouds & rain animation
-document.addEventListener('DOMContentLoaded', () => {
-    const clouds=document.querySelectorAll('.cloud');
-    clouds.forEach(c=>{ 
-        c.style.top=`${Math.random()*100}%`; 
-        c.style.left=`${Math.random()*100}%`; 
-        c.style.animationDuration=`${10+Math.random()*20}s`; 
-    });
-    const rainContainer=document.querySelector('.rain');
-    const sun=document.querySelector('.sun');
-    function startRain(){
-        rainContainer.style.display='block'; rainContainer.style.opacity=1;
-        document.body.style.background='#2F4F4F';
-        sun.style.display='none';
-        clouds.forEach(c=>c.style.background='#A9A9A9');
-        for(let i=0;i<100;i++){
-            const drop=document.createElement('div');
-            drop.classList.add('raindrop');
-            drop.style.left=`${Math.random()*100}%`;
-            drop.style.animationDuration=`${0.5+Math.random()}s`;
-            rainContainer.appendChild(drop);
-        }
-        setTimeout(stopRain,60000);
-    }
-    function stopRain(){
-        rainContainer.style.opacity=0;
-        setTimeout(()=>{
-            rainContainer.style.display='none';
-            document.body.style.background='#87CEEB';
-            sun.style.display='block';
-            clouds.forEach(c=>c.style.background='#fff');
-            while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild);}
-        },1000);
-    }
-    setInterval(startRain,30000);
-});
-
-// NOAA hourly forecast
-async function fetchHourlyForecast(lat=34.7465, lon=-92.2896){
-    try {
-        const pointUrl = `https://api.weather.gov/points/${lat},${lon}`;
-        const pointRes = await fetch(pointUrl);
+// NOAA 7-day hourly forecast
+async function fetchHourlyForecast(lat=34.7465,lon=-92.2896){
+    try{
+        const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
         const pointData = await pointRes.json();
         const hourlyUrl = pointData.properties.forecastHourly;
         const forecastRes = await fetch(hourlyUrl);
         const forecastData = await forecastRes.json();
-        const hours = forecastData.properties.periods.slice(0, 168); // 7 days
+        const hours = forecastData.properties.periods.slice(0,168); // 7 days
 
         const container=document.getElementById('forecast');
         container.innerHTML='';
 
         hours.forEach(hour=>{
             const card=document.createElement('div');
-            card.className='hour-card';
+            card.className='daypart-card';
             const date=new Date(hour.startTime);
             const time=date.toLocaleString('en-US',{hour:'numeric',hour12:true,month:'short',day:'numeric'});
+            // Simple SVG for sun/cloud/rain
+            let icon='';
+            if(hour.shortForecast.toLowerCase().includes('sun')) icon='☀️';
+            else if(hour.shortForecast.toLowerCase().includes('cloud')) icon='☁️';
+            else if(hour.shortForecast.toLowerCase().includes('rain')) icon='🌧️';
+            else icon='❓';
+
             card.innerHTML=`<div class="time">${time}</div>
+                            <div class="cond">${icon}</div>
                             <div class="temp">${hour.temperature}°${hour.temperatureUnit}</div>
-                            <div class="cond">${hour.shortForecast}</div>`;
+                            <div class="daypart-details">
+                                <strong>Forecast:</strong> ${hour.shortForecast}<br>
+                                <strong>Wind:</strong> ${hour.windSpeed} ${hour.windDirection}<br>
+                                <strong>Humidity:</strong> ${hour.relativeHumidity?.value || 'N/A'}%
+                            </div>`;
+            card.addEventListener('click',()=>card.classList.toggle('expanded'));
             container.appendChild(card);
         });
-    } catch(e){
+    }catch(e){
         console.error(e);
-        document.getElementById('forecast').innerHTML="Unable to load forecast.";
+        document.getElementById('forecast').innerHTML='Unable to load forecast.';
     }
 }
 fetchHourlyForecast();
