@@ -152,14 +152,22 @@ async function fetchForecast(lat, lon){
 }
 
 // --- Use geolocation if available ---
-if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-        fetchForecast(pos.coords.latitude,pos.coords.longitude);
-    }, err=>{
-        console.error(err);
-        fetchForecast(34.7465,-92.2896); // fallback Little Rock
-    });
-}else{ fetchForecast(34.7465,-92.2896); }
+function loadForecast(){
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(pos=>{
+            fetchForecast(pos.coords.latitude,pos.coords.longitude);
+        }, err=>{
+            console.error(err);
+            fetchForecast(34.7465,-92.2896); // fallback Little Rock
+        });
+    }else{ fetchForecast(34.7465,-92.2896); }
+}
+
+// Initial load
+loadForecast();
+
+// --- Refresh every 10 secs ---
+setInterval(loadForecast, 10000);
 
 // --- Clouds & Rain animation ---
 document.addEventListener('DOMContentLoaded', ()=>{
