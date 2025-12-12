@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather Arkansas</title>
+<title>Hourly Weather Forecast</title>
 <style>
-/* --- Existing styles (kept) --- */
+/* --- Base and theme styles --- */
 body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sans-serif; color:teal; background:#87CEEB; transition: background 1s;}
 .background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
 .cloud { position:absolute; background:#fff; border-radius:50%; width:200px; height:60px; animation:moveClouds 20s linear infinite; z-index:2;}
@@ -25,9 +25,6 @@ body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sa
 .content { position:relative; z-index:2; text-align:center; padding:20px; transition: color 1s, text-shadow 1s;}
 .content.rainy { text-shadow:2px 2px 4px #000; }
 
-h1 { font-size:2.5em; margin:0; }
-p { font-size:0.9em; }
-
 /* Side nav */
 .sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
 .sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
@@ -38,7 +35,7 @@ p { font-size:0.9em; }
 #signOutBtn { position:absolute; top:12px; right:12px; padding:6px 12px; border:none; border-radius:6px; background:teal; color:white; cursor:pointer; }
 #signOutBtn:hover { background:#006666; }
 
-/* --- Fold-out forecast cards --- */
+/* Forecast fold-out cards */
 .forecast-container { display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px; gap:10px; }
 .forecast-card { background: rgba(255,255,255,0.85); border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.2); width:200px; cursor:pointer; transition: transform 0.3s;}
 .forecast-card:hover { transform:translateY(-5px);}
@@ -51,22 +48,6 @@ p { font-size:0.9em; }
 </style>
 </head>
 <body>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-// --- Supabase Setup ---
-const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
-const supabaseKey = "sb_publishable_BY7itjr1ic3USKsHtrmsng_zP9ue2PQ";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// Check sign-in
-const username = localStorage.getItem("username");
-if(!username){ window.location.href="/signup.html"; }
-else { supabase.from("visits").insert([{ username: username, visited_at: new Date() }]); }
-const signedIn = localStorage.getItem("signedIn") === "true";
-if(!signedIn){ window.location.href="/signin.html"; }
-</script>
 
 <div class="background">
     <div class="sun"></div>
@@ -96,23 +77,21 @@ if(!signedIn){ window.location.href="/signin.html"; }
     <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
     <button id="signOutBtn">Sign Out</button>
 
-    <h1>Welcome to Weather Arkansas</h1>
-    <p>Your go-to source for weather updates in Arkansas!</p>
-
-    <h2>Hourly Forecast (Next 24 Hours)</h2>
+    <h2>Hourly Forecast</h2>
     <div class="forecast-container" id="forecast-container">
         <p>Loading forecast...</p>
     </div>
 </div>
 
 <script>
-// --- Side nav functions ---
+// --- Side nav ---
 function openNav(){ document.getElementById("mySidenav").style.width="100%";}
 function closeNav(){ document.getElementById("mySidenav").style.width="0";}
 document.getElementById("signOutBtn").addEventListener("click", ()=>{
     localStorage.removeItem("signedIn"); localStorage.removeItem("lastVisit");
     window.location.href="/signin.html";
 });
+const signedIn = localStorage.getItem("signedIn") === "true";
 const signInLink = document.getElementById("signInLink");
 if(signedIn){
     signInLink.textContent="Sign Out"; signInLink.href="#";
@@ -167,6 +146,25 @@ if(navigator.geolocation){
         fetchForecast(34.7465,-92.2896); // fallback Little Rock
     });
 }else{ fetchForecast(34.7465,-92.2896); }
+
+// --- Clouds & Rain animation ---
+document.addEventListener('DOMContentLoaded', ()=>{
+    const clouds=document.querySelectorAll('.cloud'); clouds.forEach(c=>{ c.style.top=`${Math.random()*100}%`; c.style.left=`${Math.random()*100}%`; c.style.animationDuration=`${10+Math.random()*20}s`; });
+    const rainContainer=document.querySelector('.rain'); const sun=document.querySelector('.sun'); const content=document.querySelector('.content');
+    function startRain(){
+        rainContainer.style.display='block'; rainContainer.style.opacity=1; document.body.style.background='#2F4F4F'; content.style.color='#fff'; content.classList.add('rainy'); sun.style.display='none';
+        clouds.forEach(c=>c.style.background='#A9A9A9');
+        for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop); }
+        setTimeout(stopRain,60000);
+    }
+    function stopRain(){
+        rainContainer.style.opacity=0; setTimeout(()=>{
+            rainContainer.style.display='none'; document.body.style.background='#87CEEB'; content.style.color='#000'; content.classList.remove('rainy'); sun.style.display='block';
+            clouds.forEach(c=>c.style.background='#fff'); while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }
+        },1000);
+    }
+    setInterval(startRain,30000);
+});
 </script>
 </body>
 </html>
