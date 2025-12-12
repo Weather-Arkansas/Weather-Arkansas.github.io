@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weather Arkansas</title>
 <style>
-/* --- Base styles --- */
+/* --- Existing styles (kept) --- */
 body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sans-serif; color:teal; background:#87CEEB; transition: background 1s;}
 .background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
 .cloud { position:absolute; background:#fff; border-radius:50%; width:200px; height:60px; animation:moveClouds 20s linear infinite; z-index:2;}
@@ -28,7 +28,7 @@ body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sa
 h1 { font-size:2.5em; margin:0; }
 p { font-size:0.9em; }
 
-/* --- Side navigation --- */
+/* Side nav */
 .sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
 .sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
 .sidenav a:hover{ color:#f1f1f1; }
@@ -38,7 +38,7 @@ p { font-size:0.9em; }
 #signOutBtn { position:absolute; top:12px; right:12px; padding:6px 12px; border:none; border-radius:6px; background:teal; color:white; cursor:pointer; }
 #signOutBtn:hover { background:#006666; }
 
-/* --- Forecast cards --- */
+/* --- Fold-out forecast cards --- */
 .forecast-container { display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px; gap:10px; }
 .forecast-card { background: rgba(255,255,255,0.85); border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.2); width:200px; cursor:pointer; transition: transform 0.3s;}
 .forecast-card:hover { transform:translateY(-5px);}
@@ -51,6 +51,7 @@ p { font-size:0.9em; }
 </style>
 </head>
 <body>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -98,12 +99,14 @@ if(!signedIn){ window.location.href="/signin.html"; }
     <h1>Welcome to Weather Arkansas</h1>
     <p>Your go-to source for weather updates in Arkansas!</p>
 
-    <h2>Hourly Forecast (Next 48 Hours)</h2>
-    <div class="forecast-container" id="forecast-container"></div>
+    <h2>Hourly Forecast (Next 24 Hours)</h2>
+    <div class="forecast-container" id="forecast-container">
+        <p>Loading forecast...</p>
+    </div>
 </div>
 
 <script>
-// --- Side nav ---
+// --- Side nav functions ---
 function openNav(){ document.getElementById("mySidenav").style.width="100%";}
 function closeNav(){ document.getElementById("mySidenav").style.width="0";}
 document.getElementById("signOutBtn").addEventListener("click", ()=>{
@@ -116,13 +119,14 @@ if(signedIn){
     signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });
 } else { signInLink.textContent="Sign In"; signInLink.href="/signin.html"; }
 
-// --- Forecast cards ---
+// --- Create forecast card ---
 function createCard(period){
-    const card=document.createElement('div'); card.classList.add('forecast-card');
-    card.innerHTML=`
+    const card = document.createElement('div');
+    card.classList.add('forecast-card');
+    card.innerHTML = `
         <div class="card-summary">
             <div>
-                ${new Date(period.startTime).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'numeric'})}<br>
+                ${new Date(period.startTime).toLocaleString('en-US',{hour:'numeric',minute:'numeric'})}<br>
                 ${period.temperature}°${period.temperatureUnit}
             </div>
             <img src="${period.icon}" alt="icon">
@@ -135,50 +139,34 @@ function createCard(period){
             <p>${period.detailedForecast}</p>
         </div>
     `;
-    card.querySelector('.card-summary').addEventListener('click', ()=>{ card.classList.toggle('expanded'); });
+    card.querySelector('.card-summary').addEventListener('click', ()=>{
+        card.classList.toggle('expanded');
+    });
     return card;
 }
 
-// --- Fetch NOAA forecast ---
+// --- Fetch NOAA hourly forecast ---
 async function fetchForecast(lat, lon){
+    const container = document.getElementById('forecast-container');
+    container.innerHTML = '<p>Loading forecast...</p>';
     try{
         const headers = { 'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json' };
-        const pointData = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers }).then(r=>r.json());
-        const forecastData = await fetch(pointData.properties.forecastHourly, { headers }).then(r=>r.json());
-        const container = document.getElementById('forecast-container');
-        container.innerHTML='';
-        forecastData.properties.periods.slice(0,48).forEach(p=>{ container.appendChild(createCard(p)); });
-    } catch(e){ console.error(e); document.getElementById('forecast-container').innerHTML='<p>Unable to load forecast.</p>'; }
+        const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers }).then(r=>r.json());
+        const forecast = await fetch(point.properties.forecastHourly, { headers }).then(r=>r.json());
+        container.innerHTML = '';
+        forecast.properties.periods.slice(0,24).forEach(p=>container.appendChild(createCard(p)));
+    }catch(e){ console.error(e); container.innerHTML='<p>Unable to load forecast.</p>'; }
 }
 
-// --- Geolocation ---
+// --- Use geolocation if available ---
 if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos=>{
         fetchForecast(pos.coords.latitude,pos.coords.longitude);
     }, err=>{
         console.error(err);
-        fetchForecast(34.7465,-92.2896); // default Little Rock
+        fetchForecast(34.7465,-92.2896); // fallback Little Rock
     });
 }else{ fetchForecast(34.7465,-92.2896); }
-
-// --- Clouds & Rain animation ---
-document.addEventListener('DOMContentLoaded', ()=>{
-    const clouds=document.querySelectorAll('.cloud'); clouds.forEach(c=>{ c.style.top=`${Math.random()*100}%`; c.style.left=`${Math.random()*100}%`; c.style.animationDuration=`${10+Math.random()*20}s`; });
-    const rainContainer=document.querySelector('.rain'); const sun=document.querySelector('.sun'); const content=document.querySelector('.content');
-    function startRain(){
-        rainContainer.style.display='block'; rainContainer.style.opacity=1; document.body.style.background='#2F4F4F'; content.style.color='#fff'; content.classList.add('rainy'); sun.style.display='none';
-        clouds.forEach(c=>c.style.background='#A9A9A9');
-        for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop); }
-        setTimeout(stopRain,60000);
-    }
-    function stopRain(){
-        rainContainer.style.opacity=0; setTimeout(()=>{
-            rainContainer.style.display='none'; document.body.style.background='#87CEEB'; content.style.color='#000'; content.classList.remove('rainy'); sun.style.display='block';
-            clouds.forEach(c=>c.style.background='#fff'); while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }
-        },1000);
-    }
-    setInterval(startRain,30000);
-});
 </script>
 </body>
 </html>
