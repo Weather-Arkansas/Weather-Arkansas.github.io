@@ -3,187 +3,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hourly Weather</title>
+<title>Weather Arkansas</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #eef2f5;
-    margin: 0;
-    padding: 20px;
-  }
-  .card {
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+    font-family: "Lato", sans-serif;
+    color: teal;
+    background: #87CEEB;
+    transition: background 1s;
+}
+.background { position: absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
+.cloud {
+    position: absolute;
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  .CardHeader h1 {
-    font-size: 24px;
-    margin: 0 0 10px 0;
-  }
-  .CardHeader .LocationText {
-    font-weight: normal;
-    font-size: 16px;
-    margin-left: 8px;
-  }
-  .HourlyForecast--timestamp {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
-  }
-  .HourlyForecast--longDate {
-    font-size: 18px;
-    margin-bottom: 15px;
-  }
-  .HourlyForecast--fifteenMinuteSummary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid #eee;
-    padding: 10px 0;
-  }
-  .DetailsSummary--daypartName {
-    width: 70px;
-    font-weight: bold;
-  }
-  .DetailsSummary--condition {
-    display: flex;
-    align-items: center;
-    width: 120px;
-  }
-  .DetailsSummary--condition svg {
-    width: 24px;
-    height: 24px;
-    margin-right: 6px;
-  }
-  .DetailsSummary--temperature {
-    width: 50px;
-    font-size: 16px;
-  }
-  .DetailsSummary--precip {
-    width: 70px;
-    display: flex;
-    align-items: center;
-  }
-  .DetailsSummary--precip svg {
-    width: 20px;
-    height: 20px;
-    margin-right: 4px;
-  }
-  .DetailsSummary--wind {
-    width: 100px;
-    display: flex;
-    align-items: center;
-  }
-  .DetailsSummary--wind svg {
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
-  }
+    border-radius: 50%;
+    width:200px; height:60px;
+    animation: moveClouds 20s linear infinite;
+    z-index:2;
+}
+.cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
+.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
+.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
+
+.sun {
+    position: absolute; width:100px; height:100px;
+    top:10%; left:10%; border-radius:50%;
+    background: radial-gradient(circle, #FFD700, #FFA500);
+    z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
+}
+.sun::before {
+    content: '';
+    position: absolute;
+    width: 150px; height: 150px;
+    top:-25px; left:-25px;
+    background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,165,0,0));
+    border-radius:50%; z-index:-1;
+}
+
+.rain { position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition: opacity 1s; pointer-events:none;}
+.raindrop { position:absolute; width:2px; height:10px; background:rgba(0,0,255,0.5); animation: fall 1s linear infinite; }
+
+@keyframes moveClouds { 0% { transform:translateX(-100%);} 100% { transform:translateX(100%);} }
+@keyframes fall { 0% {top:-10px;} 100% {top:100%;} }
+
+.content { position:relative; z-index:2; text-align:center; padding:20px; transition: color 1s, text-shadow 1s; }
+.content.rainy { text-shadow: 2px 2px 4px #000; }
+
+h1 { font-size:2.5em; margin:0; }
+p { font-size:0.9em; }
+
+.sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
+.sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
+.sidenav a:hover{ color:#f1f1f1; }
+.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
+@media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
+
+#signOutBtn {
+    position: absolute; top:12px; right:12px; padding:6px 12px;
+    border:none; border-radius:6px; background:teal; color:white; cursor:pointer;
+}
+#signOutBtn:hover { background:#006666; }
+
+.hour-block:hover{ background: #B2DFEE; }
 </style>
 </head>
 <body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseUrl = "https://bgwkpdkcemtpdfwudgkr.supabase.co";
+const supabaseKey = "sb_publishable_BY7itjr1ic3USKsHtrmsng_zP9ue2PQ";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-<section aria-label="Hourly Weather" class="card HourlyForecast" id="hourlyForecast">
-  <!-- Header -->
-  <div class="CardHeader HourlyForecast--CardHeader">
-    <h1 class="PageHeader">
-      <strong>Hourly Weather</strong>
-      <span class="LocationText" id="locationText">- Loading...</span>
-    </h1>
-  </div>
-
-  <!-- Timestamp -->
-  <div class="HourlyForecast--timestamp" id="timestamp">Loading...</div>
-
-  <!-- Date -->
-  <h2 id="currentDateId0" class="HourlyForecast--longDate">Loading...</h2>
-
-  <!-- Hourly blocks container -->
-  <div class="HourlyForecast--DisclosureList" id="hourlyList"></div>
-</section>
+// Check if user is signed in
+const username = localStorage.getItem("username");
+if(!username){
+    window.location.href = "/signup.html"; // redirect to sign-in page
+} else {
+    supabase.from("visits").insert([{ username: username, visited_at: new Date() }]);
+}
+</script>
 
 <script>
-async function getWeather(lat, lon) {
-  // Open-Meteo API with 72-hour forecast
-  const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,windspeed_10m,precipitation_probability&timezone=auto`);
-  const data = await response.json();
-  return data;
+const signedIn = localStorage.getItem("signedIn") === "true";
+if(!signedIn){
+    window.location.href = "/signin.html"; // redirect to sign-in page
 }
-
-function weatherCodeToIcon(code) {
-  if(code === 0) return '☀️';
-  if(code === 1 || code === 2 || code === 3) return '⛅';
-  if(code >= 45 && code <= 48) return '🌫️';
-  if(code >= 51 && code <= 67) return '🌦️';
-  if(code >= 71 && code <= 77) return '❄️';
-  if(code >= 80 && code <= 82) return '🌧️';
-  if(code >= 95) return '⛈️';
-  return '🌈';
-}
-
-function formatTime(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-}
-
-function formatDate(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString([], {weekday: 'long', month: 'long', day: 'numeric'});
-}
-
-function createHourlyBlock(hourData) {
-  const block = document.createElement('div');
-  block.className = 'HourlyForecast--fifteenMinuteSummary';
-  block.innerHTML = `
-    <div class="DetailsSummary--daypartName">${formatTime(hourData.time)}</div>
-    <div class="DetailsSummary--condition">${weatherCodeToIcon(hourData.weathercode)} ${hourData.weathercode}</div>
-    <div class="DetailsSummary--temperature">${Math.round(hourData.temperature_2m)}°</div>
-    <div class="DetailsSummary--precip">💧 ${hourData.precipitation_probability}%</div>
-    <div class="DetailsSummary--wind">💨 ${Math.round(hourData.windspeed_10m)} mph</div>
-  `;
-  return block;
-}
-
-function populateForecast(data) {
-  const hourlyList = document.getElementById('hourlyList');
-  hourlyList.innerHTML = '';
-  const now = new Date();
-  document.getElementById('timestamp').innerText = `As of ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-  document.getElementById('currentDateId0').innerText = formatDate(now.toISOString());
-
-  // Show 72 hours
-  for(let i=0; i<72; i++) {
-    const hourData = {
-      time: data.hourly.time[i],
-      temperature_2m: data.hourly.temperature_2m[i],
-      weathercode: data.hourly.weathercode[i],
-      precipitation_probability: data.hourly.precipitation_probability[i],
-      windspeed_10m: data.hourly.windspeed_10m[i]
-    };
-    hourlyList.appendChild(createHourlyBlock(hourData));
-  }
-}
-
-function init() {
-  if(navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const data = await getWeather(lat, lon);
-      document.getElementById('locationText').innerText = `- ${data.timezone}`;
-      populateForecast(data);
-    }, () => {
-      alert('Geolocation failed. Please allow location or enter manually.');
-    });
-  } else {
-    alert('Geolocation is not supported by your browser.');
-  }
-}
-
-init();
 </script>
+
+<div class="background">
+    <div class="sun"></div>
+    <div class="cloud" style="top: 30.2057%; left: 98.7537%; animation-duration: 25.5267s;"></div>
+    <div class="cloud" style="top: 59.1139%; left: 32.2091%; animation-duration: 28.5167s;"></div>
+    <div class="cloud" style="top: 20.9902%; left: 68.2882%; animation-duration: 19.2982s;"></div>
+    <div class="rain"></div>
+</div>
+
+<div class="content" style="color: rgb(0, 0, 0);">
+    <!-- Side navigation -->
+    <div id="mySidenav" class="sidenav">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+      <a href="/index.html">Home</a>
+      <a href="/weather/10-day.html">10-Day Forecast</a>
+      <a href="/weather/station-link.html">Weather Stations</a>
+      <a href="/weather/Little-Rock.html">Capitol Weather</a>
+      <a href="/weather/radar.html">Local Radar</a>
+      <a href="/rain/index.html">Precipitation Map</a>
+      <a href="/blog/blog.html">Blog</a>
+      <a href="/about.html">About</a>
+      <a href="/settings.html">Settings</a>
+      <a href="/api.html">Weather Api</a>
+      <a href="/thanks.html">Thanks</a>  
+      <a href="#" id="signInLink">Sign Out</a>
+    </div>
+    <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+
+    <button id="signOutBtn">Sign Out</button>
+
+    <h1>Welcome to Weather Arkansas</h1>
+    <p>Your go-to source for weather updates in Arkansas!</p>
+    <hr>
+    <div class="additional-content">
+        <p>Arkansas experiences a wide range of weather conditions, from hot summers to cold winters. Stay updated with our latest weather forecasts!</p>
+    </div>
+
+    <!-- Weekly Forecast -->
+    <h1 align="center">What's Happening in Weather This Week</h1>
+    <div id="weekly-forecast" align="center">
+        <p>Loading weekly forecast...</p>
+    </div>
+
+    <!-- 72-Hour Forecast -->
+    <h1 align="center">72-Hour Hourly Forecast</h1>
+    <div id="hourly-forecast-container" style="max-width:800px; margin:auto;">
+        <p>Loading hourly forecast...</p>
+    </div>
+
+    <!-- NOAA Precipitation Map -->
+    <h2>Precipitation Forecast</h2>
+    <img src="https://www.wpc.ncep.noaa.gov/qpf/94ewbg.gif" alt="Precipitation Forecast" style="width:90%; max-width:800px;">
+
+    <!-- Home Weather Station Placeholder -->
+    <h2>My Home Weather Station</h2>
+    <div id="home-station">
+        <p>Link your weather station widget here!</p>
+    </div>
+</div>
+
+<script>
+// Side nav
+function openNav(){ document.getElementById("mySidenav").style.width="100%"; }
+function closeNav(){ document.getElementById("mySidenav").style.width="0"; }
+
+// Sign out
+document.getElementById("signOutBtn").addEventListener("click", ()=>{
+    localStorage.removeItem("signedIn");
+    localStorage.removeItem("lastVisit");
+    alert("You have been signed out.");
+    window.location.href="/signin.html";
+});
+
+// Sign In/Out Link
+const signInLink = document.getElementById("signInLink");
+if(signedIn){
+    signInLink.textContent = "Sign Out";
+    signInLink.href = "#";
+    signInLink.addEventListener("click", ()=>{
+        localStorage.removeItem("signedIn");
+        localStorage.removeItem("lastVisit");
+        alert("You have been signed out.");
+        window.location.href="/signin.html";
+    });
+} else {
+    signInLink.textContent = "Sign In";
+    signInLink.href = "/signin.html";
+}
+
+// Weekly Forecast
+async function fetchWeeklyForecast() {
+    try {
+        const response = await fetch('https://api.weather.gov/gridpoints/LZK/36,91/forecast');
+        const data = await response.json();
+        const forecastDiv = document.getElementById('weekly-forecast');
+        let html = '';
+        data.properties.periods.slice(0,7).forEach(period => {
+            html += `<p><strong>${period.name}:</strong> ${period.detailedForecast}</p>`;
+        });
+        forecastDiv.innerHTML = html;
+    } catch (err) {
+        console.error(err);
+        document.getElementById('weekly-forecast').innerHTML='<p>Unable to load forecast.</p>';
+    }
+}
+fetchWeeklyForecast();
+setInterval(fetchWeeklyForecast, 21600000); // refresh every 6 hrs
+
+// 72-Hour Hourly Forecast
+function cToF(c){ return Math.round(c*9/5 +32); }
+async function fetchHourlyForecast(){
+    try{
+        const response = await fetch('https://api.weather.gov/gridpoints/LZK/36,91/forecast/hourly');
+        const data = await response.json();
+        const container = document.getElementById('hourly-forecast-container');
+        container.innerHTML = '';
+        data.properties.periods.slice(0,72).forEach(period=>{
+            const block = document.createElement('div');
+            block.className='hour-block';
+            block.style.border='1px solid teal';
+            block.style.margin='5px 0';
+            block.style.borderRadius='8px';
+            block.style.padding='10px';
+            block.style.cursor='pointer';
+            block.style.background='#E0FFFF';
+
+            const main = document.createElement('div');
+            main.innerHTML = `<strong>${period.startTime.slice(11,16)} ${period.name}:</strong> ${cToF(period.temperature)}°F, ${period.shortForecast}`;
+            block.appendChild(main);
+
+            const details = document.createElement('div');
+            details.style.display='none';
+            details.style.marginTop='8px';
+            details.innerHTML = `
+                Wind: ${period.windSpeed} ${period.windDirection}<br>
+                Temperature Trend: ${period.temperature}°C (${cToF(period.temperature)}°F)<br>
+                Forecast: ${period.detailedForecast}
+            `;
+            block.appendChild(details);
+
+            block.addEventListener('click', ()=>{ 
+                details.style.display = details.style.display==='none'?'block':'none';
+            });
+            container.appendChild(block);
+        });
+    } catch(err){
+        console.error(err);
+        document.getElementById('hourly-forecast-container').innerHTML='<p>Unable to load 72-hour forecast.</p>';
+    }
+}
+fetchHourlyForecast();
+setInterval(fetchHourlyForecast, 21600000); // refresh every 6 hrs
+
+// Clouds & Rain Animation
+document.addEventListener('DOMContentLoaded', () => {
+    const clouds=document.querySelectorAll('.cloud');
+    clouds.forEach(c=>{ 
+        c.style.top=`${Math.random()*100}%`; 
+        c.style.left=`${Math.random()*100}%`; 
+        c.style.animationDuration=`${10+Math.random()*20}s`; 
+    });
+
+    const rainContainer=document.querySelector('.rain');
+    const sun=document.querySelector('.sun');
+    const content=document.querySelector('.content');
+
+    function startRain(){
+        rainContainer.style.display='block';
+        rainContainer.style.opacity=1;
+        document.body.style.background='#2F4F4F';
+        content.style.color='#fff';
+        content.classList.add('rainy');
+        sun.style.display='none';
+        clouds.forEach(c=>c.style.background='#A9A9A9');
+        for(let i=0;i<100;i++){
+            const drop=document.createElement('div');
+            drop.classList.add('raindrop');
+            drop.style.left=`${Math.random()*100}%`;
+            drop.style.animationDuration=`${0.5+Math.random()}s`;
+            rainContainer.appendChild(drop);
+        }
+        setTimeout(stopRain,60000);
+    }
+    function stopRain(){
+        rainContainer.style.opacity=0;
+        setTimeout(()=>{
+            rainContainer.style.display='none';
+            document.body.style.background='#87CEEB';
+            content.style.color='#000';
+            content.classList.remove('rainy');
+            sun.style.display='block';
+            clouds.forEach(c=>c.style.background='#fff');
+            while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild);}
+        },1000);
+    }
+    setInterval(startRain,30000);
+});
+
+// Redirect to mobile version if on small screen
+if(window.innerWidth<=480){ window.location.href="index-mobile.html"; }
+</script>
+
 </body>
 </html>
