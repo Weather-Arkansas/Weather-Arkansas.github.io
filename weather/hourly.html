@@ -6,51 +6,24 @@
 <title>Weather Arkansas</title>
 <style>
 /* --- Base styles --- */
-body, html {
-    margin: 0; padding: 0;
-    width: 100%; height: 100%;
-    overflow-x: hidden;
-    font-family: "Lato", sans-serif;
-    color: teal;
-    background: #87CEEB;
-    transition: background 1s;
-}
-.background { position: absolute; width:100%; height:100%; z-index:1; overflow:hidden; }
-.cloud {
-    position: absolute;
-    background: #fff;
-    border-radius: 50%;
-    width:200px; height:60px;
-    animation: moveClouds 20s linear infinite;
-    z-index:2;
-}
+body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sans-serif; color:teal; background:#87CEEB; transition: background 1s;}
+.background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
+.cloud { position:absolute; background:#fff; border-radius:50%; width:200px; height:60px; animation:moveClouds 20s linear infinite; z-index:2;}
 .cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
 .cloud::before { width:100px; height:100px; top:-50px; left:50px; }
 .cloud::after { width:120px; height:120px; top:-60px; left:100px; }
 
-.sun {
-    position: absolute; width:100px; height:100px;
-    top:10%; left:10%; border-radius:50%;
-    background: radial-gradient(circle, #FFD700, #FFA500);
-    z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
-}
-.sun::before {
-    content: '';
-    position: absolute;
-    width: 150px; height: 150px;
-    top:-25px; left:-25px;
-    background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,165,0,0));
-    border-radius:50%; z-index:-1;
-}
+.sun { position:absolute; width:100px; height:100px; top:10%; left:10%; border-radius:50%; background:radial-gradient(circle,#FFD700,#FFA500); z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);}
+.sun::before { content:''; position:absolute; width:150px; height:150px; top:-25px; left:-25px; background:radial-gradient(circle,rgba(255,215,0,0.5),rgba(255,165,0,0)); border-radius:50%; z-index:-1; }
 
-.rain { position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition: opacity 1s; pointer-events:none;}
-.raindrop { position:absolute; width:2px; height:10px; background:rgba(0,0,255,0.5); animation: fall 1s linear infinite; }
+.rain { position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none; }
+.raindrop { position:absolute; width:2px; height:10px; background:rgba(0,0,255,0.5); animation:fall 1s linear infinite; }
 
-@keyframes moveClouds { 0% { transform:translateX(-100%);} 100% { transform:translateX(100%);} }
-@keyframes fall { 0% {top:-10px;} 100% {top:100%;} }
+@keyframes moveClouds { 0%{transform:translateX(-100%);}100%{transform:translateX(100%);} }
+@keyframes fall { 0%{top:-10px;}100%{top:100%;} }
 
-.content { position:relative; z-index:2; text-align:center; padding:20px; transition: color 1s, text-shadow 1s; }
-.content.rainy { text-shadow: 2px 2px 4px #000; }
+.content { position:relative; z-index:2; text-align:center; padding:20px; transition: color 1s, text-shadow 1s;}
+.content.rainy { text-shadow:2px 2px 4px #000; }
 
 h1 { font-size:2.5em; margin:0; }
 p { font-size:0.9em; }
@@ -62,32 +35,19 @@ p { font-size:0.9em; }
 .sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
 @media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
 
-#signOutBtn {
-    position: absolute; top:12px; right:12px; padding:6px 12px;
-    border:none; border-radius:6px; background:teal; color:white; cursor:pointer;
-}
+#signOutBtn { position:absolute; top:12px; right:12px; padding:6px 12px; border:none; border-radius:6px; background:teal; color:white; cursor:pointer; }
 #signOutBtn:hover { background:#006666; }
 
 /* --- Forecast cards --- */
 .forecast-container { display:flex; flex-wrap:wrap; justify-content:center; margin-top:20px; gap:10px; }
-.forecast-card {
-    background: rgba(255,255,255,0.85);
-    border-radius:12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    width: 200px;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-.forecast-card:hover { transform: translateY(-5px); }
-.card-summary { padding: 10px; display:flex; justify-content:space-between; align-items:center; font-weight: bold; }
-.card-summary img { width:40px; height:40px; }
-.expand-btn { transition: transform 0.3s; font-size:20px; }
-.forecast-details { padding:10px; display:none; text-align:left; font-weight:normal; }
-
-/* Expanded state */
+.forecast-card { background: rgba(255,255,255,0.85); border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,0.2); width:200px; cursor:pointer; transition: transform 0.3s;}
+.forecast-card:hover { transform:translateY(-5px);}
+.card-summary { padding:10px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;}
+.card-summary img { width:40px; height:40px;}
+.expand-btn { transition:transform 0.3s; font-size:20px;}
+.forecast-details { padding:10px; display:none; text-align:left; font-weight:normal;}
 .forecast-card.expanded .forecast-details { display:block; }
 .forecast-card.expanded .expand-btn { transform: rotate(45deg); }
-
 </style>
 </head>
 <body>
@@ -101,7 +61,7 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Check sign-in
 const username = localStorage.getItem("username");
-if(!username){ window.location.href = "/signup.html"; }
+if(!username){ window.location.href="/signup.html"; }
 else { supabase.from("visits").insert([{ username: username, visited_at: new Date() }]); }
 const signedIn = localStorage.getItem("signedIn") === "true";
 if(!signedIn){ window.location.href="/signin.html"; }
@@ -156,7 +116,7 @@ if(signedIn){
     signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });
 } else { signInLink.textContent="Sign In"; signInLink.href="/signin.html"; }
 
-// --- Geolocation + NOAA fetch ---
+// --- Forecast cards ---
 function createCard(period){
     const card=document.createElement('div'); card.classList.add('forecast-card');
     card.innerHTML=`
@@ -171,24 +131,27 @@ function createCard(period){
         <div class="forecast-details">
             <p>${period.shortForecast}</p>
             <p>Wind: ${period.windSpeed} ${period.windDirection}</p>
-            <p>Probability of Precipitation: ${period.probabilityOfPrecipitation.value || 0}%</p>
-            <p>Detailed: ${period.detailedForecast}</p>
+            <p>Precip: ${period.probabilityOfPrecipitation.value||0}%</p>
+            <p>${period.detailedForecast}</p>
         </div>
     `;
     card.querySelector('.card-summary').addEventListener('click', ()=>{ card.classList.toggle('expanded'); });
     return card;
 }
 
+// --- Fetch NOAA forecast ---
 async function fetchForecast(lat, lon){
-    try {
-        const pointData = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r=>r.json());
-        const forecastData = await fetch(pointData.properties.forecastHourly).then(r=>r.json());
+    try{
+        const headers = { 'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json' };
+        const pointData = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers }).then(r=>r.json());
+        const forecastData = await fetch(pointData.properties.forecastHourly, { headers }).then(r=>r.json());
         const container = document.getElementById('forecast-container');
-        container.innerHTML=''; 
+        container.innerHTML='';
         forecastData.properties.periods.slice(0,48).forEach(p=>{ container.appendChild(createCard(p)); });
-    } catch(e){ console.error(e); alert('Unable to fetch forecast.'); }
+    } catch(e){ console.error(e); document.getElementById('forecast-container').innerHTML='<p>Unable to load forecast.</p>'; }
 }
 
+// --- Geolocation ---
 if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos=>{
         fetchForecast(pos.coords.latitude,pos.coords.longitude);
@@ -196,7 +159,7 @@ if(navigator.geolocation){
         console.error(err);
         fetchForecast(34.7465,-92.2896); // default Little Rock
     });
-} else { fetchForecast(34.7465,-92.2896); }
+}else{ fetchForecast(34.7465,-92.2896); }
 
 // --- Clouds & Rain animation ---
 document.addEventListener('DOMContentLoaded', ()=>{
