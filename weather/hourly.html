@@ -5,74 +5,57 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hourly Weather Forecast</title>
 <style>
-/* --- Base and theme styles --- */
-body, html { margin:0; padding:0; width:100%; height:100%; font-family:"Lato",sans-serif; color:teal; background:#87CEEB; transition: background 1s;}
-.background { position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
-.cloud { position:absolute; background:#fff; border-radius:50%; width:200px; height:60px; animation:moveClouds 20s linear infinite; z-index:2;}
-.cloud::before, .cloud::after { content:''; position:absolute; background:#fff; border-radius:50%; }
-.cloud::before { width:100px; height:100px; top:-50px; left:50px; }
-.cloud::after { width:120px; height:120px; top:-60px; left:100px; }
+/* --- Base & theme --- */
+body, html {margin:0;padding:0;width:100%;height:100%;font-family:"Lato",sans-serif;color:teal;background:#87CEEB;transition:background 1s;}
+.background {position:absolute;width:100%;height:100%;z-index:1;overflow:hidden;}
+.cloud {position:absolute;background:#fff;border-radius:50%;width:200px;height:60px;animation:moveClouds linear infinite;z-index:2;}
+.cloud::before, .cloud::after {content:'';position:absolute;background:#fff;border-radius:50%;}
+.cloud::before {width:100px;height:100px;top:-50px;left:50px;}
+.cloud::after {width:120px;height:120px;top:-60px;left:100px;}
+.sun {position:absolute;width:100px;height:100px;top:10%;left:10%;border-radius:50%;background:radial-gradient(circle,#FFD700,#FFA500);z-index:1;box-shadow:0 0 50px rgba(255,215,0,0.5);}
+.sun::before {content:'';position:absolute;width:150px;height:150px;top:-25px;left:-25px;background:radial-gradient(circle,rgba(255,215,0,0.5),rgba(255,165,0,0));border-radius:50%;z-index:-1;}
+.rain {position:absolute;width:100%;height:100%;top:0;left:0;z-index:1;display:none;opacity:0;transition:opacity 1s;pointer-events:none;overflow:hidden;}
+.raindrop {position:absolute;width:2px;background:rgba(0,0,255,0.5);animation:fall linear infinite;}
+@keyframes moveClouds {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+@keyframes fall {0%{top:-10px;}100%{top:100%;}}
 
-.sun { position:absolute; width:100px; height:100px; top:10%; left:10%; border-radius:50%; background:radial-gradient(circle,#FFD700,#FFA500); z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);}
-.sun::before { content:''; position:absolute; width:150px; height:150px; top:-25px; left:-25px; background:radial-gradient(circle,rgba(255,215,0,0.5),rgba(255,165,0,0)); border-radius:50%; z-index:-1; }
-
-.rain { position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none; }
-.raindrop { position:absolute; width:2px; height:10px; background:rgba(0,0,255,0.5); animation:fall 1s linear infinite; }
-
-@keyframes moveClouds { 0%{transform:translateX(-100%);}100%{transform:translateX(100%);} }
-@keyframes fall { 0%{top:-10px;}100%{top:100%;} }
-
-.content { position:relative; z-index:2; text-align:center; padding:20px; transition: color 1s, text-shadow 1s;}
-.content.rainy { text-shadow:2px 2px 4px #000; }
+/* Content */
+.content {position:relative; z-index:2;text-align:center;padding:20px;transition:color 1s,text-shadow 1s;}
+.content.rainy {text-shadow:2px 2px 4px #000;}
 
 /* Side nav */
-.sidenav { height:100%; width:0; position:fixed; z-index:3; top:0; left:0; background:#111; overflow-x:hidden; transition:0.5s; padding-top:60px; text-align:center;}
-.sidenav a { padding:8px 8px 8px 32px; text-decoration:none; font-size:25px; color:#818181; display:block; transition:0.3s; }
-.sidenav a:hover{ color:#f1f1f1; }
-.sidenav .closebtn { position:absolute; top:0; right:25px; font-size:36px; margin-left:50px; }
-@media screen and (max-height:450px){.sidenav{padding-top:15px;} .sidenav a{font-size:18px;}}
+.sidenav {height:100%;width:0;position:fixed;z-index:3;top:0;left:0;background:#111;overflow-x:hidden;transition:0.5s;padding-top:60px;text-align:center;}
+.sidenav a {padding:8px 8px 8px 32px;text-decoration:none;font-size:25px;color:#818181;display:block;transition:0.3s;}
+.sidenav a:hover{color:#f1f1f1;}
+.sidenav .closebtn {position:absolute;top:0;right:25px;font-size:36px;margin-left:50px;}
+@media screen and (max-height:450px){.sidenav{padding-top:15px;}.sidenav a{font-size:18px;}}
+#signOutBtn {position:absolute;top:12px;right:12px;padding:6px 12px;border:none;border-radius:6px;background:teal;color:white;cursor:pointer;}
+#signOutBtn:hover {background:#006666;}
 
-#signOutBtn { position:absolute; top:12px; right:12px; padding:6px 12px; border:none; border-radius:6px; background:teal; color:white; cursor:pointer; }
-#signOutBtn:hover { background:#006666; }
-
-/* Forecast fold-out cards - vertical layout */
-.forecast-container {
-    display: flex;
-    flex-direction: column; /* vertical stacking */
-    align-items: center;
-    margin-top: 20px;
-    gap: 10px;
-}
-.forecast-card {
-    background: rgba(255,255,255,0.85);
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    width: 90%;
-    max-width: 500px;
-    cursor: pointer;
-    transition: transform 0.3s;
-}
-.forecast-card:hover { transform: translateY(-5px); }
-.card-summary { padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-.card-summary img { width: 40px; height: 40px; }
-.expand-btn { transition: transform 0.3s; font-size: 20px; }
-.forecast-details { padding: 10px; display: none; text-align: left; font-weight: normal; }
-.forecast-card.expanded .forecast-details { display: block; }
-.forecast-card.expanded .expand-btn { transform: rotate(45deg); }
+/* Forecast Cards */
+.forecast-container {display:flex;flex-direction:column;align-items:center;margin-top:20px;gap:12px;}
+.forecast-card {background:linear-gradient(135deg, #ffffff, #e0f7fa);border-radius:15px;box-shadow:0 6px 12px rgba(0,0,0,0.2);width:90%;max-width:500px;cursor:pointer;transition:transform 0.3s, background 0.3s;}
+.forecast-card:hover {transform:translateY(-5px);}
+.card-summary {padding:12px;display:flex;justify-content:space-between;align-items:center;font-weight:bold;}
+.card-summary img {width:40px;height:40px;transition:transform 0.3s;}
+.expand-btn {font-size:20px;transition:transform 0.3s;}
+.forecast-details {padding:10px;text-align:left;font-weight:normal;display:none;overflow:auto;max-height:200px;}
+.forecast-card.expanded .forecast-details {display:block;}
+.forecast-card.expanded .expand-btn {transform:rotate(45deg);}
+@media screen and (max-width:500px){.card-summary{flex-direction:column;gap:5px;}.forecast-card{width:95%;}}
 </style>
 </head>
 <body>
-
 <div class="background">
     <div class="sun"></div>
-    <div class="cloud" style="top: 30%; left: 20%; animation-duration:25s;"></div>
-    <div class="cloud" style="top: 60%; left: 50%; animation-duration:28s;"></div>
-    <div class="cloud" style="top: 15%; left: 70%; animation-duration:20s;"></div>
+    <div class="cloud" style="top:30%;left:20%;animation-duration:25s;"></div>
+    <div class="cloud" style="top:60%;left:50%;animation-duration:28s;"></div>
+    <div class="cloud" style="top:15%;left:70%;animation-duration:20s;"></div>
     <div class="rain"></div>
 </div>
 
 <div class="content">
-    <!-- Side nav -->
+    <!-- Side Nav -->
     <div id="mySidenav" class="sidenav">
       <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
       <a href="/index.html">Home</a>
@@ -107,22 +90,18 @@ document.getElementById("signOutBtn").addEventListener("click", ()=>{
 });
 const signedIn = localStorage.getItem("signedIn") === "true";
 const signInLink = document.getElementById("signInLink");
-if(signedIn){
-    signInLink.textContent="Sign Out"; signInLink.href="#";
-    signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });
-} else { signInLink.textContent="Sign In"; signInLink.href="/signin.html"; }
+if(signedIn){signInLink.textContent="Sign Out"; signInLink.href="#"; signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });} 
+else {signInLink.textContent="Sign In"; signInLink.href="/signin.html";}
 
 // --- Create forecast card ---
 function createCard(period){
     const card = document.createElement('div');
     card.classList.add('forecast-card');
+    const iconURL = period.icon || "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png";
     card.innerHTML = `
         <div class="card-summary">
-            <div>
-                ${new Date(period.startTime).toLocaleString('en-US',{hour:'numeric',minute:'numeric'})}<br>
-                ${period.temperature}°${period.temperatureUnit}
-            </div>
-            <img src="${period.icon}" alt="icon">
+            <div>${new Date(period.startTime).toLocaleString('en-US',{hour:'numeric',minute:'numeric'})}<br>${period.temperature}°${period.temperatureUnit}</div>
+            <img src="${iconURL}" alt="icon" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png'">
             <span class="expand-btn">+</span>
         </div>
         <div class="forecast-details">
@@ -132,13 +111,11 @@ function createCard(period){
             <p>${period.detailedForecast}</p>
         </div>
     `;
-    card.querySelector('.card-summary').addEventListener('click', ()=>{
-        card.classList.toggle('expanded');
-    });
+    card.querySelector('.card-summary').addEventListener('click', ()=>{card.classList.toggle('expanded');});
     return card;
 }
 
-// --- Fetch NOAA hourly forecast ---
+// --- Fetch NOAA forecast ---
 async function fetchForecast(lat, lon){
     const container = document.getElementById('forecast-container');
     container.innerHTML = '<p>Loading forecast...</p>';
@@ -148,43 +125,78 @@ async function fetchForecast(lat, lon){
         const forecast = await fetch(point.properties.forecastHourly, { headers }).then(r=>r.json());
         container.innerHTML = '';
         forecast.properties.periods.slice(0,24).forEach(p=>container.appendChild(createCard(p)));
-    }catch(e){ console.error(e); container.innerHTML='<p>Unable to load forecast.</p>'; }
+    } catch(e){ console.error(e); container.innerHTML='<p>Unable to load forecast. Retrying...</p>'; }
 }
 
-// --- Use geolocation if available ---
+// --- Geolocation with fallback ---
 function loadForecast(){
     if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-            fetchForecast(pos.coords.latitude,pos.coords.longitude);
-        }, err=>{
-            console.error(err);
-            fetchForecast(34.7465,-92.2896); // fallback Little Rock
-        });
-    }else{ fetchForecast(34.7465,-92.2896); }
+        navigator.geolocation.getCurrentPosition(pos=>fetchForecast(pos.coords.latitude,pos.coords.longitude),
+        err=>fetchForecast(34.7465,-92.2896));
+    } else {fetchForecast(34.7465,-92.2896);}
 }
-
-// Initial load
 loadForecast();
 
-// --- Refresh every 10 secs ---
-setInterval(loadForecast, 900000);
+// --- Auto-refresh every 10 seconds ---
+setInterval(loadForecast,900000);
 
-// --- Clouds & Rain animation ---
+// --- Clouds & rain animation ---
 document.addEventListener('DOMContentLoaded', ()=>{
-    const clouds=document.querySelectorAll('.cloud'); clouds.forEach(c=>{ c.style.top=`${Math.random()*100}%`; c.style.left=`${Math.random()*100}%`; c.style.animationDuration=`${10+Math.random()*20}s`; });
-    const rainContainer=document.querySelector('.rain'); const sun=document.querySelector('.sun'); const content=document.querySelector('.content');
+    const clouds = document.querySelectorAll('.cloud');
+    clouds.forEach(c => { 
+        c.style.top = `${Math.random() * 80}%`;
+        c.style.left = `${Math.random() * 100}%`;
+        c.style.animationDuration = `${10 + Math.random() * 20}s`;
+    });
+
+    // Add extra clouds lower
+    for(let i=0; i<3; i++){
+        const extraCloud = document.createElement('div');
+        extraCloud.classList.add('cloud');
+        extraCloud.style.top = `${60 + Math.random() * 30}%`;
+        extraCloud.style.left = `${Math.random() * 100}%`;
+        extraCloud.style.animationDuration = `${10 + Math.random() * 20}s`;
+        document.querySelector('.background').appendChild(extraCloud);
+    }
+
+    const rainContainer = document.querySelector('.rain');
+    const sun = document.querySelector('.sun');
+    const content = document.querySelector('.content');
+
     function startRain(){
-        rainContainer.style.display='block'; rainContainer.style.opacity=1; document.body.style.background='#2F4F4F'; content.style.color='#fff'; content.classList.add('rainy'); sun.style.display='none';
-        clouds.forEach(c=>c.style.background='#A9A9A9');
-        for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop); }
+        rainContainer.style.display = 'block';
+        rainContainer.style.opacity = 1;
+        document.body.style.background = '#2F4F4F';
+        content.style.color = '#fff';
+        content.classList.add('rainy');
+        sun.style.display = 'none';
+        clouds.forEach(c => c.style.background='#A9A9A9');
+
+        const maxDrops = Math.min(150, window.innerWidth / 5);
+        for(let i=0;i<maxDrops;i++){
+            const drop = document.createElement('div');
+            drop.classList.add('raindrop');
+            drop.style.left = `${Math.random()*100}%`;
+            drop.style.height = `${10 + Math.random()*10}px`;
+            drop.style.animationDuration = `${0.5 + Math.random()}s`;
+            rainContainer.appendChild(drop);
+        }
         setTimeout(stopRain,60000);
     }
+
     function stopRain(){
-        rainContainer.style.opacity=0; setTimeout(()=>{
-            rainContainer.style.display='none'; document.body.style.background='#87CEEB'; content.style.color='#000'; content.classList.remove('rainy'); sun.style.display='block';
-            clouds.forEach(c=>c.style.background='#fff'); while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }
-        },1000);
+        rainContainer.style.opacity = 0;
+        setTimeout(()=>{
+            rainContainer.style.display = 'none';
+            document.body.style.background = '#87CEEB';
+            content.style.color = '#000';
+            content.classList.remove('rainy');
+            sun.style.display = 'block';
+            clouds.forEach(c=>c.style.background='#fff');
+            while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }
+        }, 1000);
     }
+
     setInterval(startRain,30000);
 });
 </script>
