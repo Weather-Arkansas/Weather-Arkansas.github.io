@@ -1,2001 +1,238 @@
-<html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather Themed Forecast</title>
+<title>5-Day Hourly Forecast</title>
+
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    color: #fff;
-    transition: background 0.5s;
-    overflow-x: hidden;
-    position: relative;
-  }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  overflow-x: hidden;
+}
 
-  /* Hamburger menu */
-  #hamburger {
-    position: fixed;
-    top: 15px; left: 15px;
-    z-index: 10;
-    cursor: pointer;
-    width: 30px;
-    height: 25px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  #hamburger div {
-    height: 4px;
-    background: #fff;
-    border-radius: 2px;
-  }
+#weather-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  transition: background 1s;
+}
 
-  /* Side menu */
-  #side-menu {
-    position: fixed;
-    top: 0; left: -250px;
-    width: 250px;
-    height: 100%;
-    background: rgba(20,40,80,0.95);
-    transition: left 0.3s;
-    padding: 20px;
-    z-index: 9;
-  }
-  #side-menu.active { left: 0; }
-  #side-menu button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    background: #1e3c72;
-    border: none;
-    color: white;
-    cursor: pointer;
-    border-radius: 5px;
-  }
+#forecast-container {
+  padding: 20px;
+}
 
-  /* Weather background */
-  #weather-background {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: -1;
-    overflow: hidden;
-    transition: background 1s;
-  }
-  .cloud {
-    position: absolute;
-    background: rgba(255,255,255,0.4);
-    border-radius: 50%;
-    animation: moveCloud linear infinite;
-  }
-  @keyframes moveCloud {
-    0% {transform: translateX(-200px);}
-    100% {transform: translateX(120vw);}
-  }
-  .particle {
-    position: absolute;
-    width: 2px; height: 10px;
-    background: rgba(255,255,255,0.6);
-    animation: fall linear infinite;
-  }
-  @keyframes fall {
-    0% {transform: translateY(-10px);}
-    100% {transform: translateY(100vh);}
-  }
+.day-container {
+  margin-bottom: 40px;
+}
 
-  #forecast-container {
-    padding: 70px 20px 20px 20px;
-  }
-  .day-container {
-    margin-bottom: 40px;
-  }
-  h2 { border-bottom: 2px solid #1e3c72; padding-bottom:5px; margin-bottom:10px; }
-  .hourly-container { display: flex; flex-direction: column; gap: 8px; }
-  .hour-card {
-    background-color: rgba(30, 60, 114, 0.9);
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  .hour-card:hover { transform: scale(1.02); }
-  .hour-summary { display: flex; justify-content: space-between; align-items: center; }
-  .hour-details { display: none; font-size:0.85em; margin-top:5px; }
-  .hour-card.expanded .hour-details { display: block; }
-  .expand-btn { cursor:pointer; font-weight:bold; }
+h2 {
+  border-bottom: 2px solid #1e3c72;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.hourly-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hour-card {
+  background: rgba(30, 60, 114, 0.9);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.hour-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hour-details {
+  display: none;
+  font-size: 0.85em;
+  margin-top: 6px;
+}
+
+.hour-card.expanded .hour-details {
+  display: block;
+}
+
+.expand-btn {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* PARTICLES */
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: rgba(255,255,255,0.7);
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  from { transform: translateY(-20px); }
+  to { transform: translateY(110vh); }
+}
+
+/* CLOUDS */
+.cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.35);
+  border-radius: 50%;
+  filter: blur(2px);
+}
 </style>
 </head>
+
 <body>
-<!-- Hamburger menu -->
-
-
-
-<div id="weather-background" style="background: rgb(110, 126, 142);"><div class="cloud" style="width: 164.85px; height: 98.9101px; top: 27.9921%; animation-duration: 23.25s; opacity: 0.591;"></div><div class="cloud" style="width: 120.436px; height: 72.2617px; top: 43.7127%; animation-duration: 47.1284s; opacity: 0.670337;"></div><div class="cloud" style="width: 127.232px; height: 76.3392px; top: 26.7068%; animation-duration: 48.069s; opacity: 0.512509;"></div><div class="cloud" style="width: 137.623px; height: 82.574px; top: 20.3693%; animation-duration: 36.4907s; opacity: 0.508971;"></div><div class="cloud" style="width: 187.984px; height: 112.79px; top: 39.299%; animation-duration: 42.5648s; opacity: 0.518602;"></div><div class="cloud" style="width: 101.819px; height: 61.0913px; top: 15.306%; animation-duration: 59.2271s; opacity: 0.683824;"></div><div class="cloud" style="width: 161.424px; height: 96.8542px; top: 38.6244%; animation-duration: 50.5215s; opacity: 0.693072;"></div><div class="cloud" style="width: 127.385px; height: 76.4307px; top: 4.75006%; animation-duration: 52.7379s; opacity: 0.693897;"></div></div>
-<div id="forecast-container"><div class="day-container"><h2>Fri Dec 12 2025</h2><div class="hourly-container"><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 AM</strong>
-              <br>40°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 4%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 AM</strong>
-              <br>42°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 5 mph ENE</p>
-            <p>Precip: 4%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 PM</strong>
-              <br>42°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 3%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 PM</strong>
-              <br>45°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 PM</strong>
-              <br>46°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 3%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 PM</strong>
-              <br>47°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 4%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 PM</strong>
-              <br>47°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 5%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 PM</strong>
-              <br>46°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 PM</strong>
-              <br>44°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 PM</strong>
-              <br>43°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 PM</strong>
-              <br>40°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 PM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 PM</strong>
-              <br>38°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 5 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 PM</strong>
-              <br>38°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 5 mph NNE</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div></div></div><div class="day-container"><h2>Sat Dec 13 2025</h2><div class="hourly-container"><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 AM</strong>
-              <br>38°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph NNE</p>
-            <p>Precip: 2%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 AM</strong>
-              <br>36°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 2%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 AM</strong>
-              <br>34°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 2%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 AM</strong>
-              <br>32°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 AM</strong>
-              <br>30°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 AM</strong>
-              <br>27°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 AM</strong>
-              <br>25°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 AM</strong>
-              <br>24°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 AM</strong>
-              <br>23°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 AM</strong>
-              <br>24°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 10 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph NNE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 PM</strong>
-              <br>27°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 PM</strong>
-              <br>25°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 5 mph NE</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 PM</strong>
-              <br>21°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 PM</strong>
-              <br>19°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 PM</strong>
-              <br>19°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 PM</strong>
-              <br>19°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 PM</strong>
-              <br>19°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div></div></div><div class="day-container"><h2>Sun Dec 14 2025</h2><div class="hourly-container"><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 AM</strong>
-              <br>18°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 AM</strong>
-              <br>18°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 AM</strong>
-              <br>18°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 AM</strong>
-              <br>17°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 AM</strong>
-              <br>17°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 AM</strong>
-              <br>17°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 AM</strong>
-              <br>17°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 AM</strong>
-              <br>18°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 AM</strong>
-              <br>20°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 AM</strong>
-              <br>23°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 AM</strong>
-              <br>27°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 AM</strong>
-              <br>31°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 PM</strong>
-              <br>34°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 PM</strong>
-              <br>37°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 PM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 PM</strong>
-              <br>40°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 PM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/few?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 PM</strong>
-              <br>36°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/skc?size=small" alt="Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 PM</strong>
-              <br>34°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 PM</strong>
-              <br>32°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 PM</strong>
-              <br>30°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 PM</strong>
-              <br>29°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 PM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 PM</strong>
-              <br>27°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div></div></div><div class="day-container"><h2>Mon Dec 15 2025</h2><div class="hourly-container"><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 AM</strong>
-              <br>27°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/few?size=small" alt="Mostly Clear" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Clear</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 AM</strong>
-              <br>25°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 AM</strong>
-              <br>25°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 AM</strong>
-              <br>26°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/sct?size=small" alt="Mostly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 AM</strong>
-              <br>28°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/sct?size=small" alt="Mostly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Sunny</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 AM</strong>
-              <br>31°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/sct?size=small" alt="Mostly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 AM</strong>
-              <br>34°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 AM</strong>
-              <br>38°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 AM</strong>
-              <br>42°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 PM</strong>
-              <br>46°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 PM</strong>
-              <br>49°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 PM</strong>
-              <br>50°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 PM</strong>
-              <br>51°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 PM</strong>
-              <br>49°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 PM</strong>
-              <br>47°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Partly Sunny" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Sunny</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 0%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 PM</strong>
-              <br>44°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/sct?size=small" alt="Partly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Partly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 PM</strong>
-              <br>43°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 PM</strong>
-              <br>41°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 PM</strong>
-              <br>40°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 PM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph SSW</p>
-            <p>Precip: 1%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 PM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 1%</p>
-          </div>
-        </div></div></div><div class="day-container"><h2>Tue Dec 16 2025</h2><div class="hourly-container"><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 AM</strong>
-              <br>39°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 7%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 AM</strong>
-              <br>40°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 AM</strong>
-              <br>42°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 0 mph </p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 AM</strong>
-              <br>44°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 AM</strong>
-              <br>46°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 AM</strong>
-              <br>48°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 AM</strong>
-              <br>51°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>12:00 PM</strong>
-              <br>53°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>01:00 PM</strong>
-              <br>55°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>02:00 PM</strong>
-              <br>57°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>03:00 PM</strong>
-              <br>57°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>04:00 PM</strong>
-              <br>57°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>05:00 PM</strong>
-              <br>56°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/day/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 11%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>06:00 PM</strong>
-              <br>54°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>07:00 PM</strong>
-              <br>54°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>08:00 PM</strong>
-              <br>53°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>09:00 PM</strong>
-              <br>53°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>10:00 PM</strong>
-              <br>54°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/bkn?size=small" alt="Mostly Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Mostly Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div><div class="hour-card">
-          <div class="hour-summary">
-            <div>
-              <strong>11:00 PM</strong>
-              <br>54°F
-            </div>
-            <div>
-              <img src="https://api.weather.gov/icons/land/night/ovc?size=small" alt="Cloudy" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>Cloudy</p>
-            <p>Wind: 5 mph S</p>
-            <p>Precip: 9%</p>
-          </div>
-        </div></div></div></div>
+<div id="weather-background"></div>
+<div id="forecast-container"></div>
 
 <script>
-// Hamburger toggle
-const hamburger = document.getElementById('hamburger');
-const menu = document.getElementById('side-menu');
-hamburger.addEventListener('click', () => { menu.classList.toggle('active'); });
+const REFRESH_INTERVAL = 300000; // 5 minutes
 
-// Location + API
-async function getLocation() {
+function getLocation() {
   return new Promise((resolve, reject) => {
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(pos => resolve(pos.coords), err => reject(err));
-    else reject("Geolocation not supported");
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve(pos.coords),
+      err => reject(err)
+    );
   });
 }
 
 async function fetchForecast(lat, lon) {
-  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r=>r.json());
-  return fetch(point.properties.forecastHourly).then(r=>r.json());
+  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r => r.json());
+  return fetch(point.properties.forecastHourly).then(r => r.json());
 }
 
-// Clear and create clouds
-function createClouds(count) {
+function clearBackground() {
+  document.getElementById('weather-background').innerHTML = '';
+}
+
+function setWeatherBackground(text, isDay) {
   const bg = document.getElementById('weather-background');
-  for (let i=0;i<count;i++){
-    const c=document.createElement('div');
-    c.className='cloud';
-    const size = 80+Math.random()*120;
-    c.style.width = size+'px';
-    c.style.height = (size*0.6)+'px';
-    c.style.top = Math.random()*50+'%';
-    c.style.animationDuration = (20+Math.random()*40)+'s';
-    c.style.opacity = 0.3+Math.random()*0.4;
-    bg.appendChild(c);
-  }
-}
+  clearBackground();
 
-// Create rain/snow particles
-function createParticles(type,count){
-  const bg=document.getElementById('weather-background');
-  for(let i=0;i<count;i++){
-    const p=document.createElement('div');
-    p.className='particle';
-    p.style.left=Math.random()*100+'%';
-    p.style.height=(type==='snow'?2+Math.random()*4:5+Math.random()*5)+'px';
-    p.style.animationDuration=(type==='snow'?1+Math.random()*3:0.5+Math.random()*1.5)+'s';
-    p.style.background = (type==='snow'?'white':'rgba(255,255,255,0.6)');
-    bg.appendChild(p);
-  }
-}
-
-// Set background based on weather
-function setWeatherBackground(condition, isDay){
-  const bg=document.getElementById('weather-background');
-  bg.innerHTML='';
   let color = '#0b1d3a';
-  if (condition.includes("Rain") || condition.includes("Storm")) color = '#2a3b4c';
-  else if (condition.includes("Snow")) color = '#3b4a5b';
-  else if (condition.includes("Cloud")) color = isDay ? '#6e7e8e' : '#3b3b4b';
-  else if (condition.includes("Clear") || condition.includes("Sunny")) color = isDay ? '#87ceeb' : '#0b1d3a';
-  bg.style.background=color;
 
-  if (condition.includes("Cloud")) createClouds(8);
-  if (condition.includes("Rain") || condition.includes("Storm")) createParticles('rain',100);
-  if (condition.includes("Snow")) createParticles('snow',100);
+  if (/rain|storm/i.test(text)) color = '#2a3b4c';
+  else if (/snow/i.test(text)) color = '#3b4a5b';
+  else if (/cloud/i.test(text)) color = isDay ? '#7a8794' : '#2e3440';
+  else if (/clear|sunny/i.test(text)) color = isDay ? '#87ceeb' : '#0b1d3a';
+
+  bg.style.background = color;
+
+  if (/cloud/i.test(text)) {
+    for (let i = 0; i < 12; i++) {
+      const c = document.createElement('div');
+      c.className = 'cloud';
+      const size = 120 + Math.random() * 180;
+      c.style.width = size + 'px';
+      c.style.height = size * 0.6 + 'px';
+      c.style.top = Math.random() * 60 + '%';
+      c.style.left = Math.random() * 100 + '%';
+      bg.appendChild(c);
+    }
+  }
+
+  if (/rain|storm/i.test(text)) {
+    for (let i = 0; i < 120; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (0.4 + Math.random()) + 's';
+      bg.appendChild(p);
+    }
+  }
+
+  if (/snow/i.test(text)) {
+    for (let i = 0; i < 100; i++) {
+      const s = document.createElement('div');
+      s.className = 'particle';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.height = '4px';
+      s.style.background = 'white';
+      s.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      bg.appendChild(s);
+    }
+  }
 }
 
-// Render 5-day hourly forecast
 async function renderForecast() {
   try {
+    const now = new Date();
     const coords = await getLocation();
     const data = await fetchForecast(coords.latitude, coords.longitude);
-    const container=document.getElementById('forecast-container');
-    container.innerHTML='';
-    
-    const dailyData = {};
-    data.properties.periods.forEach(period=>{
-      const day=period.startTime.split('T')[0];
-      if(!dailyData[day]) dailyData[day]=[];
-      dailyData[day].push(period);
-    });
 
-    Object.keys(dailyData).slice(0,5).forEach(day=>{
-      const dayDiv=document.createElement('div');
-      dayDiv.className='day-container';
-      dayDiv.innerHTML=`<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
+    const container = document.getElementById('forecast-container');
+    container.innerHTML = '';
+
+    const daily = {};
+
+    data.properties.periods
+      .filter(p => new Date(p.startTime) >= now) // 🔥 REMOVE PAST HOURS
+      .forEach(p => {
+        const day = p.startTime.split('T')[0];
+        if (!daily[day]) daily[day] = [];
+        daily[day].push(p);
+      });
+
+    Object.keys(daily).slice(0, 5).forEach(day => {
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'day-container';
+      dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
       container.appendChild(dayDiv);
 
-      const hourlyContainer=dayDiv.querySelector('.hourly-container');
-      dailyData[day].forEach(hour=>{
-        const card=document.createElement('div');
-        card.className='hour-card';
-        card.innerHTML=`
+      const hc = dayDiv.querySelector('.hourly-container');
+
+      daily[day].forEach(hour => {
+        const card = document.createElement('div');
+        card.className = 'hour-card';
+
+        card.innerHTML = `
           <div class="hour-summary">
             <div>
-              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong>
-              <br>${hour.temperature}°${hour.temperatureUnit}
+              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong><br>
+              ${hour.temperature}°${hour.temperatureUnit}
             </div>
-            <div>
-              <img src="${hour.icon}" alt="${hour.shortForecast}" width="40" height="40">
-            </div>
+            <img src="${hour.icon}" width="40">
             <div class="expand-btn">+</div>
           </div>
           <div class="hour-details">
             <p>${hour.shortForecast}</p>
             <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
-            <p>Precip: ${hour.probabilityOfPrecipitation.value??0}%</p>
+            <p>Precip: ${hour.probabilityOfPrecipitation.value ?? 0}%</p>
           </div>
         `;
-        hourlyContainer.appendChild(card);
-        card.querySelector('.expand-btn').addEventListener('click',()=>card.classList.toggle('expanded'));
+
+        card.querySelector('.expand-btn')
+          .addEventListener('click', () => card.classList.toggle('expanded'));
+
+        hc.appendChild(card);
       });
     });
 
-    const firstPeriod=data.properties.periods[0];
-    setWeatherBackground(firstPeriod.shortForecast, firstPeriod.isDaytime);
-  } catch(e){
-    console.error("Error:",e);
-    document.getElementById('forecast-container').innerHTML="<p>Unable to load forecast. Allow location access.</p>";
+    const current = data.properties.periods[0];
+    setWeatherBackground(current.shortForecast, current.isDaytime);
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('forecast-container').innerHTML =
+      '<p>Enable location to load forecast.</p>';
   }
 }
 
 renderForecast();
+setInterval(renderForecast, REFRESH_INTERVAL); // 🔁 AUTO UPDATE EVERY 5 MIN
 </script>
-
-
-</body></html>
+</body>
+</html>
