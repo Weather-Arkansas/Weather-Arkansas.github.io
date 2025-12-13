@@ -3,235 +3,179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>5-Day Hourly Forecast</title>
-
+<title>5-Day Hourly Forecast - Arkansas/Geo</title>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  color: white;
-  overflow-x: hidden;
-}
-
-/* ================= BACKGROUND ================= */
-#weather-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  transition: background 1s;
-  overflow: hidden;
-}
-
-/* Sun / Moon */
-#sun, #moon {
-  position: absolute;
-  top: 8%;
-  right: 10%;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  opacity: 0.9;
-}
-
-#sun { background: radial-gradient(circle, #fff9c4, #ffd54f); }
-#moon { background: radial-gradient(circle, #f5f5f5, #bdbdbd); }
-
-/* Clouds */
-.cloud {
-  position: absolute;
-  background: rgba(255,255,255,0.85);
-  border-radius: 50%;
-  animation: moveClouds linear infinite;
-}
-
-@keyframes moveClouds {
-  from { transform: translateX(-400px); }
-  to { transform: translateX(140vw); }
-}
-
-/* Rain / Snow */
-.particle {
-  position: absolute;
-  width: 2px;
-  height: 14px;
-  background: rgba(255,255,255,0.6);
-  animation: fall linear infinite;
-}
-
-@keyframes fall {
-  from { transform: translateY(-20px); }
-  to { transform: translateY(110vh); }
-}
-
-/* ================= FORECAST ================= */
-#forecast {
-  padding: 20px;
-}
-
-.day {
-  margin-bottom: 40px;
-}
-
-h2 {
-  border-bottom: 2px solid rgba(255,255,255,0.4);
-}
-
-.hour {
-  background: rgba(0,0,0,0.35);
-  border-radius: 8px;
-  padding: 10px;
-  margin: 6px 0;
-}
-
-.hour-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hour-details {
-  display: none;
-  font-size: 0.85em;
-}
-
-.hour.open .hour-details {
-  display: block;
-  margin-top: 5px;
-}
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    transition: background 0.5s;
+    overflow-x: hidden;
+    position: relative;
+  }
+  #weather-background {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    transition: background 1s;
+  }
+  #forecast-container {
+    padding: 20px;
+  }
+  .day-container { margin-bottom: 40px; }
+  h2 { border-bottom: 2px solid #1e3c72; padding-bottom: 5px; margin-bottom: 10px; }
+  .hourly-container { display: flex; flex-direction: column; gap: 8px; }
+  .hour-card { background-color: rgba(30, 60, 114, 0.9); border-radius: 8px; padding: 10px; cursor: pointer; transition: transform 0.2s; }
+  .hour-card:hover { transform: scale(1.02); }
+  .hour-summary { display: flex; justify-content: space-between; align-items: center; }
+  .hour-details { display: none; font-size: 0.85em; margin-top: 5px; }
+  .hour-card.expanded .hour-details { display: block; }
+  .expand-btn { cursor: pointer; font-weight: bold; }
+  .particle { position: absolute; width: 2px; height: 10px; background: rgba(255,255,255,0.6); animation: fall linear infinite; }
+  @keyframes fall { 0% {transform: translateY(-10px);} 100% {transform: translateY(100vh);} }
+  .cloud { position: absolute; background: rgba(255,255,255,0.3); border-radius: 50%; }
 </style>
 </head>
-
 <body>
-<div id="weather-bg"></div>
-<div id="forecast"></div>
+<div id="weather-background"></div>
+<div id="forecast-container"></div>
 
 <script>
-/* ================= LOCATION ================= */
-function getLocation() {
-  return new Promise((res, rej) => {
-    navigator.geolocation.getCurrentPosition(
-      p => res(p.coords),
-      e => rej(e)
-    );
-  });
+// ================== HELPER FUNCTIONS ==================
+async function getLocationOrDefault() {
+  try {
+    if (navigator.geolocation) {
+      const pos = await new Promise((resolve, reject) => 
+        navigator.geolocation.getCurrentPosition(resolve, reject)
+      );
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    } else throw "Geolocation not supported";
+  } catch {
+    // fallback to Little Rock, Arkansas
+    return { lat: 34.7465, lon: -92.2896 };
+  }
 }
 
-/* ================= WEATHER FETCH ================= */
-async function getForecast(lat, lon) {
-  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r=>r.json());
-  return fetch(point.properties.forecastHourly).then(r=>r.json());
+async function fetchForecast(lat, lon) {
+  const pointData = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r => r.json());
+  const forecastData = await fetch(pointData.properties.forecastHourly).then(r => r.json());
+  return forecastData;
 }
 
-/* ================= BACKGROUND ================= */
-function clearBG() {
-  document.getElementById('weather-bg').innerHTML = '';
+function clearBackground() {
+  document.getElementById('weather-background').innerHTML = '';
 }
 
-function setBackground(text, isDay) {
-  const bg = document.getElementById('weather-bg');
-  clearBG();
-
-  let color = isDay ? '#87ceeb' : '#0b1d3a';
-
-  if (/mostly cloudy/i.test(text)) color = isDay ? '#9aa7b3' : '#2a2f3a';
-  else if (/partly cloudy/i.test(text)) color = isDay ? '#b5c7d6' : '#1f2530';
-  else if (/cloudy/i.test(text)) color = isDay ? '#7a8794' : '#2e3440';
-  else if (/rain|storm/i.test(text)) color = '#2a3b4c';
-  else if (/snow/i.test(text)) color = '#4a5a6b';
-
+function setWeatherBackground(condition, isDay) {
+  const bg = document.getElementById('weather-background');
+  clearBackground();
+  
+  let color = '#0b1d3a';
+  if (condition.includes("Rain") || condition.includes("Storm")) color = '#2a3b4c';
+  else if (condition.includes("Snow")) color = '#3b4a5b';
+  else if (condition.includes("Cloud")) color = isDay ? '#6e7e8e' : '#3b3b4b';
+  else if (condition.includes("Clear") || condition.includes("Sunny")) color = isDay ? '#87ceeb' : '#0b1d3a';
   bg.style.background = color;
 
-  /* Sun / Moon */
-  const orb = document.createElement('div');
-  orb.id = isDay ? 'sun' : 'moon';
-  bg.appendChild(orb);
-
-  /* Clouds */
-  let cloudCount = 0;
-  if (/partly cloudy/i.test(text)) cloudCount = 5;
-  if (/mostly cloudy/i.test(text)) cloudCount = 10;
-  if (/cloudy/i.test(text)) cloudCount = 16;
-
-  for (let i = 0; i < cloudCount; i++) {
-    const c = document.createElement('div');
-    c.className = 'cloud';
-    const size = 220 + Math.random()*260;
-    c.style.width = size+'px';
-    c.style.height = size*0.6+'px';
-    c.style.top = Math.random()*60+'%';
-    c.style.animationDuration = 40+Math.random()*40+'s';
-    bg.appendChild(c);
+  if (condition.includes("Cloud")) {
+    for (let i=0;i<10;i++){
+      const cloud = document.createElement('div');
+      cloud.className='cloud';
+      cloud.style.width=(50+Math.random()*100)+'px';
+      cloud.style.height=(30+Math.random()*50)+'px';
+      cloud.style.top=Math.random()*50+'%';
+      cloud.style.left=Math.random()*100+'%';
+      bg.appendChild(cloud);
+    }
   }
 
-  /* Rain / Snow */
-  if (/rain|storm|snow/i.test(text)) {
-    for (let i=0;i<180;i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.left = Math.random()*100+'%';
-      p.style.animationDuration = (0.6+Math.random()*1.6)+'s';
-      if (/snow/i.test(text)) {
-        p.style.width = '4px';
-        p.style.height = '4px';
-        p.style.borderRadius = '50%';
-      }
+  if (condition.includes("Rain") || condition.includes("Storm")) {
+    for(let i=0;i<100;i++){
+      const p=document.createElement('div');
+      p.className='particle';
+      p.style.left=Math.random()*100+'%';
+      p.style.animationDuration=(0.5+Math.random()*1.5)+'s';
+      p.style.height=(5+Math.random()*5)+'px';
       bg.appendChild(p);
+    }
+  }
+
+  if (condition.includes("Snow")) {
+    for(let i=0;i<100;i++){
+      const s=document.createElement('div');
+      s.className='particle';
+      s.style.left=Math.random()*100+'%';
+      s.style.animationDuration=(1+Math.random()*3)+'s';
+      s.style.height=(2+Math.random()*4)+'px';
+      s.style.background='white';
+      bg.appendChild(s);
     }
   }
 }
 
-/* ================= RENDER ================= */
-async function render() {
-  const coords = await getLocation();
-  const data = await getForecast(coords.latitude, coords.longitude);
-  const container = document.getElementById('forecast');
-  container.innerHTML = '';
-
-  const now = new Date();
-  const days = {};
-
-  data.properties.periods.forEach(p => {
-    const time = new Date(p.startTime);
-    if (time < now) return;
-    const d = time.toISOString().split('T')[0];
-    if (!days[d]) days[d] = [];
-    days[d].push(p);
-  });
-
-  Object.keys(days).slice(0,5).forEach((day,i)=>{
-    const d = document.createElement('div');
-    d.className = 'day';
-    d.innerHTML = `<h2>${new Date(day).toDateString()}</h2>`;
-    container.appendChild(d);
-
-    days[day].forEach(h=>{
-      const card = document.createElement('div');
-      card.className = 'hour';
-      card.innerHTML = `
-        <div class="hour-main">
-          <div>${new Date(h.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
-          <div>${h.temperature}°</div>
-          <img src="${h.icon}" width="36">
-        </div>
-        <div class="hour-details">
-          ${h.shortForecast}<br>
-          Wind: ${h.windSpeed}<br>
-          Precip: ${h.probabilityOfPrecipitation.value ?? 0}%
-        </div>
-      `;
-      card.onclick = ()=>card.classList.toggle('open');
-      d.appendChild(card);
-
-      if (i===0 && h===days[day][0]) {
-        setBackground(h.shortForecast, h.isDaytime);
-      }
+// ================== MAIN FUNCTION ==================
+async function renderForecast() {
+  try {
+    const coords = await getLocationOrDefault();
+    const data = await fetchForecast(coords.lat, coords.lon);
+    const container = document.getElementById('forecast-container');
+    container.innerHTML = '';
+    
+    const dailyData = {};
+    data.properties.periods.forEach(period => {
+      const day = period.startTime.split('T')[0];
+      if (!dailyData[day]) dailyData[day] = [];
+      dailyData[day].push(period);
     });
-  });
+
+    Object.keys(dailyData).slice(0,5).forEach(day => {
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'day-container';
+      dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
+      container.appendChild(dayDiv);
+      
+      const hourlyContainer = dayDiv.querySelector('.hourly-container');
+      dailyData[day].forEach(hour => {
+        const isDay = hour.isDaytime;
+        const card = document.createElement('div');
+        card.className = 'hour-card';
+        card.innerHTML = `
+          <div class="hour-summary">
+            <div>
+              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong>
+              <br>${hour.temperature}°${hour.temperatureUnit}
+            </div>
+            <div>
+              <img src="${hour.icon}" alt="${hour.shortForecast}" width="40" height="40">
+            </div>
+            <div class="expand-btn">+</div>
+          </div>
+          <div class="hour-details">
+            <p>${hour.shortForecast}</p>
+            <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
+            <p>Precip: ${hour.probabilityOfPrecipitation.value ?? 0}%</p>
+          </div>
+        `;
+        hourlyContainer.appendChild(card);
+        card.querySelector('.expand-btn').addEventListener('click', () => card.classList.toggle('expanded'));
+      });
+    });
+
+    // Set background based on current weather (first period)
+    const firstPeriod = data.properties.periods[0];
+    setWeatherBackground(firstPeriod.shortForecast, firstPeriod.isDaytime);
+
+  } catch (e) {
+    console.error("Error loading forecast:", e);
+    document.getElementById('forecast-container').innerHTML = "<p>Unable to load forecast. Allow location access or check internet.</p>";
+  }
 }
 
-/* Refresh every 5 minutes */
-render();
-setInterval(render, 300000);
+// Refresh every 5 minutes
+renderForecast();
+setInterval(renderForecast, 300000);
 </script>
 </body>
 </html>
