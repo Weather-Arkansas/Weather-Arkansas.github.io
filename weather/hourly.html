@@ -9,72 +9,52 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  color: #fff;
+  color: white;
   overflow-x: hidden;
 }
 
-#weather-background {
+/* ================= BACKGROUND ================= */
+#weather-bg {
   position: fixed;
   inset: 0;
   z-index: -1;
-  overflow: hidden;
   transition: background 1s;
+  overflow: hidden;
 }
 
-#forecast-container {
-  padding: 20px;
+/* Sun / Moon */
+#sun, #moon {
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  opacity: 0.9;
 }
 
-.day-container {
-  margin-bottom: 40px;
+#sun { background: radial-gradient(circle, #fff9c4, #ffd54f); }
+#moon { background: radial-gradient(circle, #f5f5f5, #bdbdbd); }
+
+/* Clouds */
+.cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.85);
+  border-radius: 50%;
+  animation: moveClouds linear infinite;
 }
 
-h2 {
-  border-bottom: 2px solid #1e3c72;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
+@keyframes moveClouds {
+  from { transform: translateX(-400px); }
+  to { transform: translateX(140vw); }
 }
 
-.hourly-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.hour-card {
-  background: rgba(30, 60, 114, 0.9);
-  border-radius: 8px;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.hour-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hour-details {
-  display: none;
-  font-size: 0.85em;
-  margin-top: 6px;
-}
-
-.hour-card.expanded .hour-details {
-  display: block;
-}
-
-.expand-btn {
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* PARTICLES */
+/* Rain / Snow */
 .particle {
   position: absolute;
   width: 2px;
-  height: 10px;
-  background: rgba(255,255,255,0.7);
+  height: 14px;
+  background: rgba(255,255,255,0.6);
   animation: fall linear infinite;
 }
 
@@ -83,156 +63,175 @@ h2 {
   to { transform: translateY(110vh); }
 }
 
-/* CLOUDS */
-.cloud {
-  position: absolute;
-  background: rgba(255,255,255,0.35);
-  border-radius: 50%;
-  filter: blur(2px);
+/* ================= FORECAST ================= */
+#forecast {
+  padding: 20px;
+}
+
+.day {
+  margin-bottom: 40px;
+}
+
+h2 {
+  border-bottom: 2px solid rgba(255,255,255,0.4);
+}
+
+.hour {
+  background: rgba(0,0,0,0.35);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 6px 0;
+}
+
+.hour-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hour-details {
+  display: none;
+  font-size: 0.85em;
+}
+
+.hour.open .hour-details {
+  display: block;
+  margin-top: 5px;
 }
 </style>
 </head>
 
 <body>
-<div id="weather-background"></div>
-<div id="forecast-container"></div>
+<div id="weather-bg"></div>
+<div id="forecast"></div>
 
 <script>
-const REFRESH_INTERVAL = 300000; // 5 minutes
-
+/* ================= LOCATION ================= */
 function getLocation() {
-  return new Promise((resolve, reject) => {
+  return new Promise((res, rej) => {
     navigator.geolocation.getCurrentPosition(
-      pos => resolve(pos.coords),
-      err => reject(err)
+      p => res(p.coords),
+      e => rej(e)
     );
   });
 }
 
-async function fetchForecast(lat, lon) {
-  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r => r.json());
-  return fetch(point.properties.forecastHourly).then(r => r.json());
+/* ================= WEATHER FETCH ================= */
+async function getForecast(lat, lon) {
+  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r=>r.json());
+  return fetch(point.properties.forecastHourly).then(r=>r.json());
 }
 
-function clearBackground() {
-  document.getElementById('weather-background').innerHTML = '';
+/* ================= BACKGROUND ================= */
+function clearBG() {
+  document.getElementById('weather-bg').innerHTML = '';
 }
 
-function setWeatherBackground(text, isDay) {
-  const bg = document.getElementById('weather-background');
-  clearBackground();
+function setBackground(text, isDay) {
+  const bg = document.getElementById('weather-bg');
+  clearBG();
 
-  let color = '#0b1d3a';
+  let color = isDay ? '#87ceeb' : '#0b1d3a';
 
-  if (/rain|storm/i.test(text)) color = '#2a3b4c';
-  else if (/snow/i.test(text)) color = '#3b4a5b';
-  else if (/cloud/i.test(text)) color = isDay ? '#7a8794' : '#2e3440';
-  else if (/clear|sunny/i.test(text)) color = isDay ? '#87ceeb' : '#0b1d3a';
+  if (/mostly cloudy/i.test(text)) color = isDay ? '#9aa7b3' : '#2a2f3a';
+  else if (/partly cloudy/i.test(text)) color = isDay ? '#b5c7d6' : '#1f2530';
+  else if (/cloudy/i.test(text)) color = isDay ? '#7a8794' : '#2e3440';
+  else if (/rain|storm/i.test(text)) color = '#2a3b4c';
+  else if (/snow/i.test(text)) color = '#4a5a6b';
 
   bg.style.background = color;
 
-  if (/cloud/i.test(text)) {
-    for (let i = 0; i < 12; i++) {
-      const c = document.createElement('div');
-      c.className = 'cloud';
-      const size = 120 + Math.random() * 180;
-      c.style.width = size + 'px';
-      c.style.height = size * 0.6 + 'px';
-      c.style.top = Math.random() * 60 + '%';
-      c.style.left = Math.random() * 100 + '%';
-      bg.appendChild(c);
-    }
+  /* Sun / Moon */
+  const orb = document.createElement('div');
+  orb.id = isDay ? 'sun' : 'moon';
+  bg.appendChild(orb);
+
+  /* Clouds */
+  let cloudCount = 0;
+  if (/partly cloudy/i.test(text)) cloudCount = 5;
+  if (/mostly cloudy/i.test(text)) cloudCount = 10;
+  if (/cloudy/i.test(text)) cloudCount = 16;
+
+  for (let i = 0; i < cloudCount; i++) {
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    const size = 220 + Math.random()*260;
+    c.style.width = size+'px';
+    c.style.height = size*0.6+'px';
+    c.style.top = Math.random()*60+'%';
+    c.style.animationDuration = 40+Math.random()*40+'s';
+    bg.appendChild(c);
   }
 
-  if (/rain|storm/i.test(text)) {
-    for (let i = 0; i < 120; i++) {
+  /* Rain / Snow */
+  if (/rain|storm|snow/i.test(text)) {
+    for (let i=0;i<180;i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDuration = (0.4 + Math.random()) + 's';
+      p.style.left = Math.random()*100+'%';
+      p.style.animationDuration = (0.6+Math.random()*1.6)+'s';
+      if (/snow/i.test(text)) {
+        p.style.width = '4px';
+        p.style.height = '4px';
+        p.style.borderRadius = '50%';
+      }
       bg.appendChild(p);
     }
   }
-
-  if (/snow/i.test(text)) {
-    for (let i = 0; i < 100; i++) {
-      const s = document.createElement('div');
-      s.className = 'particle';
-      s.style.left = Math.random() * 100 + '%';
-      s.style.height = '4px';
-      s.style.background = 'white';
-      s.style.animationDuration = (1.5 + Math.random() * 2) + 's';
-      bg.appendChild(s);
-    }
-  }
 }
 
-async function renderForecast() {
-  try {
-    const now = new Date();
-    const coords = await getLocation();
-    const data = await fetchForecast(coords.latitude, coords.longitude);
+/* ================= RENDER ================= */
+async function render() {
+  const coords = await getLocation();
+  const data = await getForecast(coords.latitude, coords.longitude);
+  const container = document.getElementById('forecast');
+  container.innerHTML = '';
 
-    const container = document.getElementById('forecast-container');
-    container.innerHTML = '';
+  const now = new Date();
+  const days = {};
 
-    const daily = {};
+  data.properties.periods.forEach(p => {
+    const time = new Date(p.startTime);
+    if (time < now) return;
+    const d = time.toISOString().split('T')[0];
+    if (!days[d]) days[d] = [];
+    days[d].push(p);
+  });
 
-    data.properties.periods
-      .filter(p => new Date(p.startTime) >= now) // 🔥 REMOVE PAST HOURS
-      .forEach(p => {
-        const day = p.startTime.split('T')[0];
-        if (!daily[day]) daily[day] = [];
-        daily[day].push(p);
-      });
+  Object.keys(days).slice(0,5).forEach((day,i)=>{
+    const d = document.createElement('div');
+    d.className = 'day';
+    d.innerHTML = `<h2>${new Date(day).toDateString()}</h2>`;
+    container.appendChild(d);
 
-    Object.keys(daily).slice(0, 5).forEach(day => {
-      const dayDiv = document.createElement('div');
-      dayDiv.className = 'day-container';
-      dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
-      container.appendChild(dayDiv);
+    days[day].forEach(h=>{
+      const card = document.createElement('div');
+      card.className = 'hour';
+      card.innerHTML = `
+        <div class="hour-main">
+          <div>${new Date(h.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+          <div>${h.temperature}°</div>
+          <img src="${h.icon}" width="36">
+        </div>
+        <div class="hour-details">
+          ${h.shortForecast}<br>
+          Wind: ${h.windSpeed}<br>
+          Precip: ${h.probabilityOfPrecipitation.value ?? 0}%
+        </div>
+      `;
+      card.onclick = ()=>card.classList.toggle('open');
+      d.appendChild(card);
 
-      const hc = dayDiv.querySelector('.hourly-container');
-
-      daily[day].forEach(hour => {
-        const card = document.createElement('div');
-        card.className = 'hour-card';
-
-        card.innerHTML = `
-          <div class="hour-summary">
-            <div>
-              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong><br>
-              ${hour.temperature}°${hour.temperatureUnit}
-            </div>
-            <img src="${hour.icon}" width="40">
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>${hour.shortForecast}</p>
-            <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
-            <p>Precip: ${hour.probabilityOfPrecipitation.value ?? 0}%</p>
-          </div>
-        `;
-
-        card.querySelector('.expand-btn')
-          .addEventListener('click', () => card.classList.toggle('expanded'));
-
-        hc.appendChild(card);
-      });
+      if (i===0 && h===days[day][0]) {
+        setBackground(h.shortForecast, h.isDaytime);
+      }
     });
-
-    const current = data.properties.periods[0];
-    setWeatherBackground(current.shortForecast, current.isDaytime);
-
-  } catch (e) {
-    console.error(e);
-    document.getElementById('forecast-container').innerHTML =
-      '<p>Enable location to load forecast.</p>';
-  }
+  });
 }
 
-renderForecast();
-setInterval(renderForecast, REFRESH_INTERVAL); // 🔁 AUTO UPDATE EVERY 5 MIN
+/* Refresh every 5 minutes */
+render();
+setInterval(render, 300000);
 </script>
 </body>
 </html>
