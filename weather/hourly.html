@@ -2,187 +2,151 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>5-Day Foldout Forecast</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-Day Hourly Forecast</title>
 <style>
   body {
+    background-color: #0b1d3a; /* dark blue default */
+    color: #fff;
+    font-family: Arial, sans-serif;
     margin: 0;
-    font-family: sans-serif;
-    transition: background 1s;
-    background: linear-gradient(to top, #87CEEB, #fff);
+    padding: 20px;
+  }
+  .day-container {
+    margin-bottom: 40px;
+  }
+  h2 {
+    border-bottom: 2px solid #1e3c72;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
   }
   .forecast-container {
     display: flex;
-    flex-direction: column;
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  .day-card {
-    background: rgba(255,255,255,0.9);
-    margin-bottom: 10px;
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: all 0.3s;
-  }
-  .day-header {
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .day-header h2 {
-    margin: 0;
-    font-size: 18px;
-  }
-  .hourly-container {
-    display: none;
-    padding: 10px 15px;
-    background: rgba(240,240,240,0.8);
     flex-wrap: wrap;
     gap: 10px;
   }
-  .hour-block {
-    flex: 0 0 60px;
+  .forecast-card {
+    border-radius: 10px;
+    padding: 10px;
+    width: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
     text-align: center;
-    padding: 5px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.7);
   }
-  .hour-block img {
-    width: 30px;
+  .forecast-card:hover {
+    transform: scale(1.05);
+  }
+  .card-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-summary img {
+    margin: 5px 0;
     height: 30px;
+  }
+  .forecast-details {
+    display: none;
+    font-size: 0.8em;
+    margin-top: 5px;
+  }
+  .forecast-card.expanded .forecast-details {
+    display: block;
+  }
+  .expand-btn {
+    font-weight: bold;
+    margin-top: 5px;
+    cursor: pointer;
   }
 </style>
 </head>
 <body>
-
-<div class="forecast-container" id="forecast"></div>
+<div id="weekly-forecast"></div>
 
 <script>
-// Example forecast data (replace with API call)
-const forecastData = [
-  {
-    day: "Monday",
-    date: "2025-12-15",
-    icon: "01d",
-    condition: "Sunny",
-    hours: [
-      {time:"6AM", icon:"01d", temp:32},
-      {time:"9AM", icon:"01d", temp:40},
-      {time:"12PM", icon:"01d", temp:50},
-      {time:"3PM", icon:"01d", temp:52},
-      {time:"6PM", icon:"01n", temp:48},
-      {time:"9PM", icon:"01n", temp:42}
-    ]
-  },
-  {
-    day: "Tuesday",
-    date: "2025-12-16",
-    icon: "02d",
-    condition: "Mostly Sunny",
-    hours: [
-      {time:"6AM", icon:"01d", temp:35},
-      {time:"9AM", icon:"02d", temp:42},
-      {time:"12PM", icon:"02d", temp:53},
-      {time:"3PM", icon:"02d", temp:55},
-      {time:"6PM", icon:"02n", temp:50},
-      {time:"9PM", icon:"02n", temp:44}
-    ]
-  },
-  {
-    day: "Wednesday",
-    date: "2025-12-17",
-    icon: "03d",
-    condition: "Partly Cloudy",
-    hours: [
-      {time:"6AM", icon:"03d", temp:36},
-      {time:"9AM", icon:"03d", temp:44},
-      {time:"12PM", icon:"03d", temp:55},
-      {time:"3PM", icon:"03d", temp:57},
-      {time:"6PM", icon:"03n", temp:52},
-      {time:"9PM", icon:"03n", temp:46}
-    ]
-  },
-  {
-    day: "Thursday",
-    date: "2025-12-18",
-    icon: "04d",
-    condition: "Mostly Cloudy",
-    hours: [
-      {time:"6AM", icon:"04d", temp:38},
-      {time:"9AM", icon:"04d", temp:46},
-      {time:"12PM", icon:"04d", temp:56},
-      {time:"3PM", icon:"04d", temp:58},
-      {time:"6PM", icon:"04n", temp:53},
-      {time:"9PM", icon:"04n", temp:48}
-    ]
-  },
-  {
-    day: "Friday",
-    date: "2025-12-19",
-    icon: "09d",
-    condition: "Cloudy",
-    hours: [
-      {time:"6AM", icon:"09d", temp:40},
-      {time:"9AM", icon:"09d", temp:48},
-      {time:"12PM", icon:"09d", temp:58},
-      {time:"3PM", icon:"09d", temp:60},
-      {time:"6PM", icon:"09n", temp:55},
-      {time:"9PM", icon:"09n", temp:50}
-    ]
+// Function to generate 24-hour dummy data for a day
+function generateHourlyData() {
+  const hours = [];
+  const conditions = ["Sunny","Mostly Sunny","Partly Cloudy","Mostly Cloudy","Cloudy","Storm"];
+  for (let i = 0; i < 24; i++) {
+    const hour = i < 10 ? `0${i}:00` : `${i}:00`;
+    const condition = conditions[Math.floor(Math.random()*conditions.length)];
+    hours.push({
+      time: hour,
+      temp: `${Math.floor(Math.random() * 20) + 30}°F`,
+      condition: condition,
+      wind: `${Math.floor(Math.random()*10)+1} mph`,
+      precip: `${Math.floor(Math.random()*60)}%`,
+      isNight: i < 6 || i >= 18
+    });
   }
-];
+  return hours;
+}
 
-// Background based on condition
-function setBackground(condition){
-  switch(condition){
-    case "Sunny": document.body.style.background = "#87CEEB"; break;
-    case "Mostly Sunny": document.body.style.background = "linear-gradient(to top, #87CEEB, #cce7ff)"; break;
-    case "Partly Cloudy": document.body.style.background = "linear-gradient(to top, #a0c4ff, #e0f0ff)"; break;
-    case "Mostly Cloudy": document.body.style.background = "linear-gradient(to top, #c0c0c0, #e0e0e0)"; break;
-    case "Cloudy": document.body.style.background = "#d3d3d3"; break;
-    default: document.body.style.background = "#87CEEB";
+// Function to get official icon based on condition and night/day
+function getIcon(condition, isNight) {
+  const base = "https://api.weather.gov/icons/land/";
+  switch(condition.toLowerCase()) {
+    case "sunny":
+    case "mostly sunny": return `${base}${isNight ? "night/skc" : "day/sunny"}?size=small`;
+    case "partly cloudy": return `${base}${isNight ? "night/nbkn" : "day/sct"}?size=small`;
+    case "mostly cloudy": return `${base}${isNight ? "night/bkn" : "day/bkn"}?size=small`;
+    case "cloudy": return `${base}${isNight ? "night/ovc" : "day/ovc"}?size=small`;
+    case "storm": return `${base}${isNight ? "night/tstorms" : "day/tstorms"}?size=small`;
+    default: return `${base}${isNight ? "night/skc" : "day/sunny"}?size=small`;
   }
 }
 
-// Build forecast cards
-const forecastContainer = document.getElementById("forecast");
+// Function to get card background color based on condition
+function getBackground(condition, isNight) {
+  switch(condition.toLowerCase()) {
+    case "sunny": return isNight ? "#0b1d3a" : "#87CEEB";
+    case "mostly sunny":
+    case "partly cloudy": return isNight ? "#1b1b40" : "#ADD8E6";
+    case "mostly cloudy": return "#A9A9A9";
+    case "cloudy": return "#D3D3D3";
+    case "storm": return "#4B4B4B";
+    default: return "#0b1d3a";
+  }
+}
 
-forecastData.forEach(day => {
-  const card = document.createElement("div");
-  card.className = "day-card";
+// Generate 7-day data
+const weekDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const weekData = weekDays.map(day => ({ day, hourly: generateHourlyData() }));
 
-  const header = document.createElement("div");
-  header.className = "day-header";
-  header.innerHTML = `<h2>${day.day} (${day.date})</h2><img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.condition}">`;
+const weeklyContainer = document.getElementById('weekly-forecast');
 
-  const hourlyContainer = document.createElement("div");
-  hourlyContainer.className = "hourly-container";
+weekData.forEach(dayData => {
+  const dayDiv = document.createElement('div');
+  dayDiv.className = 'day-container';
+  dayDiv.innerHTML = `<h2>${dayData.day}</h2><div class="forecast-container"></div>`;
+  weeklyContainer.appendChild(dayDiv);
 
-  day.hours.forEach(h => {
-    const hourBlock = document.createElement("div");
-    hourBlock.className = "hour-block";
-    hourBlock.innerHTML = `<div>${h.time}</div><img src="https://openweathermap.org/img/wn/${h.icon}.png" alt=""><div>${h.temp}°</div>`;
-    hourlyContainer.appendChild(hourBlock);
-  });
+  const container = dayDiv.querySelector('.forecast-container');
+  dayData.hourly.forEach(hour => {
+    const card = document.createElement('div');
+    card.className = 'forecast-card';
+    card.style.background = getBackground(hour.condition, hour.isNight);
+    card.innerHTML = `
+      <div class="card-summary">
+        <div>${hour.time}<br>${hour.temp}</div>
+        <img src="${getIcon(hour.condition, hour.isNight)}" alt="${hour.condition}">
+        <span class="expand-btn">+</span>
+      </div>
+      <div class="forecast-details">
+        <p>${hour.condition}</p>
+        <p>Wind: ${hour.wind}</p>
+        <p>Precip: ${hour.precip}</p>
+      </div>
+    `;
+    container.appendChild(card);
 
-  card.appendChild(header);
-  card.appendChild(hourlyContainer);
-  forecastContainer.appendChild(card);
-
-  header.addEventListener("click", ()=>{
-    const isVisible = hourlyContainer.style.display === "flex";
-    document.querySelectorAll(".hourly-container").forEach(hc=>hc.style.display="none");
-    if(!isVisible) hourlyContainer.style.display="flex";
-    setBackground(day.condition);
+    card.querySelector('.expand-btn').addEventListener('click', () => {
+      card.classList.toggle('expanded');
+    });
   });
 });
-
-// Initialize first day background
-setBackground(forecastData[0].condition);
 </script>
-
 </body>
 </html>
