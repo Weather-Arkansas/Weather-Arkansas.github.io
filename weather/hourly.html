@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather-Arkansas Hourly Forecast</title>
+<title>Dynamic Weather Site</title>
 <style>
 /* --- Base & Theme --- */
 body, html {
   margin:0; padding:0; width:100%; height:100%;
   font-family:"Lato",sans-serif;
   transition: background 1s, color 1s;
+  overflow-x:hidden;
 }
 .background {position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
 .cloud {
@@ -20,27 +21,26 @@ body, html {
 .cloud::before {width:100px; height:100px; top:-50px; left:50px;}
 .cloud::after {width:120px; height:120px; top:-60px; left:100px;}
 .sun, .moon {
-  position:absolute; width:100px; height:100px;
-  border-radius:50%;
-  top:10%; left:10%;
-  z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
+  position:absolute; width:100px; height:100px; top:10%; left:10%;
+  border-radius:50%; z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
 }
-.sun {
-  background: radial-gradient(circle,#FFD700,#FFA500);
-}
-.moon {
-  background: radial-gradient(circle,#f0e68c,#dcdcdc);
-  display:none;
-}
-.rain, .snow {
-  position:absolute; width:100%; height:100%; top:0; left:0;
-  z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none; overflow:hidden;
-}
+.sun { background: radial-gradient(circle,#FFD700,#FFA500); }
+.moon { background: radial-gradient(circle,#f0e68c,#dcdcdc); display:none; }
+
+/* --- Rain & Snow --- */
+.rain, .snow {position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none;}
 .raindrop, .snowflake {
   position:absolute; width:2px; background:rgba(0,0,255,0.5);
   animation:fall linear infinite;
 }
 .snowflake {background:white; width:5px; height:5px; border-radius:50%;}
+
+/* --- Stars & Shooting Stars --- */
+body.night {background: radial-gradient(#0a0a2a, #000033);}
+.star {position:absolute; width:2px; height:2px; background:white; border-radius:50%; opacity:0.8; animation:twinkle 2s infinite alternate;}
+@keyframes twinkle {0%{opacity:0.3;}100%{opacity:1;}}
+.shooting-star {position:absolute; width:2px; height:100px; background:linear-gradient(white,transparent); transform:rotate(45deg); opacity:0; animation:shoot 2s linear forwards;}
+@keyframes shoot {0%{opacity:1; transform:translate(0,0) rotate(45deg);} 100%{opacity:0; transform:translate(500px,500px) rotate(45deg);}}
 
 /* --- Keyframes --- */
 @keyframes moveClouds {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
@@ -149,86 +149,73 @@ function applyWeatherBackground(condition){
   sun.style.display = bg.sun ? 'block' : 'none';
   clouds.forEach((c,i)=>{c.style.display = i<bg.clouds ? 'block':'none';});
 
-  // Rain
   if(bg.rain){ startRain(); content.classList.add('rainy'); } else { stopRain(); content.classList.remove('rainy'); }
-  // Snow
   if(bg.snow){ startSnow(); content.classList.add('snowy'); } else { stopSnow(); content.classList.remove('snowy'); }
 
-  updateSunMoon(); // show sun or moon based on hour
+  updateSunMoon();
 }
 
+// --- Sun / Moon and Night Sky ---
 function updateSunMoon() {
   const hour = new Date().getHours();
   const sun = document.querySelector('.sun');
   const moon = document.querySelector('.moon');
-  if(hour >=6 && hour <18){ sun.style.display='block'; moon.style.display='none'; }
-  else { sun.style.display='none'; moon.style.display='block'; }
+  const body = document.body;
+
+  if(hour >=6 && hour <18){ 
+    sun.style.display='block'; moon.style.display='none'; body.classList.remove('night'); 
+  } else { 
+    sun.style.display='none'; moon.style.display='block'; body.classList.add('night'); 
+  }
 }
 
-// --- Rain Animation ---
+// --- Rain / Snow ---
 const rainContainer = document.querySelector('.rain');
-function startRain(){
-  rainContainer.style.display='block'; rainContainer.style.opacity=1; rainContainer.innerHTML='';
-  for(let i=0;i<100;i++){
-    const drop=document.createElement('div'); drop.classList.add('raindrop');
-    drop.style.left=`${Math.random()*100}%`;
-    drop.style.height=`${10+Math.random()*10}px`;
-    drop.style.animationDuration=`${0.5+Math.random()}s`;
-    rainContainer.appendChild(drop);
-  }
-}
-function stopRain(){ rainContainer.style.opacity=0; setTimeout(()=>{ rainContainer.style.display='none'; while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }},1000); }
-
-// --- Snow Animation ---
+function startRain(){ rainContainer.style.display='block'; rainContainer.style.opacity=1; rainContainer.innerHTML=''; for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.height=`${10+Math.random()*10}px`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop);} }
+function stopRain(){ rainContainer.style.opacity=0; setTimeout(()=>{ rainContainer.style.display='none'; while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }},1000);}
 const snowContainer = document.querySelector('.snow');
-function startSnow(){
-  snowContainer.style.display='block'; snowContainer.style.opacity=1; snowContainer.innerHTML='';
-  for(let i=0;i<80;i++){
-    const flake=document.createElement('div'); flake.classList.add('snowflake');
-    flake.style.left=`${Math.random()*100}%`;
-    flake.style.animationDuration=`${2+Math.random()*3}s`;
-    flake.style.width=`${3+Math.random()*3}px`;
-    flake.style.height=flake.style.width;
-    snowContainer.appendChild(flake);
-  }
-}
-function stopSnow(){ snowContainer.style.opacity=0; setTimeout(()=>{ snowContainer.style.display='none'; while(snowContainer.firstChild){ snowContainer.removeChild(snowContainer.firstChild); }},1000); }
+function startSnow(){ snowContainer.style.display='block'; snowContainer.style.opacity=1; snowContainer.innerHTML=''; for(let i=0;i<80;i++){ const flake=document.createElement('div'); flake.classList.add('snowflake'); flake.style.left=`${Math.random()*100}%`; flake.style.animationDuration=`${2+Math.random()*3}s`; flake.style.width=`${3+Math.random()*3}px`; flake.style.height=flake.style.width; snowContainer.appendChild(flake);} }
+function stopSnow(){ snowContainer.style.opacity=0; setTimeout(()=>{ snowContainer.style.display='none'; while(snowContainer.firstChild){ snowContainer.removeChild(snowContainer.firstChild); }},1000);}
+
+// --- Stars & Shooting Stars ---
+function createStars(count=100){ const bg=document.querySelector('.background'); for(let i=0;i<count;i++){ const star=document.createElement('div'); star.classList.add('star'); star.style.top=`${Math.random()*100}%`; star.style.left=`${Math.random()*100}%`; star.style.width=star.style.height=`${Math.random()*2+1}px`; bg.appendChild(star);} }
+createStars();
+function shootingStar(){ const bg=document.querySelector('.background'); const star=document.createElement('div'); star.classList.add('shooting-star'); star.style.top=`${Math.random()*50}%`; star.style.left=`${Math.random()*50}%`; bg.appendChild(star); setTimeout(()=>{bg.removeChild(star)},2000);}
+setInterval(shootingStar,5000);
 
 // --- Forecast Cards ---
 function createCard(period){
-  const card = document.createElement('div'); card.classList.add('forecast-card');
-  const iconURL = period.icon || "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png";
-  card.innerHTML = `
-    <div class="card-summary">
-      <div>${new Date(period.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${period.temperature}°${period.temperatureUnit}</div>
-      <img src="${iconURL}" alt="icon" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png'">
-      <span class="expand-btn">+</span>
-    </div>
-    <div class="forecast-details">
-      <p>${period.shortForecast}</p>
-      <p>Wind: ${period.windSpeed} ${period.windDirection}</p>
-      <p>Precip: ${period.probabilityOfPrecipitation.value||0}%</p>
-      <p>${period.detailedForecast}</p>
-    </div>
-  `;
-  card.querySelector('.card-summary').addEventListener('click', ()=>{card.classList.toggle('expanded');});
+  const card=document.createElement('div'); card.classList.add('forecast-card');
+  const iconURL=period.icon||"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png";
+  card.innerHTML=`<div class="card-summary">
+    <div>${new Date(period.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${period.temperature}°${period.temperatureUnit}</div>
+    <img src="${iconURL}" alt="icon" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png'">
+    <span class="expand-btn">+</span>
+  </div>
+  <div class="forecast-details">
+    <p>${period.shortForecast}</p>
+    <p>Wind: ${period.windSpeed} ${period.windDirection}</p>
+    <p>Precip: ${period.probabilityOfPrecipitation.value||0}%</p>
+    <p>${period.detailedForecast}</p>
+  </div>`;
+  card.querySelector('.card-summary').addEventListener('click',()=>{card.classList.toggle('expanded');});
   return card;
 }
 
 // --- Fetch NOAA Forecast ---
-async function fetchForecast(lat, lon){
-  const container = document.getElementById('forecast-container');
+async function fetchForecast(lat,lon){
+  const container=document.getElementById('forecast-container');
   container.innerHTML='<p>Loading forecast...</p>';
   try{
     const headers={'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json'};
     const point=await fetch(`https://api.weather.gov/points/${lat},${lon}`,{headers}).then(r=>r.json());
     const forecast=await fetch(point.properties.forecastHourly,{headers}).then(r=>r.json());
-    const now = new Date();
+    const now=new Date();
     container.innerHTML='';
     forecast.properties.periods
-      .filter(p => new Date(p.startTime) > now) // filter past hours
+      .filter(p=>new Date(p.startTime)>now)
       .slice(0,24)
-      .forEach(p => container.appendChild(createCard(p)));
+      .forEach(p=>container.appendChild(createCard(p)));
     applyWeatherBackground(forecast.properties.periods[0].shortForecast);
   }catch(e){console.error(e); container.innerHTML='<p>Unable to load forecast.</p>';}
 }
@@ -241,7 +228,7 @@ function loadForecast(){
   } else { fetchForecast(34.7465,-92.2896); }
 }
 loadForecast();
-setInterval(loadForecast,10000); // refresh every 10 seconds
+setInterval(loadForecast,900000); // refresh every 10 seconds
 </script>
 </body>
 </html>
