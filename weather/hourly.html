@@ -3,134 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>7-Day Hourly Forecast</title>
+<title>7-Day Hourly Weather</title>
 <style>
-  body {
-    background-color: #0b1d3a; /* dark blue */
-    color: #fff;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-  }
-
-  .day-container {
-    margin-bottom: 40px;
-  }
-
-  h2 {
-    border-bottom: 2px solid #1e3c72;
-    padding-bottom: 5px;
-    margin-bottom: 15px;
-  }
-
-  .forecast-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .forecast-card {
-    background-color: #1e3c72;
-    border-radius: 10px;
-    padding: 10px;
-    width: 100px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .forecast-card:hover {
-    transform: scale(1.05);
-  }
-
-  .card-summary {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .card-summary img {
-    margin: 5px 0;
-  }
-
-  .forecast-details {
-    display: none;
-    font-size: 0.8em;
-    margin-top: 5px;
-    text-align: center;
-  }
-
-  .forecast-card.expanded .forecast-details {
-    display: block;
-  }
-
-  .expand-btn {
-    font-weight: bold;
-    margin-top: 5px;
-    cursor: pointer;
-  }
+body {
+  background: #001F3F;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  margin: 0; padding: 20px;
+}
+h2 { border-bottom: 2px solid #1e3c72; margin-bottom: 10px; }
+.day-container { margin-bottom: 40px; }
+.forecast-container { display: flex; flex-wrap: wrap; gap: 8px; }
+.forecast-card {
+  background: #1e3c72;
+  border-radius: 10px;
+  padding: 10px;
+  width: 90px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.forecast-card:hover { transform: scale(1.05); }
+.card-summary img { width: 40px; height: 40px; }
+.forecast-details { display: none; font-size: 0.8em; margin-top: 5px; }
+.forecast-card.expanded .forecast-details { display: block; }
+.expand-btn { display: block; font-weight: bold; margin-top: 5px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<div id="weekly-forecast"></div>
+<div id="weekly-forecast"><p>Loading 7‑day hourly forecast…</p></div>
 
 <script>
-// Function to generate 24-hour dummy data for a day
-function generateHourlyData() {
-  const hours = [];
-  for (let i = 0; i < 24; i++) {
-    const hour = i < 10 ? `0${i}:00` : `${i}:00`;
-    hours.push({
-      time: hour,
-      temp: `${Math.floor(Math.random() * 20) + 30}°F`, // random temp for demo
-      condition: ["Clear","Cloudy","Rain","Sunny","Partly Cloudy"][Math.floor(Math.random()*5)],
-      wind: `${Math.floor(Math.random()*10)+1} mph`,
-      precip: `${Math.floor(Math.random()*60)}%`
-    });
-  }
-  return hours;
+// --- Get Location & Fetch Airport Grid Forecast ---
+// This uses geolocation if available
+function fetch7DayHourly(lat, lon) {
+  const headers = { "User-Agent": "WeatherSiteExample (your-email@example.com)" };
+  return fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers })
+    .then(res => res.json())
+    .then(pt => fetch(pt.properties.forecastHourly, { headers }))
+    .then(res => res.json());
 }
 
-// Example 7-day data
-const weekDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-const weekData = weekDays.map(day => ({
-  day,
-  hourly: generateHourlyData()
-}));
+function buildForecastUI(forecast) {
+  const container = document.getElementById("weekly-forecast");
+  container.innerHTML = "";
 
-const weeklyContainer = document.getElementById('weekly-forecast');
+  // Group by day
+  const periods = forecast.properties.periods;
+  const daysMap = {};
+  periods.forEach(p => {
+    const d = new Date(p.startTime).toLocaleDateString(undefined, { weekday: "long" });
+    if (!daysMap[d]) daysMap[d] = [];
+    daysMap[d].push(p);
+  });
 
-weekData.forEach(dayData => {
-  const dayDiv = document.createElement('div');
-  dayDiv.className = 'day-container';
-  dayDiv.innerHTML = `<h2>${dayData.day}</h2><div class="forecast-container"></div>`;
-  weeklyContainer.appendChild(dayDiv);
+  Object.keys(daysMap).forEach(day => {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "day-container";
+    dayDiv.innerHTML = `<h2>${day}</h2><div class="forecast-container"></div>`;
+    container.appendChild(dayDiv);
+    const row = dayDiv.querySelector(".forecast-container");
 
-  const container = dayDiv.querySelector('.forecast-container');
+    daysMap[day].forEach(hour => {
+      const card = document.createElement("div");
+      card.className = "forecast-card";
 
-  dayData.hourly.forEach(hour => {
-    const card = document.createElement('div');
-    card.className = 'forecast-card';
-    card.innerHTML = `
+      card.innerHTML = `
       <div class="card-summary">
-        <div>${hour.time}<br>${hour.temp}</div>
-        <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="icon">
+        <div>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${hour.temperature}°${hour.temperatureUnit}</div>
+        <img src="${hour.icon}" alt="weather icon">
         <span class="expand-btn">+</span>
       </div>
       <div class="forecast-details">
-        <p>${hour.condition}</p>
-        <p>Wind: ${hour.wind}</p>
-        <p>Precip: ${hour.precip}</p>
-      </div>
-    `;
-    container.appendChild(card);
+        <p>${hour.shortForecast}</p>
+        <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
+        <p>Precip: ${hour.probabilityOfPrecipitation.value || 0}%</p>
+      </div>`;
 
-    card.querySelector('.expand-btn').addEventListener('click', () => {
-      card.classList.toggle('expanded');
+      // Expand/collapse
+      card.querySelector(".card-summary").onclick = () => {
+        card.classList.toggle("expanded");
+      };
+
+      row.appendChild(card);
     });
   });
-});
+}
+
+function initWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      fetch7DayHourly(pos.coords.latitude, pos.coords.longitude)
+        .then(data => buildForecastUI(data))
+        .catch(err => console.error(err));
+    }, () => {
+      // fallback to Little Rock if blocked
+      fetch7DayHourly(34.7465, -92.2896)
+        .then(data => buildForecastUI(data))
+        .catch(err => console.error(err));
+    });
+  } else {
+    fetch7DayHourly(34.7465, -92.2896)
+      .then(data => buildForecastUI(data))
+      .catch(err => console.error(err));
+  }
+}
+
+initWeather();
 </script>
 
 </body>
