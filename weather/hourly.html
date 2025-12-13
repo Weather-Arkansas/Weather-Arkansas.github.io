@@ -12,11 +12,11 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
-  font-family: Arial, sans-serif;
   overflow-x: hidden;
+  font-family: Arial, sans-serif;
 }
 
-/* BACKGROUND CONTAINER */
+/* BACKGROUND */
 .background {
   position: fixed;
   inset: 0;
@@ -24,14 +24,14 @@ html, body {
   transition: background 1s ease;
 }
 
-/* DAY */
+/* DAY SKY */
 body.day .background {
-  background: linear-gradient(#87CEEB, #cfefff);
+  background: linear-gradient(#87CEEB, #d9f2ff);
 }
 
-/* NIGHT (VERY DARK BLUE) */
+/* NIGHT SKY (VERY DARK BLUE) */
 body.night .background {
-  background: radial-gradient(circle at top, #020617 0%, #000000 85%);
+  background: radial-gradient(circle at top, #020617 0%, #000000 90%);
 }
 
 /* SUN */
@@ -43,7 +43,7 @@ body.night .background {
   height: 100px;
   border-radius: 50%;
   background: radial-gradient(circle, #FFD700, #FFA500);
-  box-shadow: 0 0 60px rgba(255,215,0,.6);
+  box-shadow: 0 0 70px rgba(255,215,0,.6);
 }
 
 /* MOON */
@@ -56,7 +56,7 @@ body.night .background {
   border-radius: 50%;
   background: #f5f3ce;
   box-shadow:
-    0 0 20px rgba(255,255,220,.8),
+    0 0 25px rgba(255,255,220,.8),
     0 0 60px rgba(255,255,220,.4);
 }
 
@@ -99,7 +99,7 @@ body.night .background {
   background: #fff;
   border-radius: 50px;
   opacity: .9;
-  animation: moveClouds 40s linear infinite;
+  animation: moveClouds 60s linear infinite;
 }
 
 .cloud::before, .cloud::after {
@@ -135,6 +135,27 @@ body.night .background {
 @keyframes fall {
   from { transform: translateY(-100vh); }
   to { transform: translateY(100vh); }
+}
+
+/* VISIBILITY RULES (CRITICAL) */
+body.day .moon,
+body.day .star,
+body.day .shooting-star {
+  display: none !important;
+}
+
+body.day .sun {
+  display: block !important;
+}
+
+body.night .sun {
+  display: none !important;
+}
+
+body.night .moon,
+body.night .star,
+body.night .shooting-star {
+  display: block !important;
 }
 
 /* CONTENT */
@@ -174,16 +195,16 @@ body.night .background {
 </style>
 </head>
 
-<body>
+<body class="day">
 
 <div class="background">
   <div class="sun"></div>
   <div class="moon"></div>
 
   <!-- Clouds -->
-  <div class="cloud" style="top:20%; animation-duration:60s;"></div>
-  <div class="cloud" style="top:50%; animation-duration:80s;"></div>
-  <div class="cloud" style="top:75%; animation-duration:90s;"></div>
+  <div class="cloud" style="top:20%; animation-duration:70s;"></div>
+  <div class="cloud" style="top:45%; animation-duration:90s;"></div>
+  <div class="cloud" style="top:70%; animation-duration:110s;"></div>
 
   <!-- Rain -->
   <div class="rain" id="rain"></div>
@@ -210,12 +231,17 @@ function closeNav(){ menu.style.width="0"; }
 /* DAY / NIGHT */
 function updateDayNight() {
   const hour = new Date().getHours();
-  document.body.classList.toggle("night", hour >= 18 || hour < 6);
-  document.body.classList.toggle("day", hour >= 6 && hour < 18);
+  document.body.classList.remove("day","night");
+
+  if (hour >= 18 || hour < 6) {
+    document.body.classList.add("night");
+  } else {
+    document.body.classList.add("day");
+  }
 }
 
 /* STARS */
-function makeStars() {
+function createStars() {
   if (!document.body.classList.contains("night")) return;
   for (let i=0;i<150;i++) {
     const s=document.createElement("div");
@@ -249,7 +275,7 @@ function startRain(){
   }
 }
 
-/* FORECAST (NOAA) */
+/* FORECAST */
 async function loadForecast(){
   try{
     const r=await fetch("https://api.weather.gov/gridpoints/LZK/36,91/forecast/hourly");
@@ -263,12 +289,12 @@ async function loadForecast(){
 
 /* INIT */
 updateDayNight();
-makeStars();
+createStars();
 startRain();
 loadForecast();
 
 setInterval(updateDayNight, 10000);
-setInterval(loadForecast, 10000);
+setInterval(loadForecast, 60000);
 </script>
 
 </body>
