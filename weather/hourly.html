@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Weather Site</title>
+<title>Weather-Arkansas Hourly Forecast</title>
 <style>
 /* --- Base & Theme --- */
 body, html {
@@ -19,19 +19,18 @@ body, html {
 .cloud::before, .cloud::after {content:''; position:absolute; background:#fff; border-radius:50%;}
 .cloud::before {width:100px; height:100px; top:-50px; left:50px;}
 .cloud::after {width:120px; height:120px; top:-60px; left:100px;}
-.sun {
+.sun, .moon {
   position:absolute; width:100px; height:100px;
   border-radius:50%;
   top:10%; left:10%;
-  background: radial-gradient(circle,#FFD700,#FFA500);
   z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
 }
-.sun::before {
-  content: '';
-  position:absolute; width:150px; height:150px;
-  top:-25px; left:-25px;
-  background: radial-gradient(circle, rgba(255,215,0,0.5), rgba(255,165,0,0));
-  border-radius:50%; z-index:-1;
+.sun {
+  background: radial-gradient(circle,#FFD700,#FFA500);
+}
+.moon {
+  background: radial-gradient(circle,#f0e68c,#dcdcdc);
+  display:none;
 }
 .rain, .snow {
   position:absolute; width:100%; height:100%; top:0; left:0;
@@ -76,6 +75,7 @@ body, html {
 <body>
 <div class="background">
   <div class="sun"></div>
+  <div class="moon"></div>
   <div class="cloud" style="top:30%;left:20%;animation-duration:25s;"></div>
   <div class="cloud" style="top:60%;left:50%;animation-duration:28s;"></div>
   <div class="cloud" style="top:15%;left:70%;animation-duration:20s;"></div>
@@ -140,6 +140,7 @@ function applyWeatherBackground(condition){
   document.body.style.background = bg.color;
 
   const sun = document.querySelector('.sun');
+  const moon = document.querySelector('.moon');
   const clouds = document.querySelectorAll('.cloud');
   const rain = document.querySelector('.rain');
   const snow = document.querySelector('.snow');
@@ -148,15 +149,26 @@ function applyWeatherBackground(condition){
   sun.style.display = bg.sun ? 'block' : 'none';
   clouds.forEach((c,i)=>{c.style.display = i<bg.clouds ? 'block':'none';});
 
+  // Rain
   if(bg.rain){ startRain(); content.classList.add('rainy'); } else { stopRain(); content.classList.remove('rainy'); }
+  // Snow
   if(bg.snow){ startSnow(); content.classList.add('snowy'); } else { stopSnow(); content.classList.remove('snowy'); }
+
+  updateSunMoon(); // show sun or moon based on hour
+}
+
+function updateSunMoon() {
+  const hour = new Date().getHours();
+  const sun = document.querySelector('.sun');
+  const moon = document.querySelector('.moon');
+  if(hour >=6 && hour <18){ sun.style.display='block'; moon.style.display='none'; }
+  else { sun.style.display='none'; moon.style.display='block'; }
 }
 
 // --- Rain Animation ---
 const rainContainer = document.querySelector('.rain');
 function startRain(){
-  rainContainer.style.display='block'; rainContainer.style.opacity=1;
-  rainContainer.innerHTML='';
+  rainContainer.style.display='block'; rainContainer.style.opacity=1; rainContainer.innerHTML='';
   for(let i=0;i<100;i++){
     const drop=document.createElement('div'); drop.classList.add('raindrop');
     drop.style.left=`${Math.random()*100}%`;
@@ -170,8 +182,7 @@ function stopRain(){ rainContainer.style.opacity=0; setTimeout(()=>{ rainContain
 // --- Snow Animation ---
 const snowContainer = document.querySelector('.snow');
 function startSnow(){
-  snowContainer.style.display='block'; snowContainer.style.opacity=1;
-  snowContainer.innerHTML='';
+  snowContainer.style.display='block'; snowContainer.style.opacity=1; snowContainer.innerHTML='';
   for(let i=0;i<80;i++){
     const flake=document.createElement('div'); flake.classList.add('snowflake');
     flake.style.left=`${Math.random()*100}%`;
@@ -212,11 +223,12 @@ async function fetchForecast(lat, lon){
     const headers={'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json'};
     const point=await fetch(`https://api.weather.gov/points/${lat},${lon}`,{headers}).then(r=>r.json());
     const forecast=await fetch(point.properties.forecastHourly,{headers}).then(r=>r.json());
+    const now = new Date();
     container.innerHTML='';
-    forecast.properties.periods.slice(0,24).forEach(p=>{
-      container.appendChild(createCard(p));
-    });
-    // Apply background using first period
+    forecast.properties.periods
+      .filter(p => new Date(p.startTime) > now) // filter past hours
+      .slice(0,24)
+      .forEach(p => container.appendChild(createCard(p)));
     applyWeatherBackground(forecast.properties.periods[0].shortForecast);
   }catch(e){console.error(e); container.innerHTML='<p>Unable to load forecast.</p>';}
 }
@@ -225,12 +237,11 @@ async function fetchForecast(lat, lon){
 function loadForecast(){
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos=>fetchForecast(pos.coords.latitude,pos.coords.longitude),
-      ()=>fetchForecast(34.7465,-92.2896)); // fallback Little Rock
+      ()=>fetchForecast(34.7465,-92.2896));
   } else { fetchForecast(34.7465,-92.2896); }
 }
 loadForecast();
-setInterval(loadForecast,900000); // refresh every 10 seconds
-
+setInterval(loadForecast,10000); // refresh every 10 seconds
 </script>
 </body>
 </html>
