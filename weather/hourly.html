@@ -3,107 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>7-Day Hourly Forecast</title>
+<title>5-Day Hourly Forecast</title>
 <style>
   body {
-    background-color: #0b1d3a; /* dark blue default */
-    color: #fff;
-    font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
-  }
-  .day-container {
-    margin-bottom: 40px;
+    font-family: Arial, sans-serif;
+    color: #fff;
+    transition: background 0.5s;
   }
   h2 {
-    border-bottom: 2px solid #1e3c72;
-    padding-bottom: 5px;
-    margin-bottom: 15px;
+    text-align: center;
+    padding: 10px 0;
+    margin: 0;
   }
   .forecast-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    width: 100%;
   }
   .forecast-card {
-    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
-    width: 100px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
+    transition: all 0.3s;
   }
   .forecast-card:hover {
-    transform: scale(1.05);
+    background: rgba(255,255,255,0.1);
   }
-  .card-summary {
+  .hour-info {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
   }
-  .card-summary img {
-    margin: 5px 0;
-    height: 30px;
+  .hour-info img {
+    width: 40px;
+    height: 40px;
   }
-  .forecast-details {
-    display: none;
+  .details {
     font-size: 0.8em;
-    margin-top: 5px;
+    display: none;
+    margin-left: 50px;
   }
-  .forecast-card.expanded .forecast-details {
+  .forecast-card.expanded .details {
     display: block;
-  }
-  .expand-btn {
-    font-weight: bold;
-    margin-top: 5px;
-    cursor: pointer;
   }
 </style>
 </head>
 <body>
-<div id="weekly-forecast"></div>
+<h2>5-Day Hourly Forecast</h2>
+<div id="forecast" class="forecast-container"></div>
 
 <script>
-// Function to generate 24-hour dummy data for a day
-function generateHourlyData() {
-  const hours = [];
-  const conditions = ["Sunny","Mostly Sunny","Partly Cloudy","Mostly Cloudy","Cloudy","Storm"];
-  for (let i = 0; i < 24; i++) {
-    const hour = i < 10 ? `0${i}:00` : `${i}:00`;
-    const condition = conditions[Math.floor(Math.random()*conditions.length)];
-    hours.push({
-      time: hour,
-      temp: `${Math.floor(Math.random() * 20) + 30}°F`,
-      condition: condition,
-      wind: `${Math.floor(Math.random()*10)+1} mph`,
-      precip: `${Math.floor(Math.random()*60)}%`,
-      isNight: i < 6 || i >= 18
-    });
-  }
-  return hours;
-}
-
-// Function to get official icon based on condition and night/day
-function getIcon(condition, isNight) {
-  const base = "https://api.weather.gov/icons/land/";
+// Helper function to get background based on weather
+function getBackground(condition) {
   switch(condition.toLowerCase()) {
-    case "sunny":
-    case "mostly sunny": return `${base}${isNight ? "night/skc" : "day/sunny"}?size=small`;
-    case "partly cloudy": return `${base}${isNight ? "night/nbkn" : "day/sct"}?size=small`;
-    case "mostly cloudy": return `${base}${isNight ? "night/bkn" : "day/bkn"}?size=small`;
-    case "cloudy": return `${base}${isNight ? "night/ovc" : "day/ovc"}?size=small`;
-    case "storm": return `${base}${isNight ? "night/tstorms" : "day/tstorms"}?size=small`;
-    default: return `${base}${isNight ? "night/skc" : "day/sunny"}?size=small`;
-  }
-}
-
-// Function to get card background color based on condition
-function getBackground(condition, isNight) {
-  switch(condition.toLowerCase()) {
-    case "sunny": return isNight ? "#0b1d3a" : "#87CEEB";
-    case "mostly sunny":
-    case "partly cloudy": return isNight ? "#1b1b40" : "#ADD8E6";
+    case "sunny": return "#87CEEB";
+    case "mostly sunny": return "#ADD8E6";
+    case "partly cloudy": return "#B0C4DE";
     case "mostly cloudy": return "#A9A9A9";
     case "cloudy": return "#D3D3D3";
     case "storm": return "#4B4B4B";
@@ -111,42 +70,74 @@ function getBackground(condition, isNight) {
   }
 }
 
-// Generate 7-day data
-const weekDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-const weekData = weekDays.map(day => ({ day, hourly: generateHourlyData() }));
+// Get official NWS icon URL
+function getIconUrl(iconUrl) {
+  // The API returns absolute icon URLs
+  return iconUrl;
+}
 
-const weeklyContainer = document.getElementById('weekly-forecast');
+// Main function
+async function loadForecast() {
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported.");
+    return;
+  }
 
-weekData.forEach(dayData => {
-  const dayDiv = document.createElement('div');
-  dayDiv.className = 'day-container';
-  dayDiv.innerHTML = `<h2>${dayData.day}</h2><div class="forecast-container"></div>`;
-  weeklyContainer.appendChild(dayDiv);
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
 
-  const container = dayDiv.querySelector('.forecast-container');
-  dayData.hourly.forEach(hour => {
-    const card = document.createElement('div');
-    card.className = 'forecast-card';
-    card.style.background = getBackground(hour.condition, hour.isNight);
-    card.innerHTML = `
-      <div class="card-summary">
-        <div>${hour.time}<br>${hour.temp}</div>
-        <img src="${getIcon(hour.condition, hour.isNight)}" alt="${hour.condition}">
-        <span class="expand-btn">+</span>
-      </div>
-      <div class="forecast-details">
-        <p>${hour.condition}</p>
-        <p>Wind: ${hour.wind}</p>
-        <p>Precip: ${hour.precip}</p>
-      </div>
-    `;
-    container.appendChild(card);
+    // Get gridpoint from NWS API
+    const gridRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+    const gridData = await gridRes.json();
+    const forecastHourlyUrl = gridData.properties.forecastHourly;
 
-    card.querySelector('.expand-btn').addEventListener('click', () => {
-      card.classList.toggle('expanded');
+    // Get hourly forecast
+    const forecastRes = await fetch(forecastHourlyUrl);
+    const forecastData = await forecastRes.json();
+
+    const forecastContainer = document.getElementById("forecast");
+    const periods = forecastData.properties.periods;
+
+    // Only 5 days (120 hours max)
+    const fiveDays = periods.slice(0, 120);
+
+    // Set body background to current condition
+    document.body.style.background = getBackground(fiveDays[0].shortForecast);
+
+    // Populate forecast
+    fiveDays.forEach(period => {
+      const card = document.createElement("div");
+      card.className = "forecast-card";
+
+      card.innerHTML = `
+        <div class="hour-info">
+          <div>
+            ${period.startTime.slice(11,16)}<br>
+            ${period.temperature}°${period.temperatureUnit}
+          </div>
+          <img src="${getIconUrl(period.icon)}" alt="${period.shortForecast}">
+          <div>${period.shortForecast}</div>
+        </div>
+        <div class="details">
+          Wind: ${period.windSpeed} ${period.windDirection}<br>
+          Detailed forecast: ${period.detailedForecast}
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        card.classList.toggle("expanded");
+      });
+
+      forecastContainer.appendChild(card);
     });
+  }, (err) => {
+    alert("Location access denied. Cannot load forecast.");
   });
-});
+}
+
+// Run
+loadForecast();
 </script>
 </body>
 </html>
