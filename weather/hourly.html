@@ -2,267 +2,187 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NOAA 7-Day Hourly Weather</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>5-Day Foldout Forecast</title>
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  width:100%;
-  height:100%;
-  font-family:sans-serif;
-  transition:background 1s;
-  overflow-x:hidden;
-}
-
-body.night{
-  background:#02061a;
-}
-
-/* ===== BACKGROUND LAYERS ===== */
-.background{
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  overflow:hidden;
-}
-
-.sun,.moon{
-  position:absolute;
-  top:10%;
-  left:10%;
-  width:100px;
-  height:100px;
-  border-radius:50%;
-}
-
-.sun{
-  background:radial-gradient(circle,#FFD700,#FFA500);
-  box-shadow:0 0 60px rgba(255,200,0,.6);
-}
-
-.moon{
-  background:radial-gradient(circle,#f4f4f4,#ccc);
-  box-shadow:0 0 40px rgba(255,255,255,.5);
-}
-
-.cloud{
-  position:absolute;
-  width:220px;
-  height:70px;
-  background:#fff;
-  border-radius:50px;
-  opacity:.9;
-  animation:cloudMove linear infinite;
-}
-
-@keyframes cloudMove{
-  from{transform:translateX(-300px)}
-  to{transform:translateX(120vw)}
-}
-
-.rain{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-}
-
-.drop{
-  position:absolute;
-  width:2px;
-  height:15px;
-  background:rgba(180,200,255,.7);
-  animation:fall linear infinite;
-}
-
-@keyframes fall{
-  to{transform:translateY(110vh)}
-}
-
-.lightning{
-  position:fixed;
-  inset:0;
-  background:white;
-  opacity:0;
-  transition:.1s;
-  pointer-events:none;
-}
-
-/* ===== STARS ===== */
-.star{
-  position:absolute;
-  width:2px;
-  height:2px;
-  background:white;
-  opacity:.8;
-}
-
-/* ===== CONTENT ===== */
-.content{
-  padding:20px;
-}
-
-.card{
-  background:rgba(255,255,255,.9);
-  border-radius:12px;
-  margin:8px 0;
-  padding:10px;
-}
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    transition: background 1s;
+    background: linear-gradient(to top, #87CEEB, #fff);
+  }
+  .forecast-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  .day-card {
+    background: rgba(255,255,255,0.9);
+    margin-bottom: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+  }
+  .day-header {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .day-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .hourly-container {
+    display: none;
+    padding: 10px 15px;
+    background: rgba(240,240,240,0.8);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hour-block {
+    flex: 0 0 60px;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.7);
+  }
+  .hour-block img {
+    width: 30px;
+    height: 30px;
+  }
 </style>
 </head>
-
 <body>
-<div class="background" id="bg">
-  <div class="sun" id="sun"></div>
-  <div class="moon" id="moon"></div>
-</div>
-<div class="rain" id="rain"></div>
-<div class="lightning" id="lightning"></div>
 
-<div class="content">
-  <h2>7-Day Hourly Forecast</h2>
-  <div id="forecast"></div>
-</div>
+<div class="forecast-container" id="forecast"></div>
 
 <script>
-/* ================= CONSTANTS ================= */
-const SKY={
-  DAY:"#87CEEB",
-  NIGHT:"#02061a",
-  OVERCAST:"#cfcfcf",
-  STORM:"#1f1f23"
-};
+// Example forecast data (replace with API call)
+const forecastData = [
+  {
+    day: "Monday",
+    date: "2025-12-15",
+    icon: "01d",
+    condition: "Sunny",
+    hours: [
+      {time:"6AM", icon:"01d", temp:32},
+      {time:"9AM", icon:"01d", temp:40},
+      {time:"12PM", icon:"01d", temp:50},
+      {time:"3PM", icon:"01d", temp:52},
+      {time:"6PM", icon:"01n", temp:48},
+      {time:"9PM", icon:"01n", temp:42}
+    ]
+  },
+  {
+    day: "Tuesday",
+    date: "2025-12-16",
+    icon: "02d",
+    condition: "Mostly Sunny",
+    hours: [
+      {time:"6AM", icon:"01d", temp:35},
+      {time:"9AM", icon:"02d", temp:42},
+      {time:"12PM", icon:"02d", temp:53},
+      {time:"3PM", icon:"02d", temp:55},
+      {time:"6PM", icon:"02n", temp:50},
+      {time:"9PM", icon:"02n", temp:44}
+    ]
+  },
+  {
+    day: "Wednesday",
+    date: "2025-12-17",
+    icon: "03d",
+    condition: "Partly Cloudy",
+    hours: [
+      {time:"6AM", icon:"03d", temp:36},
+      {time:"9AM", icon:"03d", temp:44},
+      {time:"12PM", icon:"03d", temp:55},
+      {time:"3PM", icon:"03d", temp:57},
+      {time:"6PM", icon:"03n", temp:52},
+      {time:"9PM", icon:"03n", temp:46}
+    ]
+  },
+  {
+    day: "Thursday",
+    date: "2025-12-18",
+    icon: "04d",
+    condition: "Mostly Cloudy",
+    hours: [
+      {time:"6AM", icon:"04d", temp:38},
+      {time:"9AM", icon:"04d", temp:46},
+      {time:"12PM", icon:"04d", temp:56},
+      {time:"3PM", icon:"04d", temp:58},
+      {time:"6PM", icon:"04n", temp:53},
+      {time:"9PM", icon:"04n", temp:48}
+    ]
+  },
+  {
+    day: "Friday",
+    date: "2025-12-19",
+    icon: "09d",
+    condition: "Cloudy",
+    hours: [
+      {time:"6AM", icon:"09d", temp:40},
+      {time:"9AM", icon:"09d", temp:48},
+      {time:"12PM", icon:"09d", temp:58},
+      {time:"3PM", icon:"09d", temp:60},
+      {time:"6PM", icon:"09n", temp:55},
+      {time:"9PM", icon:"09n", temp:50}
+    ]
+  }
+];
 
-const bg=document.getElementById("bg");
-const rain=document.getElementById("rain");
-const sun=document.getElementById("sun");
-const moon=document.getElementById("moon");
-const lightning=document.getElementById("lightning");
-
-/* ================= CLOUDS ================= */
-function clearClouds(){
-  bg.querySelectorAll(".cloud").forEach(c=>c.remove());
-}
-
-function addClouds(count){
-  clearClouds();
-  for(let i=0;i<count;i++){
-    const c=document.createElement("div");
-    c.className="cloud";
-    c.style.top=Math.random()*60+"%";
-    c.style.animationDuration=30+Math.random()*30+"s";
-    bg.appendChild(c);
+// Background based on condition
+function setBackground(condition){
+  switch(condition){
+    case "Sunny": document.body.style.background = "#87CEEB"; break;
+    case "Mostly Sunny": document.body.style.background = "linear-gradient(to top, #87CEEB, #cce7ff)"; break;
+    case "Partly Cloudy": document.body.style.background = "linear-gradient(to top, #a0c4ff, #e0f0ff)"; break;
+    case "Mostly Cloudy": document.body.style.background = "linear-gradient(to top, #c0c0c0, #e0e0e0)"; break;
+    case "Cloudy": document.body.style.background = "#d3d3d3"; break;
+    default: document.body.style.background = "#87CEEB";
   }
 }
 
-/* ================= RAIN ================= */
-function startRain(heavy=false){
-  rain.innerHTML="";
-  for(let i=0;i<(heavy?300:120);i++){
-    const d=document.createElement("div");
-    d.className="drop";
-    d.style.left=Math.random()*100+"%";
-    d.style.animationDuration=(heavy?.4:.8)+Math.random()+"s";
-    rain.appendChild(d);
-  }
-}
+// Build forecast cards
+const forecastContainer = document.getElementById("forecast");
 
-function stopRain(){
-  rain.innerHTML="";
-}
+forecastData.forEach(day => {
+  const card = document.createElement("div");
+  card.className = "day-card";
 
-/* ================= LIGHTNING ================= */
-function startLightning(heavy){
-  setInterval(()=>{
-    lightning.style.opacity=1;
-    setTimeout(()=>lightning.style.opacity=0,heavy?200:100);
-  },heavy?4000:9000);
-}
+  const header = document.createElement("div");
+  header.className = "day-header";
+  header.innerHTML = `<h2>${day.day} (${day.date})</h2><img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.condition}">`;
 
-/* ================= WARNINGS ================= */
-async function hasWarning(lat,lon){
-  try{
-    const r=await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`);
-    const d=await r.json();
-    return d.features.length>0;
-  }catch{
-    return false;
-  }
-}
+  const hourlyContainer = document.createElement("div");
+  hourlyContainer.className = "hourly-container";
 
-/* ================= BACKGROUND LOGIC ================= */
-function applyBackground(period,warning){
-  const text=period.shortForecast.toLowerCase();
-  const night=!period.isDaytime;
-
-  document.body.classList.toggle("night",night);
-  sun.style.display=night?"none":"block";
-  moon.style.display=night?"block":"none";
-  document.body.style.background=night?SKY.NIGHT:SKY.DAY;
-
-  stopRain();
-  clearClouds();
-
-  let clouds=0;
-
-  if(text.includes("sunny")||text.includes("clear")){
-    clouds=text.includes("mostly")?1:0;
-  }
-  else if(text.includes("partly")) clouds=2;
-  else if(text.includes("mostly")) clouds=4;
-  else if(text.includes("cloudy")||text.includes("overcast")){
-    clouds=7;
-    document.body.style.background=SKY.OVERCAST;
-    sun.style.display="none";
-    moon.style.display="none";
-  }
-
-  if(text.includes("rain")||text.includes("storm")){
-    startRain();
-  }
-
-  if(warning){
-    document.body.style.background=SKY.STORM;
-    addClouds(8);
-    startRain(true);
-    startLightning(true);
-    return;
-  }
-
-  addClouds(clouds);
-}
-
-/* ================= FORECAST ================= */
-async function loadWeather(){
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const lat=pos.coords.latitude;
-    const lon=pos.coords.longitude;
-
-    const point=await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r=>r.json());
-    const forecast=await fetch(point.properties.forecastHourly).then(r=>r.json());
-    const warning=await hasWarning(lat,lon);
-
-    const container=document.getElementById("forecast");
-    container.innerHTML="";
-
-    forecast.properties.periods.forEach(p=>{
-      const div=document.createElement("div");
-      div.className="card";
-      div.innerHTML=`
-        <b>${new Date(p.startTime).toLocaleString()}</b><br>
-        ${p.shortForecast}<br>
-        ${p.temperature}°${p.temperatureUnit}<br>
-        <img src="${p.icon}">
-      `;
-      container.appendChild(div);
-    });
-
-    applyBackground(forecast.properties.periods[0],warning);
+  day.hours.forEach(h => {
+    const hourBlock = document.createElement("div");
+    hourBlock.className = "hour-block";
+    hourBlock.innerHTML = `<div>${h.time}</div><img src="https://openweathermap.org/img/wn/${h.icon}.png" alt=""><div>${h.temp}°</div>`;
+    hourlyContainer.appendChild(hourBlock);
   });
-}
 
-loadWeather();
+  card.appendChild(header);
+  card.appendChild(hourlyContainer);
+  forecastContainer.appendChild(card);
+
+  header.addEventListener("click", ()=>{
+    const isVisible = hourlyContainer.style.display === "flex";
+    document.querySelectorAll(".hourly-container").forEach(hc=>hc.style.display="none");
+    if(!isVisible) hourlyContainer.style.display="flex";
+    setBackground(day.condition);
+  });
+});
+
+// Initialize first day background
+setBackground(forecastData[0].condition);
 </script>
+
 </body>
 </html>
