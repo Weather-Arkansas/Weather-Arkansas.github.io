@@ -3,215 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Animated Weather Background</title>
+<title>5-Day Hourly Forecast</title>
 <style>
-  body, html {
+  body {
     margin: 0;
-    padding: 0;
-    overflow: hidden;
-    height: 100%;
-    background: #0b1d3a;
-  }
-  #status {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: #fff;
     font-family: Arial, sans-serif;
-    font-size: 1.2em;
-    text-shadow: 1px 1px 3px #000;
-    z-index: 10;
+    color: #fff;
+    background-color: #0b1d3a;
+    transition: background 0.5s;
+    overflow-x: hidden;
   }
-  canvas {
+  #forecast-container {
+    padding: 20px;
+  }
+  .day-container {
+    margin-bottom: 40px;
+  }
+  h2 {
+    border-bottom: 2px solid #1e3c72;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+  }
+  .hourly-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hour-card {
+    background-color: rgba(30, 60, 114, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .hour-card:hover {
+    transform: scale(1.02);
+  }
+  .hour-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hour-details {
+    display: none;
+    font-size: 0.85em;
+    margin-top: 5px;
+  }
+  .hour-card.expanded .hour-details {
     display: block;
+  }
+  .expand-btn {
+    cursor: pointer;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
-<div id="status">Loading weather...</div>
-<canvas id="weatherCanvas"></canvas>
+<div id="forecast-container"></div>
 
 <script>
-const canvas = document.getElementById('weatherCanvas');
-const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let weatherCondition = "Clear"; // default
-let hour = new Date().getHours();
-
-// Helper: get background color based on weather
-function getBackgroundColor(cond, hour) {
-  const isDay = hour >= 6 && hour < 18;
-  cond = cond.toLowerCase();
-  if (cond.includes("sunny")) return isDay ? "#87CEEB" : "#0b1d3a";
-  if (cond.includes("mostly sunny")) return isDay ? "#B0E0E6" : "#0b1d3a";
-  if (cond.includes("partly cloudy")) return isDay ? "#B0C4DE" : "#1a1a2e";
-  if (cond.includes("mostly cloudy")) return "#A9A9A9";
-  if (cond.includes("cloudy")) return "#D3D3D3";
-  if (cond.includes("rain")) return "#4B4B4B";
-  if (cond.includes("snow")) return "#A0A0A0";
-  if (cond.includes("storm")) return "#2B2B2B";
-  return isDay ? "#87CEEB" : "#0b1d3a";
-}
-
-// Particle system
-let clouds = [];
-let raindrops = [];
-let snowflakes = [];
-let lightning = [];
-
-// Simple cloud class
-class Cloud {
-  constructor() {
-    this.x = Math.random()*canvas.width;
-    this.y = Math.random()*canvas.height/2;
-    this.size = 50 + Math.random()*50;
-    this.speed = 0.2 + Math.random()*0.3;
-  }
-  draw() {
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.beginPath();
-    ctx.ellipse(this.x, this.y, this.size, this.size*0.6, 0, 0, Math.PI*2);
-    ctx.fill();
-    this.x += this.speed;
-    if(this.x - this.size > canvas.width) this.x = -this.size;
-  }
-}
-
-// Simple raindrop
-class Rain {
-  constructor() {
-    this.x = Math.random()*canvas.width;
-    this.y = Math.random()*canvas.height;
-    this.length = 10 + Math.random()*10;
-    this.speed = 4 + Math.random()*4;
-  }
-  draw() {
-    ctx.strokeStyle = 'rgba(174,194,224,0.5)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x, this.y + this.length);
-    ctx.stroke();
-    this.y += this.speed;
-    if(this.y > canvas.height) this.y = -this.length;
-  }
-}
-
-// Simple snowflake
-class Snow {
-  constructor() {
-    this.x = Math.random()*canvas.width;
-    this.y = Math.random()*canvas.height;
-    this.radius = 2 + Math.random()*3;
-    this.speed = 1 + Math.random()*2;
-  }
-  draw() {
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-    ctx.fill();
-    this.y += this.speed;
-    if(this.y > canvas.height) this.y = -this.radius;
-  }
-}
-
-// Simple lightning
-class Lightning {
-  constructor() {
-    this.x = Math.random()*canvas.width;
-    this.y = 0;
-    this.width = 2 + Math.random()*2;
-    this.length = canvas.height*Math.random();
-    this.opacity = 1;
-    this.timer = 0;
-  }
-  draw() {
-    ctx.strokeStyle = `rgba(255,255,255,${this.opacity})`;
-    ctx.lineWidth = this.width;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x, this.length);
-    ctx.stroke();
-    this.timer++;
-    if(this.timer > 5) this.opacity -= 0.1;
-    if(this.opacity <= 0) {
-      this.x = Math.random()*canvas.width;
-      this.length = canvas.height*Math.random();
-      this.opacity = 1;
-      this.timer = 0;
+// ================== HELPER FUNCTIONS ==================
+function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => resolve(pos.coords), err => reject(err));
+    } else {
+      reject("Geolocation not supported");
     }
-  }
-}
-
-// Animate everything
-function animate() {
-  ctx.fillStyle = getBackgroundColor(weatherCondition, hour);
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  clouds.forEach(c => c.draw());
-  raindrops.forEach(r => r.draw());
-  snowflakes.forEach(s => s.draw());
-  lightning.forEach(l => l.draw());
-
-  requestAnimationFrame(animate);
-}
-
-// Load weather using NWS API
-async function loadWeather() {
-  const status = document.getElementById("status");
-
-  if (!navigator.geolocation) {
-    status.textContent = "Geolocation not supported";
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    try {
-      const gridRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-      const gridData = await gridRes.json();
-      const forecastUrl = gridData.properties.forecast;
-
-      const forecastRes = await fetch(forecastUrl);
-      const forecastData = await forecastRes.json();
-      weatherCondition = forecastData.properties.periods[0].shortForecast;
-      status.textContent = `Current weather: ${weatherCondition}`;
-
-      // Initialize particles based on weather
-      clouds = [];
-      raindrops = [];
-      snowflakes = [];
-      lightning = [];
-
-      if(weatherCondition.toLowerCase().includes("cloud")) {
-        for(let i=0;i<10;i++) clouds.push(new Cloud());
-      }
-      if(weatherCondition.toLowerCase().includes("rain")) {
-        for(let i=0;i<200;i++) raindrops.push(new Rain());
-      }
-      if(weatherCondition.toLowerCase().includes("snow")) {
-        for(let i=0;i<150;i++) snowflakes.push(new Snow());
-      }
-      if(weatherCondition.toLowerCase().includes("storm")) {
-        for(let i=0;i<10;i++) lightning.push(new Lightning());
-        for(let i=0;i<100;i++) raindrops.push(new Rain());
-      }
-
-      animate();
-    } catch(err) {
-      console.error(err);
-      status.textContent = "Error loading weather data";
-    }
-  }, (err) => {
-    console.error(err);
-    status.textContent = "Location access denied";
   });
 }
 
-loadWeather();
+function fetchForecast(lat, lon) {
+  return fetch(`https://api.weather.gov/points/${lat},${lon}`)
+    .then(res => res.json())
+    .then(pointData => fetch(pointData.properties.forecastHourly).then(r => r.json()));
+}
+
+function getWeatherBackground(condition, isDay) {
+  if (condition.includes("Rain") || condition.includes("Storm")) return 'linear-gradient(to bottom, #2a3b4c, #1b1f26)';
+  if (condition.includes("Snow")) return 'linear-gradient(to bottom, #3b4a5b, #1a1e26)';
+  if (condition.includes("Cloud")) return isDay ? 'linear-gradient(to bottom, #6e7e8e, #2b3a4c)' : 'linear-gradient(to bottom, #3b3b4b, #1a1a22)';
+  if (condition.includes("Clear") || condition.includes("Sunny")) return isDay ? 'linear-gradient(to bottom, #87ceeb, #0b1d3a)' : 'linear-gradient(to bottom, #0b1d3a, #000000)';
+  return '#0b1d3a';
+}
+
+// ================== MAIN FUNCTION ==================
+async function renderForecast() {
+  try {
+    const coords = await getLocation();
+    const data = await fetchForecast(coords.latitude, coords.longitude);
+    const container = document.getElementById('forecast-container');
+    container.innerHTML = '';
+    
+    const dailyData = {}; // group by day
+    data.properties.periods.forEach(period => {
+      const day = period.startTime.split('T')[0];
+      if (!dailyData[day]) dailyData[day] = [];
+      dailyData[day].push(period);
+    });
+    
+    Object.keys(dailyData).slice(0,5).forEach(day => {
+      const dayDiv = document.createElement('div');
+      dayDiv.className = 'day-container';
+      dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
+      container.appendChild(dayDiv);
+      
+      const hourlyContainer = dayDiv.querySelector('.hourly-container');
+      dailyData[day].forEach(hour => {
+        const isDay = hour.isDaytime;
+        const card = document.createElement('div');
+        card.className = 'hour-card';
+        const bg = getWeatherBackground(hour.shortForecast, isDay);
+        card.style.background = bg;
+        card.innerHTML = `
+          <div class="hour-summary">
+            <div>
+              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong>
+              <br>${hour.temperature}°${hour.temperatureUnit}
+            </div>
+            <div>
+              <img src="${hour.icon}" alt="${hour.shortForecast}" width="40" height="40">
+            </div>
+            <div class="expand-btn">+</div>
+          </div>
+          <div class="hour-details">
+            <p>${hour.shortForecast}</p>
+            <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
+            <p>Precip: ${hour.probabilityOfPrecipitation.value ?? 0}%</p>
+          </div>
+        `;
+        hourlyContainer.appendChild(card);
+        card.querySelector('.expand-btn').addEventListener('click', () => card.classList.toggle('expanded'));
+      });
+    });
+  } catch (e) {
+    console.error("Error loading forecast:", e);
+    document.getElementById('forecast-container').innerHTML = "<p>Unable to load forecast. Allow location access.</p>";
+  }
+}
+
+// ================== RUN ==================
+renderForecast();
 </script>
 </body>
 </html>
