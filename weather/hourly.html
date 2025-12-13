@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Weather Site</title>
+<title>HOURLY WEATHER</title>
 <style>
 /* --- Base & Theme --- */
 body, html {
@@ -11,6 +11,7 @@ body, html {
   font-family:"Lato",sans-serif;
   transition: background 1s, color 1s;
   overflow-x:hidden;
+  background: #001F3F; /* dark blue default */
 }
 .background {position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
 .cloud {
@@ -36,7 +37,7 @@ body, html {
 .snowflake {background:white; width:5px; height:5px; border-radius:50%;}
 
 /* --- Stars & Shooting Stars --- */
-body.night {background: radial-gradient(#0a0a2a, #000033);}
+body.night {background: radial-gradient(#001F3F, #000022);}
 .star {position:absolute; width:2px; height:2px; background:white; border-radius:50%; opacity:0.8; animation:twinkle 2s infinite alternate;}
 @keyframes twinkle {0%{opacity:0.3;}100%{opacity:1;}}
 .shooting-star {position:absolute; width:2px; height:100px; background:linear-gradient(white,transparent); transform:rotate(45deg); opacity:0; animation:shoot 2s linear forwards;}
@@ -72,15 +73,18 @@ body.night {background: radial-gradient(#0a0a2a, #000033);}
 @media screen and (max-width:500px){.card-summary{flex-direction:column;gap:5px;}.forecast-card{width:95%;}}
 </style>
 </head>
-<body>
+<body class="night">
 <div class="background">
-  <div class="sun"></div>
-  <div class="moon"></div>
-  <div class="cloud" style="top:30%;left:20%;animation-duration:25s;"></div>
-  <div class="cloud" style="top:60%;left:50%;animation-duration:28s;"></div>
-  <div class="cloud" style="top:15%;left:70%;animation-duration:20s;"></div>
-  <div class="rain"></div>
-  <div class="snow"></div>
+  <div class="sun" style="display: none;"></div>
+  <div class="moon" style="display: block;"></div>
+  <div class="cloud" style="top: 30%; left: 20%; animation-duration: 25s; display: none;"></div>
+  <div class="cloud" style="top: 60%; left: 50%; animation-duration: 28s; display: none;"></div>
+  <div class="cloud" style="top: 15%; left: 70%; animation-duration: 20s; display: none;"></div>
+  <div class="rain" style="opacity: 0; display: none;"></div>
+  <div class="snow" style="opacity: 0; display: none;"></div>
+  <div class="star" style="top: 10%; left: 20%;"></div>
+  <div class="star" style="top: 50%; left: 70%;"></div>
+  <div class="shooting-star" style="top: 40%; left: 30%;"></div>
 </div>
 
 <div class="content">
@@ -104,7 +108,19 @@ body.night {background: radial-gradient(#0a0a2a, #000033);}
 
   <h2>Hourly Forecast</h2>
   <div class="forecast-container" id="forecast-container">
-    <p>Loading forecast...</p>
+    <!-- Example cards (you can generate dynamically via JS/API) -->
+    <div class="forecast-card">
+      <div class="card-summary">
+        <div>10:00 PM<br>41°F</div>
+        <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="icon">
+        <span class="expand-btn">+</span>
+      </div>
+      <div class="forecast-details">
+        <p>Clear</p>
+        <p>Wind: 0 mph</p>
+        <p>Precip: 0%</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -122,23 +138,19 @@ else {signInLink.textContent="Sign In"; signInLink.href="/signin.html";}
 
 // --- Weather Background Mapping ---
 const weatherBackgrounds = {
-  "Sunny": {color:"#87CEEB", sun:true, clouds:0, rain:false, snow:false},
-  "Clear": {color:"#87CEEB", sun:true, clouds:0, rain:false, snow:false},
-  "Partly Cloudy": {color:"#B0E0E6", sun:true, clouds:2, rain:false, snow:false},
-  "Mostly Cloudy": {color:"#A9A9A9", sun:false, clouds:3, rain:false, snow:false},
-  "Cloudy": {color:"#808080", sun:false, clouds:4, rain:false, snow:false},
-  "Rain": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:false},
-  "Thunderstorms": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:false},
-  "Snow": {color:"#B0C4DE", sun:false, clouds:3, rain:false, snow:true},
-  "Sleet": {color:"#B0C4DE", sun:false, clouds:3, rain:true, snow:true},
-  "Hail": {color:"#B0C4DE", sun:false, clouds:3, rain:true, snow:true},
-  "Freezing Rain": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:true}
+  "Sunny": {color:"#001F3F", sun:true, clouds:0, rain:false, snow:false},
+  "Clear": {color:"#001F3F", sun:true, clouds:0, rain:false, snow:false},
+  "Partly Cloudy": {color:"#00264D", sun:true, clouds:2, rain:false, snow:false},
+  "Mostly Cloudy": {color:"#003366", sun:false, clouds:3, rain:false, snow:false},
+  "Cloudy": {color:"#004080", sun:false, clouds:4, rain:false, snow:false},
+  "Rain": {color:"#002040", sun:false, clouds:3, rain:true, snow:false},
+  "Thunderstorms": {color:"#002040", sun:false, clouds:3, rain:true, snow:false},
+  "Snow": {color:"#003366", sun:false, clouds:3, rain:false, snow:true}
 };
 
 function applyWeatherBackground(condition){
-  const bg = weatherBackgrounds[condition] || {color:"#87CEEB", sun:true, clouds:2, rain:false, snow:false};
+  const bg = weatherBackgrounds[condition] || {color:"#001F3F", sun:true, clouds:2, rain:false, snow:false};
   document.body.style.background = bg.color;
-
   const sun = document.querySelector('.sun');
   const moon = document.querySelector('.moon');
   const clouds = document.querySelectorAll('.cloud');
@@ -160,75 +172,84 @@ function updateSunMoon() {
   const hour = new Date().getHours();
   const sun = document.querySelector('.sun');
   const moon = document.querySelector('.moon');
-  const body = document.body;
 
-  if(hour >=6 && hour <18){ 
-    sun.style.display='block'; moon.style.display='none'; body.classList.remove('night'); 
-  } else { 
-    sun.style.display='none'; moon.style.display='block'; body.classList.add('night'); 
+  if(hour >= 6 && hour < 18){
+    sun.style.display = 'block';
+    moon.style.display = 'none';
+    document.body.classList.remove('night');
+  } else {
+    sun.style.display = 'none';
+    moon.style.display = 'block';
+    document.body.classList.add('night');
+  }
+
+  const skyPercent = ((hour % 24) / 24) * 100;
+  if(sun.style.display === 'block') sun.style.left = `${skyPercent}%`;
+  if(moon.style.display === 'block') moon.style.left = `${skyPercent}%`;
+}
+
+// --- Rain / Snow Effects ---
+function startRain() {
+  const rain = document.querySelector('.rain');
+  if(rain.style.display !== 'block') {
+    rain.style.display = 'block';
+    rain.style.opacity = '1';
+    generateRaindrops();
+  }
+}
+function stopRain() {
+  const rain = document.querySelector('.rain');
+  rain.style.opacity = '0';
+  setTimeout(()=>rain.style.display='none',1000);
+}
+function generateRaindrops() {
+  const rain = document.querySelector('.rain');
+  rain.innerHTML = '';
+  for(let i=0;i<100;i++){
+    const drop = document.createElement('div');
+    drop.className = 'raindrop';
+    drop.style.left = `${Math.random()*100}%`;
+    drop.style.animationDuration = `${0.5 + Math.random()*0.5}s`;
+    drop.style.height = `${10 + Math.random()*20}px`;
+    rain.appendChild(drop);
+  }
+}
+function startSnow() {
+  const snow = document.querySelector('.snow');
+  if(snow.style.display !== 'block') {
+    snow.style.display = 'block';
+    snow.style.opacity = '1';
+    generateSnowflakes();
+  }
+}
+function stopSnow() {
+  const snow = document.querySelector('.snow');
+  snow.style.opacity = '0';
+  setTimeout(()=>snow.style.display='none',1000);
+}
+function generateSnowflakes() {
+  const snow = document.querySelector('.snow');
+  snow.innerHTML = '';
+  for(let i=0;i<50;i++){
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    flake.style.left = `${Math.random()*100}%`;
+    flake.style.animationDuration = `${2 + Math.random()*3}s`;
+    flake.style.width = flake.style.height = `${2 + Math.random()*5}px`;
+    snow.appendChild(flake);
   }
 }
 
-// --- Rain / Snow ---
-const rainContainer = document.querySelector('.rain');
-function startRain(){ rainContainer.style.display='block'; rainContainer.style.opacity=1; rainContainer.innerHTML=''; for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.height=`${10+Math.random()*10}px`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop);} }
-function stopRain(){ rainContainer.style.opacity=0; setTimeout(()=>{ rainContainer.style.display='none'; while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }},1000);}
-const snowContainer = document.querySelector('.snow');
-function startSnow(){ snowContainer.style.display='block'; snowContainer.style.opacity=1; snowContainer.innerHTML=''; for(let i=0;i<80;i++){ const flake=document.createElement('div'); flake.classList.add('snowflake'); flake.style.left=`${Math.random()*100}%`; flake.style.animationDuration=`${2+Math.random()*3}s`; flake.style.width=`${3+Math.random()*3}px`; flake.style.height=flake.style.width; snowContainer.appendChild(flake);} }
-function stopSnow(){ snowContainer.style.opacity=0; setTimeout(()=>{ snowContainer.style.display='none'; while(snowContainer.firstChild){ snowContainer.removeChild(snowContainer.firstChild); }},1000);}
+// --- Forecast Card Expand ---
+document.querySelectorAll('.forecast-card').forEach(card => {
+  const btn = card.querySelector('.expand-btn');
+  btn.addEventListener('click', () => card.classList.toggle('expanded'));
+});
 
-// --- Stars & Shooting Stars ---
-function createStars(count=100){ const bg=document.querySelector('.background'); for(let i=0;i<count;i++){ const star=document.createElement('div'); star.classList.add('star'); star.style.top=`${Math.random()*100}%`; star.style.left=`${Math.random()*100}%`; star.style.width=star.style.height=`${Math.random()*2+1}px`; bg.appendChild(star);} }
-createStars();
-function shootingStar(){ const bg=document.querySelector('.background'); const star=document.createElement('div'); star.classList.add('shooting-star'); star.style.top=`${Math.random()*50}%`; star.style.left=`${Math.random()*50}%`; bg.appendChild(star); setTimeout(()=>{bg.removeChild(star)},2000);}
-setInterval(shootingStar,5000);
-
-// --- Forecast Cards ---
-function createCard(period){
-  const card=document.createElement('div'); card.classList.add('forecast-card');
-  const iconURL=period.icon||"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png";
-  card.innerHTML=`<div class="card-summary">
-    <div>${new Date(period.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${period.temperature}°${period.temperatureUnit}</div>
-    <img src="${iconURL}" alt="icon" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png'">
-    <span class="expand-btn">+</span>
-  </div>
-  <div class="forecast-details">
-    <p>${period.shortForecast}</p>
-    <p>Wind: ${period.windSpeed} ${period.windDirection}</p>
-    <p>Precip: ${period.probabilityOfPrecipitation.value||0}%</p>
-    <p>${period.detailedForecast}</p>
-  </div>`;
-  card.querySelector('.card-summary').addEventListener('click',()=>{card.classList.toggle('expanded');});
-  return card;
-}
-
-// --- Fetch NOAA Forecast ---
-async function fetchForecast(lat,lon){
-  const container=document.getElementById('forecast-container');
-  container.innerHTML='<p>Loading forecast...</p>';
-  try{
-    const headers={'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json'};
-    const point=await fetch(`https://api.weather.gov/points/${lat},${lon}`,{headers}).then(r=>r.json());
-    const forecast=await fetch(point.properties.forecastHourly,{headers}).then(r=>r.json());
-    const now=new Date();
-    container.innerHTML='';
-    forecast.properties.periods
-      .filter(p=>new Date(p.startTime)>now)
-      .slice(0,24)
-      .forEach(p=>container.appendChild(createCard(p)));
-    applyWeatherBackground(forecast.properties.periods[0].shortForecast);
-  }catch(e){console.error(e); container.innerHTML='<p>Unable to load forecast.</p>';}
-}
-
-// --- Load Forecast with Geolocation ---
-function loadForecast(){
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>fetchForecast(pos.coords.latitude,pos.coords.longitude),
-      ()=>fetchForecast(34.7465,-92.2896));
-  } else { fetchForecast(34.7465,-92.2896); }
-}
-loadForecast();
-setInterval(loadForecast,10000); // refresh every 10 seconds
+// --- Initial Setup ---
+applyWeatherBackground("Clear"); // Default condition
+updateSunMoon();
+setInterval(updateSunMoon, 60000);
 </script>
 </body>
 </html>
