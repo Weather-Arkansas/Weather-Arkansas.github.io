@@ -4,114 +4,247 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>7-Day Hourly Weather</title>
+
 <style>
-body {
-  background: #001F3F;
-  color: #fff;
+body, html {
+  margin:0;
+  padding:0;
   font-family: Arial, sans-serif;
-  margin: 0; padding: 20px;
+  color:white;
+  min-height:100%;
+  transition: background 1s;
 }
-h2 { border-bottom: 2px solid #1e3c72; margin-bottom: 10px; }
-.day-container { margin-bottom: 40px; }
-.forecast-container { display: flex; flex-wrap: wrap; gap: 8px; }
-.forecast-card {
-  background: #1e3c72;
-  border-radius: 10px;
-  padding: 10px;
-  width: 90px;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.3s;
+
+body.day { background: linear-gradient(#87CEEB, #B0E0E6); }
+body.night { background: linear-gradient(#000814, #001d3d); }
+
+.background {
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  overflow:hidden;
 }
-.forecast-card:hover { transform: scale(1.05); }
-.card-summary img { width: 40px; height: 40px; }
-.forecast-details { display: none; font-size: 0.8em; margin-top: 5px; }
-.forecast-card.expanded .forecast-details { display: block; }
-.expand-btn { display: block; font-weight: bold; margin-top: 5px; cursor: pointer; }
+
+.sun, .moon {
+  position:absolute;
+  top:10%;
+  left:10%;
+  width:100px;
+  height:100px;
+  border-radius:50%;
+}
+
+.sun {
+  background: radial-gradient(circle, #FFD700, #FFA500);
+  box-shadow: 0 0 60px rgba(255,200,0,0.8);
+}
+
+.moon {
+  background: radial-gradient(circle, #fff, #ccc);
+  box-shadow: 0 0 40px rgba(255,255,255,0.6);
+  display:none;
+}
+
+.cloud {
+  position:absolute;
+  width:200px;
+  height:60px;
+  background:white;
+  border-radius:50%;
+  opacity:0.8;
+  animation: moveClouds 40s linear infinite;
+}
+
+@keyframes moveClouds {
+  from { transform: translateX(-300px); }
+  to { transform: translateX(120vw); }
+}
+
+.rain, .snow {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  display:none;
+}
+
+.raindrop {
+  position:absolute;
+  width:2px;
+  height:15px;
+  background:rgba(173,216,230,0.7);
+  animation: fall 1s linear infinite;
+}
+
+.snowflake {
+  position:absolute;
+  width:5px;
+  height:5px;
+  background:white;
+  border-radius:50%;
+  animation: fall 4s linear infinite;
+}
+
+@keyframes fall {
+  from { top:-10px; }
+  to { top:110%; }
+}
+
+/* Forecast UI */
+h2 { text-align:center; }
+
+.day-block { margin:30px 0; }
+
+.hour-grid {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+}
+
+.hour-card {
+  background:rgba(0,0,0,0.35);
+  border-radius:10px;
+  padding:10px;
+  width:110px;
+  text-align:center;
+  cursor:pointer;
+  transition: transform .2s;
+}
+
+.hour-card:hover { transform: scale(1.05); }
+
+.hour-details {
+  display:none;
+  font-size:0.8em;
+  margin-top:5px;
+}
+
+.hour-card.expanded .hour-details {
+  display:block;
+}
+
+.hour-card img {
+  width:40px;
+  height:40px;
+}
 </style>
 </head>
-<body>
 
-<div id="weekly-forecast"><p>Loading 7‑day hourly forecast…</p></div>
+<body>
+<div class="background">
+  <div class="sun"></div>
+  <div class="moon"></div>
+  <div class="cloud" style="top:20%"></div>
+  <div class="cloud" style="top:40%; animation-duration:55s"></div>
+  <div class="rain"></div>
+  <div class="snow"></div>
+</div>
+
+<h2>7-Day Hourly Forecast</h2>
+<div id="forecast"></div>
 
 <script>
-// --- Get Location & Fetch Airport Grid Forecast ---
-// This uses geolocation if available
-function fetch7DayHourly(lat, lon) {
-  const headers = { "User-Agent": "WeatherSiteExample (your-email@example.com)" };
-  return fetch(`https://api.weather.gov/points/${lat},${lon}`, { headers })
-    .then(res => res.json())
-    .then(pt => fetch(pt.properties.forecastHourly, { headers }))
-    .then(res => res.json());
+const headers = {
+  "User-Agent": "YourWeatherSite (you@example.com)"
+};
+
+const weatherMap = {
+  rain: () => startRain(),
+  snow: () => startSnow()
+};
+
+function applyCurrentBackground(period) {
+  const hour = new Date().getHours();
+  const isDay = period.isDaytime;
+
+  document.body.className = isDay ? "day" : "night";
+  document.querySelector(".sun").style.display = isDay ? "block" : "none";
+  document.querySelector(".moon").style.display = isDay ? "none" : "block";
+
+  stopRain(); stopSnow();
+
+  const text = period.shortForecast.toLowerCase();
+  if (text.includes("rain") || text.includes("storm")) startRain();
+  if (text.includes("snow") || text.includes("sleet")) startSnow();
 }
 
-function buildForecastUI(forecast) {
-  const container = document.getElementById("weekly-forecast");
-  container.innerHTML = "";
-
-  // Group by day
-  const periods = forecast.properties.periods;
-  const daysMap = {};
-  periods.forEach(p => {
-    const d = new Date(p.startTime).toLocaleDateString(undefined, { weekday: "long" });
-    if (!daysMap[d]) daysMap[d] = [];
-    daysMap[d].push(p);
-  });
-
-  Object.keys(daysMap).forEach(day => {
-    const dayDiv = document.createElement("div");
-    dayDiv.className = "day-container";
-    dayDiv.innerHTML = `<h2>${day}</h2><div class="forecast-container"></div>`;
-    container.appendChild(dayDiv);
-    const row = dayDiv.querySelector(".forecast-container");
-
-    daysMap[day].forEach(hour => {
-      const card = document.createElement("div");
-      card.className = "forecast-card";
-
-      card.innerHTML = `
-      <div class="card-summary">
-        <div>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${hour.temperature}°${hour.temperatureUnit}</div>
-        <img src="${hour.icon}" alt="weather icon">
-        <span class="expand-btn">+</span>
-      </div>
-      <div class="forecast-details">
-        <p>${hour.shortForecast}</p>
-        <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
-        <p>Precip: ${hour.probabilityOfPrecipitation.value || 0}%</p>
-      </div>`;
-
-      // Expand/collapse
-      card.querySelector(".card-summary").onclick = () => {
-        card.classList.toggle("expanded");
-      };
-
-      row.appendChild(card);
-    });
-  });
-}
-
-function initWeather() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      fetch7DayHourly(pos.coords.latitude, pos.coords.longitude)
-        .then(data => buildForecastUI(data))
-        .catch(err => console.error(err));
-    }, () => {
-      // fallback to Little Rock if blocked
-      fetch7DayHourly(34.7465, -92.2896)
-        .then(data => buildForecastUI(data))
-        .catch(err => console.error(err));
-    });
-  } else {
-    fetch7DayHourly(34.7465, -92.2896)
-      .then(data => buildForecastUI(data))
-      .catch(err => console.error(err));
+function startRain() {
+  const r = document.querySelector(".rain");
+  r.style.display = "block";
+  r.innerHTML = "";
+  for (let i=0;i<120;i++){
+    const d = document.createElement("div");
+    d.className="raindrop";
+    d.style.left=Math.random()*100+"%";
+    d.style.animationDuration=(0.5+Math.random())+"s";
+    r.appendChild(d);
   }
 }
 
-initWeather();
-</script>
+function stopRain(){ document.querySelector(".rain").style.display="none"; }
 
+function startSnow() {
+  const s = document.querySelector(".snow");
+  s.style.display="block";
+  s.innerHTML="";
+  for (let i=0;i<80;i++){
+    const f=document.createElement("div");
+    f.className="snowflake";
+    f.style.left=Math.random()*100+"%";
+    s.appendChild(f);
+  }
+}
+
+function stopSnow(){ document.querySelector(".snow").style.display="none"; }
+
+async function loadForecast(lat,lon){
+  const point = await fetch(`https://api.weather.gov/points/${lat},${lon}`,{headers}).then(r=>r.json());
+  const hourly = await fetch(point.properties.forecastHourly,{headers}).then(r=>r.json());
+
+  const container = document.getElementById("forecast");
+  container.innerHTML = "";
+
+  const periods = hourly.properties.periods;
+
+  applyCurrentBackground(periods[0]); // ← FIX: background updates again
+
+  const days = {};
+  periods.forEach(p=>{
+    const day = new Date(p.startTime).toDateString();
+    if(!days[day]) days[day]=[];
+    days[day].push(p);
+  });
+
+  Object.entries(days).forEach(([day, hours])=>{
+    const block=document.createElement("div");
+    block.className="day-block";
+    block.innerHTML=`<h2>${day}</h2><div class="hour-grid"></div>`;
+    const grid=block.querySelector(".hour-grid");
+
+    hours.forEach(h=>{
+      const card=document.createElement("div");
+      card.className="hour-card";
+      card.innerHTML=`
+        <strong>${new Date(h.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</strong>
+        <div>${h.temperature}°${h.temperatureUnit}</div>
+        <img src="${h.icon}">
+        <div class="hour-details">
+          <p>${h.shortForecast}</p>
+          <p>Wind: ${h.windSpeed}</p>
+          <p>Precip: ${h.probabilityOfPrecipitation.value||0}%</p>
+        </div>`;
+      card.onclick=()=>card.classList.toggle("expanded");
+      grid.appendChild(card);
+    });
+
+    container.appendChild(block);
+  });
+}
+
+navigator.geolocation?.getCurrentPosition(
+  p=>loadForecast(p.coords.latitude,p.coords.longitude),
+  ()=>loadForecast(34.7465,-92.2896)
+);
+</script>
 </body>
 </html>
