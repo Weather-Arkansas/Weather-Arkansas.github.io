@@ -3,253 +3,135 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOURLY WEATHER</title>
+<title>7-Day Hourly Forecast</title>
 <style>
-/* --- Base & Theme --- */
-body, html {
-  margin:0; padding:0; width:100%; height:100%;
-  font-family:"Lato",sans-serif;
-  transition: background 1s, color 1s;
-  overflow-x:hidden;
-  background: #001F3F; /* dark blue default */
-}
-.background {position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
-.cloud {
-  position:absolute; background:#fff; border-radius:50%;
-  width:200px; height:60px; animation:moveClouds linear infinite; z-index:2;
-}
-.cloud::before, .cloud::after {content:''; position:absolute; background:#fff; border-radius:50%;}
-.cloud::before {width:100px; height:100px; top:-50px; left:50px;}
-.cloud::after {width:120px; height:120px; top:-60px; left:100px;}
-.sun, .moon {
-  position:absolute; width:100px; height:100px; top:10%; left:10%;
-  border-radius:50%; z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
-}
-.sun { background: radial-gradient(circle,#FFD700,#FFA500); }
-.moon { background: radial-gradient(circle,#f0e68c,#dcdcdc); display:none; }
+  body {
+    background-color: #0b1d3a; /* dark blue */
+    color: #fff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+  }
 
-/* --- Rain & Snow --- */
-.rain, .snow {position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none;}
-.raindrop, .snowflake {
-  position:absolute; width:2px; background:rgba(0,0,255,0.5);
-  animation:fall linear infinite;
-}
-.snowflake {background:white; width:5px; height:5px; border-radius:50%;}
+  .day-container {
+    margin-bottom: 40px;
+  }
 
-/* --- Stars & Shooting Stars --- */
-body.night {background: radial-gradient(#001F3F, #000022);}
-.star {position:absolute; width:2px; height:2px; background:white; border-radius:50%; opacity:0.8; animation:twinkle 2s infinite alternate;}
-@keyframes twinkle {0%{opacity:0.3;}100%{opacity:1;}}
-.shooting-star {position:absolute; width:2px; height:100px; background:linear-gradient(white,transparent); transform:rotate(45deg); opacity:0; animation:shoot 2s linear forwards;}
-@keyframes shoot {0%{opacity:1; transform:translate(0,0) rotate(45deg);} 100%{opacity:0; transform:translate(500px,500px) rotate(45deg);}}
+  h2 {
+    border-bottom: 2px solid #1e3c72;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+  }
 
-/* --- Keyframes --- */
-@keyframes moveClouds {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
-@keyframes fall {0%{top:-10px;}100%{top:100%;}}
+  .forecast-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 
-/* --- Content --- */
-.content {position:relative; z-index:2; text-align:center; padding:20px; transition:color 1s;}
-.content.rainy, .content.snowy {text-shadow:2px 2px 4px #000;}
+  .forecast-card {
+    background-color: #1e3c72;
+    border-radius: 10px;
+    padding: 10px;
+    width: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
 
-/* --- Side nav --- */
-.sidenav {height:100%;width:0;position:fixed;z-index:3;top:0;left:0;background:#111;overflow-x:hidden;transition:0.5s;padding-top:60px;text-align:center;}
-.sidenav a {padding:8px 8px 8px 32px;text-decoration:none;font-size:25px;color:#818181;display:block;transition:0.3s;}
-.sidenav a:hover{color:#f1f1f1;}
-.sidenav .closebtn {position:absolute;top:0;right:25px;font-size:36px;margin-left:50px;}
-@media screen and (max-height:450px){.sidenav{padding-top:15px;}.sidenav a{font-size:18px;}}
-#signOutBtn {position:absolute;top:12px;right:12px;padding:6px 12px;border:none;border-radius:6px;background:teal;color:white;cursor:pointer;}
-#signOutBtn:hover {background:#006666;}
+  .forecast-card:hover {
+    transform: scale(1.05);
+  }
 
-/* --- Forecast Cards --- */
-.forecast-container {display:flex; flex-direction:column; align-items:center; margin-top:20px; gap:12px;}
-.forecast-card {background:linear-gradient(135deg,#ffffff,#e0f7fa); border-radius:15px; box-shadow:0 6px 12px rgba(0,0,0,0.2); width:90%; max-width:500px; cursor:pointer; transition:transform 0.3s, background 0.3s;}
-.forecast-card:hover {transform:translateY(-5px);}
-.card-summary {padding:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;}
-.card-summary img {width:40px; height:40px; transition:transform 0.3s;}
-.expand-btn {font-size:20px; transition:transform 0.3s;}
-.forecast-details {padding:10px; text-align:left; font-weight:normal; display:none; overflow:auto; max-height:200px;}
-.forecast-card.expanded .forecast-details {display:block;}
-.forecast-card.expanded .expand-btn {transform:rotate(45deg);}
-@media screen and (max-width:500px){.card-summary{flex-direction:column;gap:5px;}.forecast-card{width:95%;}}
+  .card-summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-summary img {
+    margin: 5px 0;
+  }
+
+  .forecast-details {
+    display: none;
+    font-size: 0.8em;
+    margin-top: 5px;
+    text-align: center;
+  }
+
+  .forecast-card.expanded .forecast-details {
+    display: block;
+  }
+
+  .expand-btn {
+    font-weight: bold;
+    margin-top: 5px;
+    cursor: pointer;
+  }
 </style>
 </head>
-<body class="night">
-<div class="background">
-  <div class="sun" style="display: none;"></div>
-  <div class="moon" style="display: block;"></div>
-  <div class="cloud" style="top: 30%; left: 20%; animation-duration: 25s; display: none;"></div>
-  <div class="cloud" style="top: 60%; left: 50%; animation-duration: 28s; display: none;"></div>
-  <div class="cloud" style="top: 15%; left: 70%; animation-duration: 20s; display: none;"></div>
-  <div class="rain" style="opacity: 0; display: none;"></div>
-  <div class="snow" style="opacity: 0; display: none;"></div>
-  <div class="star" style="top: 10%; left: 20%;"></div>
-  <div class="star" style="top: 50%; left: 70%;"></div>
-  <div class="shooting-star" style="top: 40%; left: 30%;"></div>
-</div>
+<body>
 
-<div class="content">
-  <div id="mySidenav" class="sidenav">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-    <a href="/index.html">Home</a>
-    <a href="/weather/10-day.html">10-Day Forecast</a>
-    <a href="/weather/station-link.html">Weather Stations</a>
-    <a href="/weather/Little-Rock.html">Capitol Weather</a>
-    <a href="/weather/radar.html">Local Radar</a>
-    <a href="/rain/index.html">Precipitation Map</a>
-    <a href="/blog/blog.html">Blog</a>
-    <a href="/about.html">About</a>
-    <a href="/settings.html">Settings</a>
-    <a href="/api.html">Weather Api</a>
-    <a href="/thanks.html">Thanks</a>  
-    <a href="#" id="signInLink">Sign Out</a>
-  </div>
-  <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
-  <button id="signOutBtn">Sign Out</button>
+<div id="weekly-forecast"></div>
 
-  <h2>Hourly Forecast</h2>
-  <div class="forecast-container" id="forecast-container">
-    <!-- Example cards (you can generate dynamically via JS/API) -->
-    <div class="forecast-card">
+<script>
+// Function to generate 24-hour dummy data for a day
+function generateHourlyData() {
+  const hours = [];
+  for (let i = 0; i < 24; i++) {
+    const hour = i < 10 ? `0${i}:00` : `${i}:00`;
+    hours.push({
+      time: hour,
+      temp: `${Math.floor(Math.random() * 20) + 30}°F`, // random temp for demo
+      condition: ["Clear","Cloudy","Rain","Sunny","Partly Cloudy"][Math.floor(Math.random()*5)],
+      wind: `${Math.floor(Math.random()*10)+1} mph`,
+      precip: `${Math.floor(Math.random()*60)}%`
+    });
+  }
+  return hours;
+}
+
+// Example 7-day data
+const weekDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const weekData = weekDays.map(day => ({
+  day,
+  hourly: generateHourlyData()
+}));
+
+const weeklyContainer = document.getElementById('weekly-forecast');
+
+weekData.forEach(dayData => {
+  const dayDiv = document.createElement('div');
+  dayDiv.className = 'day-container';
+  dayDiv.innerHTML = `<h2>${dayData.day}</h2><div class="forecast-container"></div>`;
+  weeklyContainer.appendChild(dayDiv);
+
+  const container = dayDiv.querySelector('.forecast-container');
+
+  dayData.hourly.forEach(hour => {
+    const card = document.createElement('div');
+    card.className = 'forecast-card';
+    card.innerHTML = `
       <div class="card-summary">
-        <div>10:00 PM<br>41°F</div>
+        <div>${hour.time}<br>${hour.temp}</div>
         <img src="https://api.weather.gov/icons/land/night/skc?size=small" alt="icon">
         <span class="expand-btn">+</span>
       </div>
       <div class="forecast-details">
-        <p>Clear</p>
-        <p>Wind: 0 mph</p>
-        <p>Precip: 0%</p>
+        <p>${hour.condition}</p>
+        <p>Wind: ${hour.wind}</p>
+        <p>Precip: ${hour.precip}</p>
       </div>
-    </div>
-  </div>
-</div>
+    `;
+    container.appendChild(card);
 
-<script>
-// --- Side nav ---
-function openNav(){ document.getElementById("mySidenav").style.width="100%";}
-function closeNav(){ document.getElementById("mySidenav").style.width="0";}
-document.getElementById("signOutBtn").addEventListener("click", ()=>{
-    localStorage.removeItem("signedIn"); window.location.href="/signin.html";
+    card.querySelector('.expand-btn').addEventListener('click', () => {
+      card.classList.toggle('expanded');
+    });
+  });
 });
-const signedIn = localStorage.getItem("signedIn") === "true";
-const signInLink = document.getElementById("signInLink");
-if(signedIn){signInLink.textContent="Sign Out"; signInLink.href="#"; signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });} 
-else {signInLink.textContent="Sign In"; signInLink.href="/signin.html";}
-
-// --- Weather Background Mapping ---
-const weatherBackgrounds = {
-  "Sunny": {color:"#001F3F", sun:true, clouds:0, rain:false, snow:false},
-  "Clear": {color:"#001F3F", sun:true, clouds:0, rain:false, snow:false},
-  "Partly Cloudy": {color:"#00264D", sun:true, clouds:2, rain:false, snow:false},
-  "Mostly Cloudy": {color:"#003366", sun:false, clouds:3, rain:false, snow:false},
-  "Cloudy": {color:"#004080", sun:false, clouds:4, rain:false, snow:false},
-  "Rain": {color:"#002040", sun:false, clouds:3, rain:true, snow:false},
-  "Thunderstorms": {color:"#002040", sun:false, clouds:3, rain:true, snow:false},
-  "Snow": {color:"#003366", sun:false, clouds:3, rain:false, snow:true}
-};
-
-function applyWeatherBackground(condition){
-  const bg = weatherBackgrounds[condition] || {color:"#001F3F", sun:true, clouds:2, rain:false, snow:false};
-  document.body.style.background = bg.color;
-  const sun = document.querySelector('.sun');
-  const moon = document.querySelector('.moon');
-  const clouds = document.querySelectorAll('.cloud');
-  const rain = document.querySelector('.rain');
-  const snow = document.querySelector('.snow');
-  const content = document.querySelector('.content');
-
-  sun.style.display = bg.sun ? 'block' : 'none';
-  clouds.forEach((c,i)=>{c.style.display = i<bg.clouds ? 'block':'none';});
-
-  if(bg.rain){ startRain(); content.classList.add('rainy'); } else { stopRain(); content.classList.remove('rainy'); }
-  if(bg.snow){ startSnow(); content.classList.add('snowy'); } else { stopSnow(); content.classList.remove('snowy'); }
-
-  updateSunMoon();
-}
-
-// --- Sun / Moon and Night Sky ---
-function updateSunMoon() {
-  const hour = new Date().getHours();
-  const sun = document.querySelector('.sun');
-  const moon = document.querySelector('.moon');
-
-  if(hour >= 6 && hour < 18){
-    sun.style.display = 'block';
-    moon.style.display = 'none';
-    document.body.classList.remove('night');
-  } else {
-    sun.style.display = 'none';
-    moon.style.display = 'block';
-    document.body.classList.add('night');
-  }
-
-  const skyPercent = ((hour % 24) / 24) * 100;
-  if(sun.style.display === 'block') sun.style.left = `${skyPercent}%`;
-  if(moon.style.display === 'block') moon.style.left = `${skyPercent}%`;
-}
-
-// --- Rain / Snow Effects ---
-function startRain() {
-  const rain = document.querySelector('.rain');
-  if(rain.style.display !== 'block') {
-    rain.style.display = 'block';
-    rain.style.opacity = '1';
-    generateRaindrops();
-  }
-}
-function stopRain() {
-  const rain = document.querySelector('.rain');
-  rain.style.opacity = '0';
-  setTimeout(()=>rain.style.display='none',1000);
-}
-function generateRaindrops() {
-  const rain = document.querySelector('.rain');
-  rain.innerHTML = '';
-  for(let i=0;i<100;i++){
-    const drop = document.createElement('div');
-    drop.className = 'raindrop';
-    drop.style.left = `${Math.random()*100}%`;
-    drop.style.animationDuration = `${0.5 + Math.random()*0.5}s`;
-    drop.style.height = `${10 + Math.random()*20}px`;
-    rain.appendChild(drop);
-  }
-}
-function startSnow() {
-  const snow = document.querySelector('.snow');
-  if(snow.style.display !== 'block') {
-    snow.style.display = 'block';
-    snow.style.opacity = '1';
-    generateSnowflakes();
-  }
-}
-function stopSnow() {
-  const snow = document.querySelector('.snow');
-  snow.style.opacity = '0';
-  setTimeout(()=>snow.style.display='none',1000);
-}
-function generateSnowflakes() {
-  const snow = document.querySelector('.snow');
-  snow.innerHTML = '';
-  for(let i=0;i<50;i++){
-    const flake = document.createElement('div');
-    flake.className = 'snowflake';
-    flake.style.left = `${Math.random()*100}%`;
-    flake.style.animationDuration = `${2 + Math.random()*3}s`;
-    flake.style.width = flake.style.height = `${2 + Math.random()*5}px`;
-    snow.appendChild(flake);
-  }
-}
-
-// --- Forecast Card Expand ---
-document.querySelectorAll('.forecast-card').forEach(card => {
-  const btn = card.querySelector('.expand-btn');
-  btn.addEventListener('click', () => card.classList.toggle('expanded'));
-});
-
-// --- Initial Setup ---
-applyWeatherBackground("Clear"); // Default condition
-updateSunMoon();
-setInterval(updateSunMoon, 60000);
 </script>
+
 </body>
 </html>
