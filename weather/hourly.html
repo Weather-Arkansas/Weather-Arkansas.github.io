@@ -3,299 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather</title>
-
+<title>Dynamic Weather Site</title>
 <style>
-/* RESET */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
-  font-family: Arial, sans-serif;
+/* --- Base & Theme --- */
+body, html {
+  margin:0; padding:0; width:100%; height:100%;
+  font-family:"Lato",sans-serif;
+  transition: background 1s, color 1s;
+  overflow-x:hidden;
 }
-
-/* BACKGROUND */
-.background {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  transition: background 1s ease;
-}
-
-/* DAY SKY */
-body.day .background {
-  background: linear-gradient(#87CEEB, #d9f2ff);
-}
-
-/* NIGHT SKY (VERY DARK BLUE) */
-body.night .background {
-  background: radial-gradient(circle at top, #020617 0%, #000000 90%);
-}
-
-/* SUN */
-.sun {
-  position: absolute;
-  top: 60px;
-  left: 60px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #FFD700, #FFA500);
-  box-shadow: 0 0 70px rgba(255,215,0,.6);
-}
-
-/* MOON */
-.moon {
-  position: absolute;
-  top: 60px;
-  right: 80px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #f5f3ce;
-  box-shadow:
-    0 0 25px rgba(255,255,220,.8),
-    0 0 60px rgba(255,255,220,.4);
-}
-
-/* STARS */
-.star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: white;
-  border-radius: 50%;
-  opacity: .8;
-  animation: twinkle 2s infinite alternate;
-}
-
-@keyframes twinkle {
-  from { opacity: .3; }
-  to { opacity: 1; }
-}
-
-/* SHOOTING STAR */
-.shooting-star {
-  position: absolute;
-  width: 2px;
-  height: 120px;
-  background: linear-gradient(white, transparent);
-  transform: rotate(45deg);
-  animation: shoot 1.5s linear forwards;
-}
-
-@keyframes shoot {
-  from { opacity: 1; transform: translate(0,0) rotate(45deg); }
-  to { opacity: 0; transform: translate(600px,600px) rotate(45deg); }
-}
-
-/* CLOUDS */
+.background {position:absolute; width:100%; height:100%; z-index:1; overflow:hidden;}
 .cloud {
-  position: absolute;
-  width: 200px;
-  height: 60px;
-  background: #fff;
-  border-radius: 50px;
-  opacity: .9;
-  animation: moveClouds 60s linear infinite;
+  position:absolute; background:#fff; border-radius:50%;
+  width:200px; height:60px; animation:moveClouds linear infinite; z-index:2;
 }
-
-.cloud::before, .cloud::after {
-  content: '';
-  position: absolute;
-  background: #fff;
-  border-radius: 50%;
+.cloud::before, .cloud::after {content:''; position:absolute; background:#fff; border-radius:50%;}
+.cloud::before {width:100px; height:100px; top:-50px; left:50px;}
+.cloud::after {width:120px; height:120px; top:-60px; left:100px;}
+.sun, .moon {
+  position:absolute; width:100px; height:100px; top:10%; left:10%;
+  border-radius:50%; z-index:1; box-shadow:0 0 50px rgba(255,215,0,0.5);
 }
+.sun { background: radial-gradient(circle,#FFD700,#FFA500); }
+.moon { background: radial-gradient(circle,#f0e68c,#dcdcdc); display:none; }
 
-.cloud::before { width: 80px; height: 80px; top: -40px; left: 30px; }
-.cloud::after { width: 100px; height: 100px; top: -50px; left: 90px; }
-
-@keyframes moveClouds {
-  from { transform: translateX(-300px); }
-  to { transform: translateX(120vw); }
+/* --- Rain & Snow --- */
+.rain, .snow {position:absolute; width:100%; height:100%; top:0; left:0; z-index:1; display:none; opacity:0; transition:opacity 1s; pointer-events:none;}
+.raindrop, .snowflake {
+  position:absolute; width:2px; background:rgba(0,0,255,0.5);
+  animation:fall linear infinite;
 }
+.snowflake {background:white; width:5px; height:5px; border-radius:50%;}
 
-/* RAIN */
-.rain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+/* --- Stars & Shooting Stars --- */
+body.night {background: radial-gradient(#0a0a2a, #000033);}
+.star {position:absolute; width:2px; height:2px; background:white; border-radius:50%; opacity:0.8; animation:twinkle 2s infinite alternate;}
+@keyframes twinkle {0%{opacity:0.3;}100%{opacity:1;}}
+.shooting-star {position:absolute; width:2px; height:100px; background:linear-gradient(white,transparent); transform:rotate(45deg); opacity:0; animation:shoot 2s linear forwards;}
+@keyframes shoot {0%{opacity:1; transform:translate(0,0) rotate(45deg);} 100%{opacity:0; transform:translate(500px,500px) rotate(45deg);}}
 
-.raindrop {
-  position: absolute;
-  width: 2px;
-  height: 100vh;
-  background: rgba(0,0,255,.4);
-  animation: fall 1s linear infinite;
-}
+/* --- Keyframes --- */
+@keyframes moveClouds {0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+@keyframes fall {0%{top:-10px;}100%{top:100%;}}
 
-@keyframes fall {
-  from { transform: translateY(-100vh); }
-  to { transform: translateY(100vh); }
-}
+/* --- Content --- */
+.content {position:relative; z-index:2; text-align:center; padding:20px; transition:color 1s;}
+.content.rainy, .content.snowy {text-shadow:2px 2px 4px #000;}
 
-/* VISIBILITY RULES (CRITICAL) */
-body.day .moon,
-body.day .star,
-body.day .shooting-star {
-  display: none !important;
-}
+/* --- Side nav --- */
+.sidenav {height:100%;width:0;position:fixed;z-index:3;top:0;left:0;background:#111;overflow-x:hidden;transition:0.5s;padding-top:60px;text-align:center;}
+.sidenav a {padding:8px 8px 8px 32px;text-decoration:none;font-size:25px;color:#818181;display:block;transition:0.3s;}
+.sidenav a:hover{color:#f1f1f1;}
+.sidenav .closebtn {position:absolute;top:0;right:25px;font-size:36px;margin-left:50px;}
+@media screen and (max-height:450px){.sidenav{padding-top:15px;}.sidenav a{font-size:18px;}}
+#signOutBtn {position:absolute;top:12px;right:12px;padding:6px 12px;border:none;border-radius:6px;background:teal;color:white;cursor:pointer;}
+#signOutBtn:hover {background:#006666;}
 
-body.day .sun {
-  display: block !important;
-}
-
-body.night .sun {
-  display: none !important;
-}
-
-body.night .moon,
-body.night .star,
-body.night .shooting-star {
-  display: block !important;
-}
-
-/* CONTENT */
-.content {
-  position: relative;
-  z-index: 5;
-  color: white;
-  padding: 60px 20px;
-}
-
-/* SIDENAV */
-.sidenav {
-  position: fixed;
-  inset: 0;
-  background: #111;
-  width: 0;
-  overflow: hidden;
-  transition: .5s;
-  z-index: 10;
-  padding-top: 60px;
-}
-
-.sidenav a {
-  display: block;
-  padding: 15px;
-  color: #ccc;
-  text-decoration: none;
-  font-size: 22px;
-}
-
-.sidenav a:hover { color: white; }
-
-.hamburger {
-  font-size: 30px;
-  cursor: pointer;
-}
+/* --- Forecast Cards --- */
+.forecast-container {display:flex; flex-direction:column; align-items:center; margin-top:20px; gap:12px;}
+.forecast-card {background:linear-gradient(135deg,#ffffff,#e0f7fa); border-radius:15px; box-shadow:0 6px 12px rgba(0,0,0,0.2); width:90%; max-width:500px; cursor:pointer; transition:transform 0.3s, background 0.3s;}
+.forecast-card:hover {transform:translateY(-5px);}
+.card-summary {padding:12px; display:flex; justify-content:space-between; align-items:center; font-weight:bold;}
+.card-summary img {width:40px; height:40px; transition:transform 0.3s;}
+.expand-btn {font-size:20px; transition:transform 0.3s;}
+.forecast-details {padding:10px; text-align:left; font-weight:normal; display:none; overflow:auto; max-height:200px;}
+.forecast-card.expanded .forecast-details {display:block;}
+.forecast-card.expanded .expand-btn {transform:rotate(45deg);}
+@media screen and (max-width:500px){.card-summary{flex-direction:column;gap:5px;}.forecast-card{width:95%;}}
 </style>
 </head>
-
-<body class="day">
-
+<body>
 <div class="background">
   <div class="sun"></div>
   <div class="moon"></div>
-
-  <!-- Clouds -->
-  <div class="cloud" style="top:20%; animation-duration:70s;"></div>
-  <div class="cloud" style="top:45%; animation-duration:90s;"></div>
-  <div class="cloud" style="top:70%; animation-duration:110s;"></div>
-
-  <!-- Rain -->
-  <div class="rain" id="rain"></div>
-</div>
-
-<div id="menu" class="sidenav">
-  <a href="javascript:void(0)" onclick="closeNav()">Close ✕</a>
-  <a href="#">Home</a>
-  <a href="#">Forecast</a>
-  <a href="#">Radar</a>
+  <div class="cloud" style="top:30%;left:20%;animation-duration:25s;"></div>
+  <div class="cloud" style="top:60%;left:50%;animation-duration:28s;"></div>
+  <div class="cloud" style="top:15%;left:70%;animation-duration:20s;"></div>
+  <div class="rain"></div>
+  <div class="snow"></div>
 </div>
 
 <div class="content">
-  <span class="hamburger" onclick="openNav()">☰</span>
-  <h1>Hourly Forecast</h1>
-  <div id="forecast"></div>
+  <div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+    <a href="/index.html">Home</a>
+    <a href="/weather/10-day.html">10-Day Forecast</a>
+    <a href="/weather/station-link.html">Weather Stations</a>
+    <a href="/weather/Little-Rock.html">Capitol Weather</a>
+    <a href="/weather/radar.html">Local Radar</a>
+    <a href="/rain/index.html">Precipitation Map</a>
+    <a href="/blog/blog.html">Blog</a>
+    <a href="/about.html">About</a>
+    <a href="/settings.html">Settings</a>
+    <a href="/api.html">Weather Api</a>
+    <a href="/thanks.html">Thanks</a>  
+    <a href="#" id="signInLink">Sign Out</a>
+  </div>
+  <span style="font-size:30px;cursor:pointer" onclick="openNav()">☰</span>
+  <button id="signOutBtn">Sign Out</button>
+
+  <h2>Hourly Forecast</h2>
+  <div class="forecast-container" id="forecast-container">
+    <p>Loading forecast...</p>
+  </div>
 </div>
 
 <script>
-/* NAV */
-function openNav(){ menu.style.width="100%"; }
-function closeNav(){ menu.style.width="0"; }
+// --- Side nav ---
+function openNav(){ document.getElementById("mySidenav").style.width="100%";}
+function closeNav(){ document.getElementById("mySidenav").style.width="0";}
+document.getElementById("signOutBtn").addEventListener("click", ()=>{
+    localStorage.removeItem("signedIn"); window.location.href="/signin.html";
+});
+const signedIn = localStorage.getItem("signedIn") === "true";
+const signInLink = document.getElementById("signInLink");
+if(signedIn){signInLink.textContent="Sign Out"; signInLink.href="#"; signInLink.addEventListener("click", ()=>{ localStorage.removeItem("signedIn"); window.location.href="/signin.html"; });} 
+else {signInLink.textContent="Sign In"; signInLink.href="/signin.html";}
 
-/* DAY / NIGHT */
-function updateDayNight() {
+// --- Weather Background Mapping ---
+const weatherBackgrounds = {
+  "Sunny": {color:"#87CEEB", sun:true, clouds:0, rain:false, snow:false},
+  "Clear": {color:"#87CEEB", sun:true, clouds:0, rain:false, snow:false},
+  "Partly Cloudy": {color:"#B0E0E6", sun:true, clouds:2, rain:false, snow:false},
+  "Mostly Cloudy": {color:"#A9A9A9", sun:false, clouds:3, rain:false, snow:false},
+  "Cloudy": {color:"#808080", sun:false, clouds:4, rain:false, snow:false},
+  "Rain": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:false},
+  "Thunderstorms": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:false},
+  "Snow": {color:"#B0C4DE", sun:false, clouds:3, rain:false, snow:true},
+  "Sleet": {color:"#B0C4DE", sun:false, clouds:3, rain:true, snow:true},
+  "Hail": {color:"#B0C4DE", sun:false, clouds:3, rain:true, snow:true},
+  "Freezing Rain": {color:"#2F4F4F", sun:false, clouds:3, rain:true, snow:true}
+};
+
+function applyWeatherBackground(condition){
+  const bg = weatherBackgrounds[condition] || {color:"#87CEEB", sun:true, clouds:2, rain:false, snow:false};
+  document.body.style.background = bg.color;
+
+  const sun = document.querySelector('.sun');
+  const moon = document.querySelector('.moon');
+  const clouds = document.querySelectorAll('.cloud');
+  const rain = document.querySelector('.rain');
+  const snow = document.querySelector('.snow');
+  const content = document.querySelector('.content');
+
+  sun.style.display = bg.sun ? 'block' : 'none';
+  clouds.forEach((c,i)=>{c.style.display = i<bg.clouds ? 'block':'none';});
+
+  if(bg.rain){ startRain(); content.classList.add('rainy'); } else { stopRain(); content.classList.remove('rainy'); }
+  if(bg.snow){ startSnow(); content.classList.add('snowy'); } else { stopSnow(); content.classList.remove('snowy'); }
+
+  updateSunMoon();
+}
+
+// --- Sun / Moon and Night Sky ---
+function updateSunMoon() {
   const hour = new Date().getHours();
-  document.body.classList.remove("day","night");
+  const sun = document.querySelector('.sun');
+  const moon = document.querySelector('.moon');
+  const body = document.body;
 
-  if (hour >= 18 || hour < 6) {
-    document.body.classList.add("night");
-  } else {
-    document.body.classList.add("day");
+  if(hour >=6 && hour <18){ 
+    sun.style.display='block'; moon.style.display='none'; body.classList.remove('night'); 
+  } else { 
+    sun.style.display='none'; moon.style.display='block'; body.classList.add('night'); 
   }
 }
 
-/* STARS */
-function createStars() {
-  if (!document.body.classList.contains("night")) return;
-  for (let i=0;i<150;i++) {
-    const s=document.createElement("div");
-    s.className="star";
-    s.style.left=Math.random()*100+"%";
-    s.style.top=Math.random()*100+"%";
-    document.querySelector(".background").appendChild(s);
-  }
-}
+// --- Rain / Snow ---
+const rainContainer = document.querySelector('.rain');
+function startRain(){ rainContainer.style.display='block'; rainContainer.style.opacity=1; rainContainer.innerHTML=''; for(let i=0;i<100;i++){ const drop=document.createElement('div'); drop.classList.add('raindrop'); drop.style.left=`${Math.random()*100}%`; drop.style.height=`${10+Math.random()*10}px`; drop.style.animationDuration=`${0.5+Math.random()}s`; rainContainer.appendChild(drop);} }
+function stopRain(){ rainContainer.style.opacity=0; setTimeout(()=>{ rainContainer.style.display='none'; while(rainContainer.firstChild){ rainContainer.removeChild(rainContainer.firstChild); }},1000);}
+const snowContainer = document.querySelector('.snow');
+function startSnow(){ snowContainer.style.display='block'; snowContainer.style.opacity=1; snowContainer.innerHTML=''; for(let i=0;i<80;i++){ const flake=document.createElement('div'); flake.classList.add('snowflake'); flake.style.left=`${Math.random()*100}%`; flake.style.animationDuration=`${2+Math.random()*3}s`; flake.style.width=`${3+Math.random()*3}px`; flake.style.height=flake.style.width; snowContainer.appendChild(flake);} }
+function stopSnow(){ snowContainer.style.opacity=0; setTimeout(()=>{ snowContainer.style.display='none'; while(snowContainer.firstChild){ snowContainer.removeChild(snowContainer.firstChild); }},1000);}
 
-/* SHOOTING STAR */
-setInterval(()=>{
-  if (!document.body.classList.contains("night")) return;
-  const s=document.createElement("div");
-  s.className="shooting-star";
-  s.style.left=Math.random()*30+"%";
-  s.style.top=Math.random()*30+"%";
-  document.querySelector(".background").appendChild(s);
-  setTimeout(()=>s.remove(),1500);
-},15000);
-
-/* RAIN */
-function startRain(){
-  rain.innerHTML="";
-  for(let i=0;i<120;i++){
-    const d=document.createElement("div");
-    d.className="raindrop";
-    d.style.left=Math.random()*100+"%";
-    d.style.animationDuration=.5+Math.random()+"s";
-    rain.appendChild(d);
-  }
-}
-
-/* FORECAST */
-async function loadForecast(){
-  try{
-    const r=await fetch("https://api.weather.gov/gridpoints/LZK/36,91/forecast/hourly");
-    const d=await r.json();
-    forecast.innerHTML=d.properties.periods.slice(0,12)
-      .map(p=>`<p>${p.startTime.slice(11,16)} — ${p.temperature}°F</p>`).join("");
-  }catch{
-    forecast.innerHTML="Forecast unavailable";
-  }
-}
-
-/* INIT */
-updateDayNight();
+// --- Stars & Shooting Stars ---
+function createStars(count=100){ const bg=document.querySelector('.background'); for(let i=0;i<count;i++){ const star=document.createElement('div'); star.classList.add('star'); star.style.top=`${Math.random()*100}%`; star.style.left=`${Math.random()*100}%`; star.style.width=star.style.height=`${Math.random()*2+1}px`; bg.appendChild(star);} }
 createStars();
-startRain();
+function shootingStar(){ const bg=document.querySelector('.background'); const star=document.createElement('div'); star.classList.add('shooting-star'); star.style.top=`${Math.random()*50}%`; star.style.left=`${Math.random()*50}%`; bg.appendChild(star); setTimeout(()=>{bg.removeChild(star)},2000);}
+setInterval(shootingStar,5000);
+
+// --- Forecast Cards ---
+function createCard(period){
+  const card=document.createElement('div'); card.classList.add('forecast-card');
+  const iconURL=period.icon||"https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png";
+  card.innerHTML=`<div class="card-summary">
+    <div>${new Date(period.startTime).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}<br>${period.temperature}°${period.temperatureUnit}</div>
+    <img src="${iconURL}" alt="icon" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Weather-icon-unknown.svg/50px-Weather-icon-unknown.svg.png'">
+    <span class="expand-btn">+</span>
+  </div>
+  <div class="forecast-details">
+    <p>${period.shortForecast}</p>
+    <p>Wind: ${period.windSpeed} ${period.windDirection}</p>
+    <p>Precip: ${period.probabilityOfPrecipitation.value||0}%</p>
+    <p>${period.detailedForecast}</p>
+  </div>`;
+  card.querySelector('.card-summary').addEventListener('click',()=>{card.classList.toggle('expanded');});
+  return card;
+}
+
+// --- Fetch NOAA Forecast ---
+async function fetchForecast(lat,lon){
+  const container=document.getElementById('forecast-container');
+  container.innerHTML='<p>Loading forecast...</p>';
+  try{
+    const headers={'User-Agent':'WeatherArkansasApp (example@example.com)','Accept':'application/geo+json'};
+    const point=await fetch(`https://api.weather.gov/points/${lat},${lon}`,{headers}).then(r=>r.json());
+    const forecast=await fetch(point.properties.forecastHourly,{headers}).then(r=>r.json());
+    const now=new Date();
+    container.innerHTML='';
+    forecast.properties.periods
+      .filter(p=>new Date(p.startTime)>now)
+      .slice(0,24)
+      .forEach(p=>container.appendChild(createCard(p)));
+    applyWeatherBackground(forecast.properties.periods[0].shortForecast);
+  }catch(e){console.error(e); container.innerHTML='<p>Unable to load forecast.</p>';}
+}
+
+// --- Load Forecast with Geolocation ---
+function loadForecast(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>fetchForecast(pos.coords.latitude,pos.coords.longitude),
+      ()=>fetchForecast(34.7465,-92.2896));
+  } else { fetchForecast(34.7465,-92.2896); }
+}
 loadForecast();
-
-setInterval(updateDayNight, 10000);
-setInterval(loadForecast, 60000);
+setInterval(loadForecast,10000); // refresh every 10 seconds
 </script>
-
 </body>
 </html>
