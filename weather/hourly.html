@@ -9,32 +9,34 @@
     margin: 0;
     font-family: Arial, sans-serif;
     color: #fff;
-    transition: background 0.5s;
     overflow-x: hidden;
-    position: relative;
   }
   #weather-background {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    inset: 0;
     z-index: -1;
-    overflow: hidden;
     transition: background 1s;
+    overflow: hidden;
   }
-  #forecast-container {
-    padding: 20px;
-  }
+  #forecast-container { padding: 20px; }
   .day-container { margin-bottom: 40px; }
-  h2 { border-bottom: 2px solid #1e3c72; padding-bottom: 5px; margin-bottom: 10px; }
+  h2 { border-bottom: 2px solid #1e3c72; padding-bottom: 5px; }
   .hourly-container { display: flex; flex-direction: column; gap: 8px; }
-  .hour-card { background-color: rgba(30, 60, 114, 0.9); border-radius: 8px; padding: 10px; cursor: pointer; transition: transform 0.2s; }
+  .hour-card {
+    background: rgba(30, 60, 114, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
   .hour-card:hover { transform: scale(1.02); }
   .hour-summary { display: flex; justify-content: space-between; align-items: center; }
   .hour-details { display: none; font-size: 0.85em; margin-top: 5px; }
   .hour-card.expanded .hour-details { display: block; }
-  .expand-btn { cursor: pointer; font-weight: bold; }
+  .expand-btn { font-weight: bold; }
+
   .particle { position: absolute; width: 2px; height: 10px; background: rgba(255,255,255,0.6); animation: fall linear infinite; }
-  @keyframes fall { 0% {transform: translateY(-10px);} 100% {transform: translateY(100vh);} }
+  @keyframes fall { from { transform: translateY(-10px);} to { transform: translateY(100vh);} }
   .cloud { position: absolute; background: rgba(255,255,255,0.3); border-radius: 50%; }
 </style>
 </head>
@@ -44,27 +46,28 @@
 <div id="forecast-container"></div>
 
 <script>
-// ================== HELPER FUNCTIONS ==================
+// ================== LOCATION ==================
 async function getLocationOrDefault() {
   try {
-    if (navigator.geolocation) {
-      const pos = await new Promise((resolve, reject) => 
-        navigator.geolocation.getCurrentPosition(resolve, reject)
-      );
-      return { lat: pos.coords.latitude, lon: pos.coords.longitude };
-    } else throw "Geolocation not supported";
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+    );
+    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
   } catch {
-    // fallback to Little Rock, Arkansas
-    return { lat: 34.7465, lon: -92.2896 };
+    return { lat: 34.7465, lon: -92.2896 }; // Little Rock fallback
   }
 }
 
+// ================== FETCH ==================
 async function fetchForecast(lat, lon) {
-  const pointData = await fetch(`https://api.weather.gov/points/${lat},${lon}`).then(r => r.json());
-  const forecastData = await fetch(pointData.properties.forecastHourly).then(r => r.json());
-  return forecastData;
+  const pointRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+  const pointData = await pointRes.json();
+
+  const hourlyRes = await fetch(pointData.properties.forecastHourly);
+  return hourlyRes.json();
 }
 
+// ================== BACKGROUND ==================
 function clearBackground() {
   document.getElementById('weather-background').innerHTML = '';
 }
@@ -72,111 +75,198 @@ function clearBackground() {
 function setWeatherBackground(condition, isDay) {
   const bg = document.getElementById('weather-background');
   clearBackground();
-  
-  let color = '#0b1d3a';
-  if (condition.includes("Rain") || condition.includes("Storm")) color = '#2a3b4c';
-  else if (condition.includes("Snow")) color = '#3b4a5b';
-  else if (condition.includes("Cloud")) color = isDay ? '#6e7e8e' : '#3b3b4b';
-  else if (condition.includes("Clear") || condition.includes("Sunny")) color = isDay ? '#87ceeb' : '#0b1d3a';
-  bg.style.background = color;
 
-  if (condition.includes("Cloud")) {
-    for (let i=0;i<10;i++){
-      const cloud = document.createElement('div');
-      cloud.className='cloud';
-      cloud.style.width=(50+Math.random()*100)+'px';
-      cloud.style.height=(30+Math.random()*50)+'px';
-      cloud.style.top=Math.random()*50+'%';
-      cloud.style.left=Math.random()*100+'%';
-      bg.appendChild(cloud);
+  const c = condition.toLowerCase();
+
+  /* =====================================================
+     SKY BASE COLORS (DAY / NIGHT)
+  ===================================================== */
+  let sky = isDay ? '#87ceeb' : '#0b1d3a';
+
+  if (/mostly sunny|partly sunny/.test(c)) sky = isDay ? '#8fd3ff' : '#102447';
+  if (/partly cloudy/.test(c)) sky = isDay ? '#7faac7' : '#1b2f4a';
+  if (/mostly cloudy/.test(c)) sky = isDay ? '#6e7e8e' : '#2c3442';
+  if (/cloudy|overcast/.test(c)) sky = '#5b6470';
+  if (/rain|drizzle/.test(c)) sky = '#2a3b4c';
+  if (/thunder/.test(c)) sky = '#1f2937';
+  if (/snow|sleet/.test(c)) sky = '#3b4a5b';
+  if (/fog|mist|haze/.test(c)) sky = isDay ? '#9ca3af' : '#4b5563';
+
+  bg.style.background = sky;
+
+  /* =====================================================
+     SUN / MOON / STARS
+  ===================================================== */
+  if (/sunny|clear/.test(c) && isDay) {
+    const sun = document.createElement('div');
+    sun.style.cssText = `position:absolute;width:140px;height:140px;border-radius:50%;
+      background:radial-gradient(circle,#fff59d,#facc15);
+      top:10%;left:10%;`;
+    bg.appendChild(sun);
+  }
+
+  if (!isDay) {
+    const moon = document.createElement('div');
+    moon.style.cssText = `position:absolute;width:110px;height:110px;border-radius:50%;
+      background:radial-gradient(circle,#f3f4f6,#d1d5db);
+      top:12%;left:12%;`;
+    bg.appendChild(moon);
+
+    for (let i = 0; i < 60; i++) {
+      const star = document.createElement('div');
+      star.style.cssText = `position:absolute;width:2px;height:2px;background:white;
+        top:${Math.random()*100}%;left:${Math.random()*100}%;opacity:${Math.random()};`;
+      bg.appendChild(star);
     }
   }
 
-  if (condition.includes("Rain") || condition.includes("Storm")) {
-    for(let i=0;i<100;i++){
-      const p=document.createElement('div');
-      p.className='particle';
-      p.style.left=Math.random()*100+'%';
-      p.style.animationDuration=(0.5+Math.random()*1.5)+'s';
-      p.style.height=(5+Math.random()*5)+'px';
-      bg.appendChild(p);
+  /* =====================================================
+     CLOUD LOGIC (AMOUNT BASED)
+  ===================================================== */
+  let cloudCount = 0;
+  if (/mostly sunny/.test(c)) cloudCount = 1;
+  else if (/partly cloudy/.test(c)) cloudCount = 3;
+  else if (/mostly cloudy/.test(c)) cloudCount = 6;
+  else if (/cloudy|overcast/.test(c)) cloudCount = 10;
+
+  for (let i = 0; i < cloudCount; i++) {
+    const cloud = document.createElement('div');
+    cloud.className = 'cloud';
+    cloud.style.width = 80 + Math.random()*140 + 'px';
+    cloud.style.height = 40 + Math.random()*70 + 'px';
+    cloud.style.top = Math.random()*45 + '%';
+    cloud.style.left = Math.random()*100 + '%';
+    cloud.style.background = 'rgba(255,255,255,0.35)';
+    bg.appendChild(cloud);
+  }
+
+  /* =====================================================
+     RAIN
+  ===================================================== */
+  if (/rain|drizzle/.test(c)) {
+    for (let i = 0; i < 150; i++) {
+      const drop = document.createElement('div');
+      drop.className = 'particle';
+      drop.style.left = Math.random()*100 + '%';
+      drop.style.animationDuration = 0.4 + Math.random()*0.9 + 's';
+      bg.appendChild(drop);
     }
   }
 
-  if (condition.includes("Snow")) {
-    for(let i=0;i<100;i++){
-      const s=document.createElement('div');
-      s.className='particle';
-      s.style.left=Math.random()*100+'%';
-      s.style.animationDuration=(1+Math.random()*3)+'s';
-      s.style.height=(2+Math.random()*4)+'px';
-      s.style.background='white';
-      bg.appendChild(s);
+  /* =====================================================
+     THUNDERSTORMS
+  ===================================================== */
+  if (/thunder/.test(c)) {
+    for (let i = 0; i < 200; i++) {
+      const drop = document.createElement('div');
+      drop.className = 'particle';
+      drop.style.left = Math.random()*100 + '%';
+      drop.style.animationDuration = 0.3 + Math.random()*0.6 + 's';
+      bg.appendChild(drop);
+    }
+    const flash = document.createElement('div');
+    flash.style.cssText = `position:absolute;inset:0;background:white;opacity:0;
+      animation:lightning 6s infinite;`;
+    bg.appendChild(flash);
+  }
+
+  /* =====================================================
+     SNOW / MIX
+  ===================================================== */
+  if (/snow|sleet|mix/.test(c)) {
+    for (let i = 0; i < 120; i++) {
+      const flake = document.createElement('div');
+      flake.className = 'particle';
+      flake.style.width = flake.style.height = 2 + Math.random()*3 + 'px';
+      flake.style.background = 'white';
+      flake.style.left = Math.random()*100 + '%';
+      flake.style.animationDuration = 1.5 + Math.random()*3 + 's';
+      bg.appendChild(flake);
+    }
+  }
+
+  /* =====================================================
+     FOG / HAZE
+  ===================================================== */
+  if (/fog|mist|haze/.test(c)) {
+    for (let i = 0; i < 6; i++) {
+      const fog = document.createElement('div');
+      fog.style.cssText = `position:absolute;width:140%;height:120px;left:-20%;
+        top:${20+i*12}%;background:rgba(255,255,255,0.2);
+        filter:blur(30px);`;
+      bg.appendChild(fog);
     }
   }
 }
 
-// ================== MAIN FUNCTION ==================
+// ================== RENDER ==================
 async function renderForecast() {
-  try {
-    const coords = await getLocationOrDefault();
-    const data = await fetchForecast(coords.lat, coords.lon);
-    const container = document.getElementById('forecast-container');
-    container.innerHTML = '';
-    
-    const dailyData = {};
-    data.properties.periods.forEach(period => {
-      const day = period.startTime.split('T')[0];
-      if (!dailyData[day]) dailyData[day] = [];
-      dailyData[day].push(period);
-    });
+  const now = new Date();
+  const cutoff = now.getTime();
+  const fiveDaysAhead = cutoff + 5 * 24 * 60 * 60 * 1000;
 
-    Object.keys(dailyData).slice(0,5).forEach(day => {
-      const dayDiv = document.createElement('div');
-      dayDiv.className = 'day-container';
-      dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
-      container.appendChild(dayDiv);
-      
-      const hourlyContainer = dayDiv.querySelector('.hourly-container');
-      dailyData[day].forEach(hour => {
-        const isDay = hour.isDaytime;
-        const card = document.createElement('div');
-        card.className = 'hour-card';
-        card.innerHTML = `
-          <div class="hour-summary">
-            <div>
-              <strong>${new Date(hour.startTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</strong>
-              <br>${hour.temperature}°${hour.temperatureUnit}
-            </div>
-            <div>
-              <img src="${hour.icon}" alt="${hour.shortForecast}" width="40" height="40">
-            </div>
-            <div class="expand-btn">+</div>
-          </div>
-          <div class="hour-details">
-            <p>${hour.shortForecast}</p>
-            <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
-            <p>Precip: ${hour.probabilityOfPrecipitation.value ?? 0}%</p>
-          </div>
-        `;
-        hourlyContainer.appendChild(card);
-        card.querySelector('.expand-btn').addEventListener('click', () => card.classList.toggle('expanded'));
-      });
-    });
+  const { lat, lon } = await getLocationOrDefault();
+  const data = await fetchForecast(lat, lon);
 
-    // Set background based on current weather (first period)
-    const firstPeriod = data.properties.periods[0];
-    setWeatherBackground(firstPeriod.shortForecast, firstPeriod.isDaytime);
+  // 1) FILTER PAST HOURS, KEEP FUTURE ONLY
+  const futurePeriods = data.properties.periods.filter(p => {
+    const t = new Date(p.startTime).getTime();
+    return t >= cutoff && t <= fiveDaysAhead;
+  });
 
-  } catch (e) {
-    console.error("Error loading forecast:", e);
-    document.getElementById('forecast-container').innerHTML = "<p>Unable to load forecast. Allow location access or check internet.</p>";
+  // 2) ENSURE WE ALWAYS EXTEND TO ~5 DAYS (NWS CAN BE SHORT BY 1 HOUR)
+  if (futurePeriods.length > 0) {
+    const last = futurePeriods[futurePeriods.length - 1];
+    futurePeriods.push({ ...last });
   }
+
+  const container = document.getElementById('forecast-container');
+  container.innerHTML = '';
+
+  const grouped = {};
+  futurePeriods.forEach(p => {
+    const day = p.startTime.split('T')[0];
+    grouped[day] ??= [];
+    grouped[day].push(p);
+  });
+
+  Object.keys(grouped).slice(0, 5).forEach(day => {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day-container';
+    dayDiv.innerHTML = `<h2>${new Date(day).toDateString()}</h2><div class="hourly-container"></div>`;
+    container.appendChild(dayDiv);
+
+    const hourlyContainer = dayDiv.querySelector('.hourly-container');
+    grouped[day].forEach(hour => {
+      const card = document.createElement('div');
+      card.className = 'hour-card';
+      card.innerHTML = `
+        <div class="hour-summary">
+          <div>
+            <strong>${new Date(hour.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong><br>
+            ${hour.temperature}°${hour.temperatureUnit}
+          </div>
+          <img src="${hour.icon}" width="40" height="40">
+          <div class="expand-btn">+</div>
+        </div>
+        <div class="hour-details">
+          <p>${hour.shortForecast}</p>
+          <p>Wind: ${hour.windSpeed} ${hour.windDirection}</p>
+          <p>Precip: ${hour.probabilityOfPrecipitation?.value ?? 0}%</p>
+        </div>`;
+
+      card.querySelector('.expand-btn').onclick = () => card.classList.toggle('expanded');
+      hourlyContainer.appendChild(card);
+    });
+  });
+
+  // 3) BACKGROUND TRACKS CURRENT HOUR ONLY
+  const currentHour = futurePeriods[0];
+  setWeatherBackground(currentHour.shortForecast, currentHour.isDaytime);
 }
 
-// Refresh every 5 minutes
 renderForecast();
-setInterval(renderForecast, 300000);
+setInterval(renderForecast, 5 * 60 * 1000);
 </script>
 </body>
 </html>
