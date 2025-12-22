@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Learning AI</title>
+<script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+<style>
+  body { font-family: Arial; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0;}
+  .chat-container {background:white; padding:20px; border-radius:10px; width:400px; display:flex; flex-direction:column;}
+  .chat-box {height:300px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:10px; background:#fafafa;}
+  .message {margin:5px 0;}
+  .user {text-align:right; color:blue;}
+  .bot {text-align:left; color:green;}
+  input[type="text"] {flex:1; padding:10px; border-radius:5px; border:1px solid #ddd;}
+  button {padding:10px; margin-left:5px; border:none; border-radius:5px; background:#28a745; color:white; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-box" id="chatBox"></div>
+  <div style="display:flex;">
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+const chatBox = document.getElementById("chatBox");
+
+// Load previous learning from localStorage
+let trainingData = JSON.parse(localStorage.getItem("brainTrainingData")) || [
+  { input: "hello", output: "Hi there!" },
+  { input: "how are you", output: "I'm just a bot, I'm good!" },
+  { input: "what is your name", output: "I am Brain.js Bot." },
+  { input: "bye", output: "Goodbye!" }
+];
+
+const net = new brain.recurrent.LSTM();
+net.train(trainingData, { iterations: 2000, log: false, learningRate: 0.3 });
+
+function addMessage(sender, text) {
+  const messageDiv = document.createElement("div");
+  messageDiv.classList.add("message", sender);
+  messageDiv.textContent = text;
+  chatBox.appendChild(messageDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// AI replies or asks user for correct answer if unknown
+function botReply(input) {
+  let reply = net.run(input);
+  if(!reply || reply === input) {
+    reply = "I don't know the answer. Can you teach me?";
+    addMessage("bot", reply);
+    return false; // Indicates we need to learn
+  } else {
+    addMessage("bot", reply);
+    return true;
+  }
+}
+
+function sendMessage() {
+  const userInput = document.getElementById("userInput").value.trim();
+  if(userInput === "") return;
+  addMessage("user", userInput);
+  document.getElementById("userInput").value = "";
+
+  setTimeout(() => {
+    const known = botReply(userInput);
+
+    if(!known) {
+      // Ask user to provide correct response
+      const userTeach = prompt("Teach the AI: What should I respond to '" + userInput + "'?");
+      if(userTeach && userTeach.trim() !== "") {
+        // Add new training pair
+        trainingData.push({ input: userInput, output: userTeach });
+        net.train(trainingData, { iterations: 2000, log: false, learningRate: 0.3 });
+        // Save to localStorage
+        localStorage.setItem("brainTrainingData", JSON.stringify(trainingData));
+        addMessage("bot", "Thanks! I learned something new!");
+      }
+    }
+  }, 300);
+}
+</script>
+
+</body>
+</html>
