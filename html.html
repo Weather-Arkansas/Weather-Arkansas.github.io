@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Image Generator</title>
+<style>
+body { font-family: sans-serif; text-align: center; background: #121212; color: #fff; }
+input, button { padding: 10px; margin: 10px; width: 300px; }
+img { max-width: 80%; margin-top: 20px; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<h1>AI Image Generator</h1>
+
+<input type="text" id="prompt" placeholder="Enter prompt..." />
+<br>
+<button id="generate">Generate Image</button>
+
+<div id="result"></div>
+
+<script>
+document.getElementById("generate").addEventListener("click", async () => {
+  const prompt = document.getElementById("prompt").value;
+  if(!prompt) return alert("Enter a prompt!");
+
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = "Generating...";
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer YOUR_OPENAI_API_KEY"
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        n:1,
+        size:"512x512"
+      })
+    });
+
+    const data = await response.json();
+    if(data.data && data.data[0].url){
+      resultDiv.innerHTML = `<img src="${data.data[0].url}" />`;
+    } else {
+      resultDiv.innerHTML = "Error generating image";
+    }
+
+  } catch(e){
+    resultDiv.innerHTML = "Error: "+e;
+  }
+});
+</script>
+
+</body>
+</html>
